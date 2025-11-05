@@ -1,6 +1,5 @@
 from django.db import models
 from userapp.models import Utilisateur
-from userapp.models import Entreprise 
 class Freelance(models.Model):
     DOMAINES = [
     ('IT', 'Informatique / Développement'),
@@ -20,7 +19,7 @@ class Freelance(models.Model):
     duree_estimee=models.IntegerField()
     date_publication=models.DateField(auto_now_add=True)
     domaine = models.CharField( max_length=50,choices=DOMAINES,default='IT')
-    id_user = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name="formations")
-     
-    def _str_ (self):
+    id_user = models.ForeignKey(Utilisateur, on_delete=models.CASCADE,null=True, related_name="freelances")
+
+    def __str__(self):
         return self.titre_mission
