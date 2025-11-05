@@ -43,4 +43,4 @@ class Stage(models.Model):
 
     # ────────────── DISPLAY ──────────────
     def __str__(self):
-        return f"{self.titre} ({self.entreprise.nom})"
+        return f"{self.titre} ({self.entreprise.nom_entreprise})"
