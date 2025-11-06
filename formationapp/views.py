@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from .models import Formation
-from django.http import HttpResponse
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView
 # Create your views here.
 class FormationListView(ListView):
     model = Formation

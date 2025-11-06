@@ -355,7 +355,7 @@
                                             <div class="row">
                                                 <div class="col-lg-12 col-12">
                                                     <a href="job-single-2.html" class="card-2-img-text card-grid-2-img-medium">
-                                                        <span class="card-grid-2-img-small"><img alt="jobhub" src="../../static/imgs/page/job/ui-ux.svg" /></span> <span>{{ Formation.title }}</span>
+                                                        <span class="card-grid-2-img-small"><img alt="jobhub" src="../../static/imgs/page/job/ui-ux.svg" /></span> <span>{{ Formation.titre }}</span>
                                                     </a>
                                                     <div class="dropdowm menu-dropdown-abs">
                                                         <button class="btn btn-dots btn-dots-abs-right dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
@@ -368,27 +368,45 @@
                                             </div>
 
                                             <div class="mt-15">
-                                                <span class="text-sm text-mutted-2 mr-20"><i class="fi-rr-marker"></i> Wisconsin</span>
-                                                <span class="text-sm text-mutted-2"><i class="fi-rr-briefcase"></i> Full time</span>
+                                                <span class="text-sm text-mutted-2 mr-20"> 
+                                                {% if Formation.niveau == 'Debutant' %}
+                                                <i class="fi-rr-leaf"></i>
+                                                Beginner
+                                                {% elif Formation.niveau == 'Intermediaire' %}
+                                                <i class="fi-rr-sparkles"></i>
+                                                Intermediate
+                                                {% else %}
+                                                <i class="fi-rr-trophy"></i>
+                                                Advanced
+                                                {% endif %}
+                                                </span>
+                                                <span class="text-sm text-mutted-2">
+                                                {% if Formation.certif %}
+                                                <i class="fi-rr-check"></i>
+                                                Certified
+                                                {% else %}
+                                                <i class="fi-rr-cross"></i>
+                                                Not Certified
+                                                {% endif %}
+                                                </span>
                                             </div>
 
                                             <div class="text-small mt-15">
-                                                {{ Formation.title }}
+                                                {{ Formation.description }}
                                             </div>
 
                                             <div class="card-2-bottom mt-30">
                                                 <div class="row">
                                                     <div class="col-lg-6 col-8">
-                                                        <a href="employers-single-2.html"><span class="text-brand-10 text-icon-first">Amanda</span></a>
+                                                        <a href="employers-single-2.html"><span class="text-brand-10 text-icon-first">{{ Formation.id_user }}</span></a>
                                                     </div>
                                                     <div class="col-lg-6 col-4 text-end">
-                                                        <span class="card-text-price"> $500<span>/Hour</span> </span>
+                                                        <span class="card-text-price"> {{ Formation.duree }}<span> Hours</span> </span>
                                                     </div>
                                                 </div>
                                                 <div class="row mt-20">
                                                     <div class="col-lg-8 col-8">
-                                                        <a href="job-grid.html" class="btn btn-grey-small">Adobe XD</a>
-                                                        <a href="job-list.html" class="btn btn-grey-small">Figma</a>
+                                                        <p class="btn btn-grey-small">{{ Formation.categorie }}</p>
                                                     </div>
                                                     <div class="col-lg-4 col-4 text-end pt-5">
                                                         <span class="text-gray-100 text-md"><i class="fi-rr-shield-check"></i></span>
@@ -664,7 +682,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4 col-sm-12">
-                    <a href="index.html"><img alt="jobhub" src="../../static/imgs/theme/jobhub-logo.svg" /></a>
+                    <a href="index.html"><img alt="jobhub" src="../../static/imgs/theme/worki_logo.svg" /></a>
                     <div class="mt-20 mb-20">Jobhub is the heart of the design community and the best resource to
                         discover and connect with designers and jobs worldwide.</div>
                 </div>
