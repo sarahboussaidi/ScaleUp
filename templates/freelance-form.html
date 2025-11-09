@@ -1,252 +1,19 @@
-﻿<!DOCTYPE html>
-<html class="no-js" lang="en">
+﻿{% extends 'base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="utf-8" />
-    <title>Jobhub - Job Board HTML Website Template</title>
-    <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <meta name="description" content="" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta property="og:title" content="" />
-    <meta property="og:type" content="" />
-    <meta property="og:url" content="" />
-    <meta property="og:image" content="" />
-    <!-- Favicon -->
-    <link rel="shortcut icon" type="image/x-icon" href="/static/imgs/theme/favicon.svg" />
-    <!-- Template CSS -->
-    <link rel="stylesheet" href="/static/css/plugins/animate.min.css" />
-    <link rel="stylesheet" href="/static/css/main.css?v=1.0" />
-</head>
+{% block title %}freelance offer{% endblock %}
 
-<body>
-    <!-- Preloader Start -->
-    <div id="preloader-active">
-        <div class="preloader d-flex align-items-center justify-content-center">
-            <div class="preloader-inner position-relative">
-                <div class="text-center">
-                    <img src="/static/imgs/theme/loading.gif" alt="jobhub" />
-                </div>
-            </div>
-        </div>
-    </div>
-    <header class="header sticky-bar">
-        <div class="container">
-            <div class="main-header">
-                <div class="header-left">
-                    <div class="header-logo">
-                        <a href="index.html" class="d-flex"><img alt="jobhub" src="/static/imgs/theme/jobhub-logo.svg" /></a>
-                    </div>
-                    <div class="header-nav">
-                        <nav class="nav-main-menu d-none d-xl-block">
-                            <ul class="main-menu">
-                                <li class="has-children">
-                                    <a class="active" href="index.html">Home</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="index.html">Home 1</a></li>
-                                        <li><a href="index-2.html">Home 2</a></li>
-                                        <li><a href="index-3.html">Home 3</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="job-grid.html">Browse Jobs</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="job-grid.html">Job Grid</a></li>
-                                        <li><a href="job-grid-2.html">Job Grid 2</a></li>
-                                        <li><a href="job-list.html">Job List</a></li>
-                                        <li class="hr"><span></span></li>
-                                        <li><a href="job-single.html">Job Single 01</a></li>
-                                        <li><a href="job-single-2.html">Job Single 02</a></li>
-                                        <li><a href="job-single-3.html">Job Single 03</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="employers-grid.html">Employers</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="employers-grid.html">Employers Grid</a></li>
-                                        <li><a href="employers-grid-2.html">Employers Grid 2</a></li>
-                                        <li><a href="employers-list.html">Employers List</a></li>
-                                        <li class="hr"><span></span></li>
-                                        <li><a href="employers-single.html">Employers Single 01</a></li>
-                                        <li><a href="employers-single-2.html">Employers Single 02</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="candidates-grid.html">Candidates</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="candidates-grid.html">Candidates Grid</a></li>
-                                        <li><a href="candidates-grid-2.html">Candidates Grid 2</a></li>
-                                        <li><a href="candidates-list.html">Candidates List</a></li>
-                                        <li class="hr"><span></span></li>
-                                        <li><a href="candidates-single.html">Candidates Single 01</a></li>
-                                        <li><a href="candidates-single-2.html">Candidates Single 02</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="#">Blog</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="blog-grid.html">Blog Grid</a></li>
-                                        <li><a href="blog-grid-2.html">Blog Grid Sidebar</a></li>
-                                        <li><a href="blog-list.html">Blog List</a></li>
-                                        <li class="hr"><span></span></li>
-                                        <li><a href="blog-single.html">Blog Single 01</a></li>
-                                        <li><a href="blog-single-2.html">Blog Single 02</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="#">Pages</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="page-about.html">About Us</a></li>
-                                        <li><a href="page-service.html">Our Services</a></li>
-                                        <li><a href="page-pricing.html">Pricing Plan</a></li>
-                                        <li><a href="pages-faqs.html">FAQs</a></li>
-                                        <li><a href="page-contact.html">Contact Us</a></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </nav>
-                        <div class="burger-icon burger-icon-white">
-                            <span class="burger-icon-top"></span>
-                            <span class="burger-icon-mid"></span>
-                            <span class="burger-icon-bottom"></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="header-right">
-                    <div class="block-signin">
-                        <a href="#" class="text-link-bd-btom hover-up">Apply Now</a>
-                        <a href="#" class="btn btn-default btn-shadow ml-40 hover-up">Sign in</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-    <div class="mobile-header-active mobile-header-wrapper-style perfect-scrollbar">
-        <div class="mobile-header-wrapper-inner">
-            <div class="mobile-header-top">
-                <div class="user-account">
-                    <img src="/static/imgs/avatar/ava_1.png" alt="jobhub" />
-                    <div class="content">
-                        <h6 class="user-name">Howdy, <span class="text-brand">AliThemes</span></h6>
-                        <p class="font-xs text-muted">You have 2 new messages</p>
-                    </div>
-                </div>
-                <div class="burger-icon burger-icon-white">
-                    <span class="burger-icon-top"></span>
-                    <span class="burger-icon-mid"></span>
-                    <span class="burger-icon-bottom"></span>
-                </div>
-            </div>
-            <div class="mobile-header-content-area">
-                <div class="perfect-scroll">
-                    <div class="mobile-search mobile-header-border mb-30">
-                        <form action="#">
-                            <input type="text" placeholder="Search for items…" />
-                            <i class="fi-rr-search"></i>
-                        </form>
-                    </div>
-                    <div class="mobile-menu-wrap mobile-header-border">
-                        <!-- mobile menu start -->
-                        <nav>
-                            <ul class="mobile-menu font-heading">
-                                <li class="has-children">
-                                    <a class="active" href="index.html">Home</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="index.html">Home 1</a></li>
-                                        <li><a href="index-2.html">Home 2</a></li>
-                                        <li><a href="index-3.html">Home 3</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="job-grid.html">Browse Jobs</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="job-grid.html">Job Grid</a></li>
-                                        <li><a href="job-grid-2.html">Job Grid 2</a></li>
-                                        <li><a href="job-list.html">Job List</a></li>
-                                        <li class="hr"><span></span></li>
-                                        <li><a href="job-single.html">Job Single 01</a></li>
-                                        <li><a href="job-single-2.html">Job Single 02</a></li>
-                                        <li><a href="job-single-3.html">Job Single 03</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="employers-grid.html">Employers</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="employers-grid.html">Employers Grid</a></li>
-                                        <li><a href="employers-grid-2.html">Employers Grid 2</a></li>
-                                        <li><a href="employers-list.html">Employers List</a></li>
-                                        <li class="hr"><span></span></li>
-                                        <li><a href="employers-single.html">Employers Single 01</a></li>
-                                        <li><a href="employers-single-2.html">Employers Single 02</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="candidates-grid.html">Candidates</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="candidates-grid.html">Candidates Grid</a></li>
-                                        <li><a href="candidates-grid-2.html">Candidates Grid 2</a></li>
-                                        <li><a href="candidates-list.html">Candidates List</a></li>
-                                        <li class="hr"><span></span></li>
-                                        <li><a href="candidates-single.html">Candidates Single 01</a></li>
-                                        <li><a href="candidates-single-2.html">Candidates Single 02</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="#">Blog</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="blog-grid.html">Blog Grid</a></li>
-                                        <li><a href="blog-grid-2.html">Blog Grid Sidebar</a></li>
-                                        <li><a href="blog-list.html">Blog List</a></li>
-                                        <li class="hr"><span></span></li>
-                                        <li><a href="blog-single.html">Blog Single 01</a></li>
-                                        <li><a href="blog-single-2.html">Blog Single 02</a></li>
-                                    </ul>
-                                </li>
-                                <li class="has-children">
-                                    <a href="#">Pages</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="page-about.html">About Us</a></li>
-                                        <li><a href="page-service.html">Our Services</a></li>
-                                        <li><a href="page-pricing.html">Pricing Plan</a></li>
-                                        <li><a href="pages-faqs.html">FAQs</a></li>
-                                        <li><a href="page-contact.html">Contact Us</a></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </nav>
-                        <!-- mobile menu end -->
-                    </div>
-                    <div class="mobile-account">
-                        <h6 class="mb-10">Your Account</h6>
-                        <ul class="mobile-menu font-heading">
-                            <li><a href="#">Profile</a></li>
-                            <li><a href="#">Work Preferences</a></li>
-                            <li><a href="#">My Boosted Shots</a></li>
-                            <li><a href="#">My Collections</a></li>
-                            <li><a href="#">Account Settings</a></li>
-                            <li><a href="#">Go Pro</a></li>
-                            <li><a href="#">Sign Out</a></li>
-                        </ul>
-                    </div>
-                    <div class="mobile-social-icon mb-50">
-                        <h6 class="mb-25">Follow Us</h6>
-                        <a href="#"><img src="/static/imgs/theme/icons/icon-facebook.svg" alt="jobhub" /></a>
-                        <a href="#"><img src="/static/imgs/theme/icons/icon-twitter.svg" alt="jobhub" /></a>
-                        <a href="#"><img src="/static/imgs/theme/icons/icon-instagram.svg" alt="jobhub" /></a>
-                        <a href="#"><img src="/static/imgs/theme/icons/icon-pinterest.svg" alt="jobhub" /></a>
-                        <a href="#"><img src="/static/imgs/theme/icons/icon-youtube.svg" alt="jobhub" /></a>
-                    </div>
-                    <div class="site-copyright">Copyright 2022 © JobHub. <br />Designed by AliThemes.</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!--End header-->
-   <!-- Content -->
+{% block content %}
+<!-- Content -->
+ <h2 class="text-center mb-4">
+  {% if update %}Modifier la mission{% else %}Ajouter une mission{% endif %}
+</h2>
+
 <main class="main">
   <div class="breacrumb-cover">
     <div class="container">
       <ul class="breadcrumbs">
-        <li><a href="#">Home</a></li>
+        <li><a href="/home/">Home</a></li>
         <li>Freelance Offer</li>
       </ul>
     </div>
@@ -274,99 +41,89 @@
                style="background: white; border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); max-width: 750px;">
             
             <form method="POST" enctype="multipart/form-data" class="mt-4">
-              {% csrf_token %}
-              <div class="row gy-4 gx-4">
-                
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label class="form-label">Titre de la mission</label>
-                    <input type="text" name="titre_mission" class="form-control p-3" placeholder="Entrez le titre de la mission" required>
-                  </div>
-                </div>
+  {% csrf_token %}
+  <div class="row gy-4 gx-4">
 
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label class="form-label">Domaine</label>
-                    <select name="domaine" class="form-control p-3" required>
-                      <option value="" disabled selected>Choisissez un domaine</option>
-                      <option value="IT">Informatique / Développement</option>
-                      <option value="MARKETING">Marketing / Communication</option>
-                      <option value="DESIGN">Design / Graphisme</option>
-                      <option value="FINANCE">Finance / Comptabilité</option>
-                      <option value="RH">Ressources Humaines</option>
-                      <option value="TRAD">Traduction / Rédaction</option>
-                      <option value="EDUCATION">Éducation / Formation</option>
-                      <option value="AUTRE">Autre</option>
-                    </select>
-                  </div>
-                </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label">Titre de la mission</label>
+        <input type="text" name="titre_mission" class="form-control p-3" 
+               placeholder="Entrez le titre de la mission" 
+               value="{% if freelance %}{{ freelance.titre_mission }}{% endif %}" required>
+      </div>
+    </div>
 
-                <div class="col-md-12">
-                  <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" rows="5" class="form-control p-3" placeholder="Décrivez la mission..." required></textarea>
-                  </div>
-                </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label">Domaine</label>
+        <select name="domaine" class="form-control p-3" required>
+          <option value="" disabled {% if not freelance %}selected{% endif %}>Choisissez un domaine</option>
+          <option value="IT" {% if freelance and freelance.domaine == 'IT' %}selected{% endif %}>Informatique / Développement</option>
+          <option value="MARKETING" {% if freelance and freelance.domaine == 'MARKETING' %}selected{% endif %}>Marketing / Communication</option>
+          <option value="DESIGN" {% if freelance and freelance.domaine == 'DESIGN' %}selected{% endif %}>Design / Graphisme</option>
+          <option value="FINANCE" {% if freelance and freelance.domaine == 'FINANCE' %}selected{% endif %}>Finance / Comptabilité</option>
+          <option value="RH" {% if freelance and freelance.domaine == 'RH' %}selected{% endif %}>Ressources Humaines</option>
+          <option value="TRAD" {% if freelance and freelance.domaine == 'TRAD' %}selected{% endif %}>Traduction / Rédaction</option>
+          <option value="EDUCATION" {% if freelance and freelance.domaine == 'EDUCATION' %}selected{% endif %}>Éducation / Formation</option>
+          <option value="AUTRE" {% if freelance and freelance.domaine == 'AUTRE' %}selected{% endif %}>Autre</option>
+        </select>
+      </div>
+    </div>
 
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label class="form-label">Compétences requises</label>
-                    <input type="text" name="competences_requises" class="form-control p-3" placeholder="Ex: Python, React, Photoshop" required>
-                  </div>
-                </div>
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="description" rows="5" class="form-control p-3" placeholder="Décrivez la mission..." required>{% if freelance %}{{ freelance.description }}{% endif %}</textarea>
+      </div>
+    </div>
 
-                <div class="col-md-3">
-                  <div class="form-group">
-                    <label class="form-label">Tarif (en DT)</label>
-                    <input type="number" name="tarif" step="0.01" class="form-control p-3" placeholder="Ex: 120.00" required>
-                  </div>
-                </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label">Compétences requises</label>
+        <input type="text" name="competences_requises" class="form-control p-3" 
+               placeholder="Ex: Python, React, Photoshop" 
+               value="{% if freelance %}{{ freelance.competences_requises }}{% endif %}" required>
+      </div>
+    </div>
 
-                <div class="col-md-3">
-                  <div class="form-group">
-                    <label class="form-label">Durée estimée (jours)</label>
-                    <input type="number" name="duree_estimee" class="form-control p-3" placeholder="Ex: 7" required>
-                  </div>
-                </div>
-              </div>
+    <div class="col-md-3">
+      <div class="form-group">
+        <label class="form-label">Tarif (en DT)</label>
+        <input type="number" name="tarif" step="0.01" class="form-control p-3" 
+               placeholder="Ex: 120.00" 
+               value="{% if freelance %}{{ freelance.tarif }}{% endif %}" required>
+      </div>
+    </div>
 
-              <!-- ✅ boutons espacés et centrés -->
-              <div class="text-center mt-5 d-flex justify-content-center gap-4">
-                <button type="submit" class="btn btn-success px-5 py-2 rounded-pill shadow-sm"
-                        style="background-color: #7badff; border: none;">
-                  Publier l'offre
-                </button>
-                <a href="{% url 'list' %}" class="btn btn-outline-secondary px-5 py-2 rounded-pill shadow-sm">
-                  Annuler
-                </a>
-              </div>
-            </form>
+    <div class="col-md-3">
+      <div class="form-group">
+        <label class="form-label">Durée estimée (jours)</label>
+        <input type="number" name="duree_estimee" class="form-control p-3" 
+               placeholder="Ex: 7" 
+               value="{% if freelance %}{{ freelance.duree_estimee }}{% endif %}" required>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ boutons centrés -->
+  <div class="text-center mt-5 d-flex justify-content-center gap-4">
+    <button type="submit" class="btn btn-success px-5 py-2 rounded-pill shadow-sm"
+            style="background-color: #7badff; border: none;">
+      {% if freelance %}Mettre à jour{% else %}Publier l'offre{% endif %}
+    </button>
+    <a href="{% url 'list' %}" class="btn btn-outline-secondary px-5 py-2 rounded-pill shadow-sm">
+      Annuler
+    </a>
+  </div>
+</form>
+
 
           </div>
         </div>
       </div>
     </div>
   </section>
-  <!-- Newsletter --> 
-    <section class="section-box mt-50 mb-60">
-            <div class="container">
-                <div class="box-newsletter">
-                    <h5 class="text-md-newsletter">Sign up to get</h5>
-                    <h6 class="text-lg-newsletter">the latest jobs</h6>
-                    <div class="box-form-newsletter mt-30">
-                        <form class="form-newsletter">
-                            <input type="text" class="input-newsletter" value="" placeholder="contact.alithemes@gmail.com" />
-                            <button class="btn btn-default font-heading icon-send-letter">Subscribe</button>
-                        </form>
-                    </div>
-                </div>
-                <div class="box-newsletter-bottom">
-                    <div class="newsletter-bottom"></div>
-                </div>
-            </div>
-    </section>
 </main>
-
 <!-- ======= STYLE ======= -->
 <style>
   .form-label {
@@ -415,85 +172,6 @@
   }
 </style>
 
+{% endblock %}
 
-
-    <!-- Footer -->
-    <footer class="footer mt-50">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 col-sm-12">
-                    <a href="index.html"><img alt="jobhub" src="/static/imgs/theme/jobhub-logo.svg" /></a>
-                    <div class="mt-20 mb-20">Jobhub is the heart of the design community and the best resource to discover and connect with designers and jobs worldwide.</div>
-                </div>
-                <div class="col-md-2 col-xs-6">
-                    <h6>Company</h6>
-                    <ul class="menu-footer mt-40">
-                        <li><a href="#">About us</a></li>
-                        <li><a href="#">Our Team</a></li>
-                        <li><a href="#">Products</a></li>
-                        <li><a href="#">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-2 col-xs-6">
-                    <h6>Product</h6>
-                    <ul class="menu-footer mt-40">
-                        <li><a href="#">Feature</a></li>
-                        <li><a href="#">Pricing</a></li>
-                        <li><a href="#">Credit</a></li>
-                        <li><a href="#">FAQ</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-2 col-xs-6">
-                    <h6>Download</h6>
-                    <ul class="menu-footer mt-40">
-                        <li><a href="#">iOS</a></li>
-                        <li><a href="#">Android</a></li>
-                        <li><a href="#">Microsoft</a></li>
-                        <li><a href="#">Desktop</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-2 col-xs-6">
-                    <h6>Support</h6>
-                    <ul class="menu-footer mt-40">
-                        <li><a href="#">Privacy</a></li>
-                        <li><a href="#">Help</a></li>
-                        <li><a href="#">Terms</a></li>
-                        <li><a href="#">FAQ</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom mt-50">
-                <div class="row">
-                    <div class="col-md-6">
-                        Copyright ©2021 <a href="#"><strong>Jobhub</strong></a>. All Rights Reserved
-                    </div>
-                    <div class="col-md-6 text-md-end text-start">
-                        <div class="footer-social">
-                            <a href="#" class="icon-socials icon-facebook"></a>
-                            <a href="#" class="icon-socials icon-twitter"></a>
-                            <a href="#" class="icon-socials icon-instagram"></a>
-                            <a href="#" class="icon-socials icon-linkedin"></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
-    <!-- End Footer -->
-    <!-- Vendor JS-->
-    <script src="/static/js/vendor/modernizr-3.6.0.min.js"></script>
-    <script src="/static/js/vendor/jquery-3.6.0.min.js"></script>
-    <script src="/static/js/vendor/jquery-migrate-3.3.0.min.js"></script>
-    <script src="/static/js/vendor/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/plugins/waypoints.js"></script>
-    <script src="/static/js/plugins/wow.js"></script>
-    <script src="/static/js/plugins/perfect-scrollbar.min.js"></script>
-    <script src="/static/js/plugins/select2.min.js"></script>
-    <script src="/static/js/plugins/scrollup.js"></script>
-    <script src="/static/js/plugins/counterup.js"></script>
-    <script src="/static/js/plugins/swiper-bundle.min.js"></script>
-    <!-- Template  JS -->
-    <script src="/static/js/main.js?v=1.0"></script>
-</body>
-
-</html>
+    
