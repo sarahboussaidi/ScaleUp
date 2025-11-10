@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Utilisateur, Admin, Entreprise, Candidat
+from .models import Utilisateur, Admin, Entreprise, Candidat , Domain, Skill
 
 
 # ===============================
@@ -8,6 +8,7 @@ from .models import Utilisateur, Admin, Entreprise, Candidat
 # ===============================
 @admin.register(Utilisateur)
 class UtilisateurAdmin(UserAdmin):
+    exclude = ('groups', 'user_permissions', 'last_login', 'date_joined')
     list_display = ('username', 'email', 'role', 'is_active', 'date_joined')
     list_filter = ('role', 'is_active', 'is_staff')
     search_fields = ('username', 'email')
@@ -39,6 +40,7 @@ class UtilisateurAdmin(UserAdmin):
 # ===============================
 @admin.register(Entreprise)
 class EntrepriseAdmin(admin.ModelAdmin):
+    exclude = ('groups', 'user_permissions', 'last_login', 'date_joined')
     list_display = ('nom_entreprise', 'email', 'domaine', 'site_web', 'is_active')
     search_fields = ('nom_entreprise', 'email', 'domaine')
     list_filter = ('domaine', 'is_active')
@@ -48,12 +50,23 @@ class EntrepriseAdmin(admin.ModelAdmin):
 # ===============================
 # ADMIN : CANDIDAT
 # ===============================
+@admin.register(Domain)
+class DomainAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
+@admin.register(Skill)
+class SkillAdmin(admin.ModelAdmin):
+    list_display = ['name', 'domain']
+    list_filter = ['domain']
+
 @admin.register(Candidat)
 class CandidatAdmin(admin.ModelAdmin):
+    exclude = ('groups', 'user_permissions', 'last_login', 'date_joined')
     list_display = ('username', 'email', 'age', 'telephone', 'is_active')
     search_fields = ('username', 'email')
     list_filter = ('is_active',)
     ordering = ('username',)
+    filter_horizontal = ['skills'] 
 
 
 # ===============================
@@ -61,6 +74,7 @@ class CandidatAdmin(admin.ModelAdmin):
 # ===============================
 @admin.register(Admin)
 class AdminAppAdmin(admin.ModelAdmin):
+    exclude = ('groups', 'user_permissions', 'last_login', 'date_joined')
     list_display = ('username', 'email', 'niveau_acces', 'is_staff', 'is_superuser')
     list_filter = ('niveau_acces', 'is_superuser', 'is_staff')
     search_fields = ('username', 'email')

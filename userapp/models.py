@@ -89,17 +89,73 @@ class Entreprise(Utilisateur):
     def __str__(self):
         return f"Entreprise: {self.nom_entreprise}"
 
+"""
+# ========================
+# Load predefined skills and domains
+# ========================ù
+Open the Django shell:
 
-# ========================
-# CLASSE CANDIDAT
-# ========================
+    python manage.py shell
+
+
+Paste this:
+
+    from userapp.models import Domain, Skill
+
+    domains_skills = {
+        "Programming": ["Python", "C++", "Java", "JavaScript", "SQL"],
+        "Design": ["Photoshop", "Illustrator", "Figma", "UI/UX"],
+        "Marketing": ["Content Creation", "Social Media", "Email Marketing"],
+        "Management": ["Leadership", "Teamwork", "Communication", "Planning"],
+    }
+
+    for domain_name, skills in domains_skills.items():
+        domain, _ = Domain.objects.get_or_create(name=domain_name)
+        for skill_name in skills:
+            Skill.objects.get_or_create(domain=domain, name=skill_name)
+
+    print("✅ Skills and domains added successfully.")
+    print("Domains:", Domain.objects.count(), "Skills:", Skill.objects.count())
+
+
+Then run:
+
+    exit()
+
+
+"""
+# -----------------------------------------
+# DOMAIN model 
+# -----------------------------------------
+
+class Domain(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+# -----------------------------------------
+# SKILL model (linked to domain)
+# -----------------------------------------
+
+class Skill(models.Model):
+    domain = models.ForeignKey(Domain, on_delete=models.CASCADE, related_name="skills")
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ('domain', 'name')
+
+    def __str__(self):
+        return f"{self.name} ({self.domain.name})"
+
+# -----------------------------------------
+# CANDIDAT model (inherits from Utilisateur)
+# -----------------------------------------
+
 class Candidat(Utilisateur):
-    """
-    Représente un utilisateur normal qui cherche un stage, une mission ou une formation.
-    """
     age = models.PositiveIntegerField(blank=True, null=True)
     cv = models.FileField(upload_to='cv/', blank=True, null=True)
-
+    skills = models.ManyToManyField(Skill, blank=True)
     class Meta:
         verbose_name = "Candidat"
 
