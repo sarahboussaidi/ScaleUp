@@ -249,10 +249,19 @@
               <div class="text-center">
                 <p class="font-sm text-brand-2">Welcome back! </p>
                 <h2 class="mt-10 mb-5 text-brand-1">Member Login</h2>
+                {% if messages %}
+  <div class="alert alert-danger" style="color:red;">
+    {% for message in messages %}
+      {{ message }}
+    {% endfor %}
+  </div>
+{% endif %}
+
               </div>
-              <form class="login-register text-start mt-20" action="#">
+<form class="login-register text-start mt-20" action="{% url 'signin' %}" method="POST">
+  {% csrf_token %}
                 <div class="form-group">
-                  <label class="form-label" for="input-1">Username or Email address *</label>
+                  <label class="form-label" for="input-1">Email address *</label>
                   <input class="form-control" id="input-1" type="text" required="" name="fullname" placeholder="Steven Job">
                 </div>
                 <div class="form-group">
