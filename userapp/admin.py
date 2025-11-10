@@ -1,6 +1,6 @@
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import Utilisateur, Admin, Entreprise, Candidat , Domain, Skill
+from django.contrib import admin  # type: ignore
+from django.contrib.auth.admin import UserAdmin # type: ignore
+from .models import Utilisateur, Admin, Entreprise, Candidat , Domain, Skill ,Language
 
 
 # ===============================
@@ -36,18 +36,6 @@ class UtilisateurAdmin(UserAdmin):
 
 
 # ===============================
-# ADMIN : ENTREPRISE
-# ===============================
-@admin.register(Entreprise)
-class EntrepriseAdmin(admin.ModelAdmin):
-    exclude = ('groups', 'user_permissions', 'last_login', 'date_joined')
-    list_display = ('nom_entreprise', 'email', 'domaine', 'site_web', 'is_active')
-    search_fields = ('nom_entreprise', 'email', 'domaine')
-    list_filter = ('domaine', 'is_active')
-    ordering = ('nom_entreprise',)
-
-
-# ===============================
 # ADMIN : CANDIDAT
 # ===============================
 @admin.register(Domain)
@@ -59,6 +47,12 @@ class SkillAdmin(admin.ModelAdmin):
     list_display = ['name', 'domain']
     list_filter = ['domain']
 
+class LanguageInline(admin.TabularInline):
+    model = Language
+    extra = 1  # number of empty forms to show
+    fields = ('name', 'proficiency')
+
+"""
 @admin.register(Candidat)
 class CandidatAdmin(admin.ModelAdmin):
     exclude = ('groups', 'user_permissions', 'last_login', 'date_joined')
@@ -75,6 +69,45 @@ class CandidatAdmin(admin.ModelAdmin):
 @admin.register(Admin)
 class AdminAppAdmin(admin.ModelAdmin):
     exclude = ('groups', 'user_permissions', 'last_login', 'date_joined')
+    list_display = ('username', 'email', 'niveau_acces', 'is_staff', 'is_superuser')
+    list_filter = ('niveau_acces', 'is_superuser', 'is_staff')
+    search_fields = ('username', 'email')
+    ordering = ('username',)
+
+# ===============================
+# ADMIN : ENTREPRISE
+# ===============================
+@admin.register(Entreprise)
+class EntrepriseAdmin(admin.ModelAdmin):
+    exclude = ('groups', 'user_permissions', 'last_login', 'date_joined')
+    list_display = ('nom_entreprise', 'email', 'domaine', 'site_web', 'is_active')
+    search_fields = ('nom_entreprise', 'email', 'domaine')
+    list_filter = ('domaine', 'is_active')
+    ordering = ('nom_entreprise',)
+
+"""
+
+@admin.register(Candidat)
+class CandidatAdmin(admin.ModelAdmin):
+    exclude = ('groups', 'user_permissions', 'last_login', 'date_joined', 'role')
+    list_display = ('username', 'email', 'age', 'telephone', 'years_experience', 'is_active')
+    search_fields = ('username', 'email')
+    list_filter = ('is_active', 'education_level')
+    ordering = ('username',)
+    filter_horizontal = ['skills']
+    inlines = [LanguageInline]  # <-- here
+
+@admin.register(Entreprise)
+class EntrepriseAdmin(admin.ModelAdmin):
+    exclude = ('groups', 'user_permissions', 'last_login', 'date_joined', 'first_name', 'last_name', 'role')
+    list_display = ('nom_entreprise', 'email', 'domaine', 'site_web', 'is_active')
+    search_fields = ('nom_entreprise', 'email', 'domaine')
+    list_filter = ('domaine', 'is_active')
+    ordering = ('nom_entreprise',)
+
+@admin.register(Admin)
+class AdminAppAdmin(admin.ModelAdmin):
+    exclude = ('groups', 'user_permissions', 'last_login', 'date_joined', 'role')
     list_display = ('username', 'email', 'niveau_acces', 'is_staff', 'is_superuser')
     list_filter = ('niveau_acces', 'is_superuser', 'is_staff')
     search_fields = ('username', 'email')
