@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ajouter une Candidature{% endblock %}
+
+{% block content %}
+<section class="section-box mt-70">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="card shadow-lg rounded-4 p-4 wow animate__animated animate__fadeIn" data-wow-delay=".2s">
+                    <div class="text-center mb-4">
+                        <img src="{% static 'imgs/page/job/ui-ux.svg' %}" alt="Ajouter Candidature" width="80">
+                        <h2 class="mt-3 text-brand-2">📝 Ajouter une Candidature</h2>
+                        <p class="text-muted">Remplissez le formulaire ci-dessous pour soumettre votre candidature</p>
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Candidat -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">👤 Candidat</label>
+                            <select name="id_candidat" class="form-control" required>
+                                {% for user in utilisateurs %}
+                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Type de candidature -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">🎯 Type de candidature</label>
+                            <select name="type" class="form-control" id="typeSelect" required>
+                                <option value="">-- Sélectionner un type --</option>
+                                <option value="stage">Stage</option>
+                                <option value="freelance">Freelance</option>
+                                <option value="formation">Formation</option>
+                            </select>
+                        </div>
+
+                        <!-- Stage -->
+                        <div class="mb-3" id="stageSelect" style="display:none;">
+                            <label class="form-label fw-bold">Stage</label>
+                            <select name="id_stage" class="form-control">
+                                <option value="">-- Sélectionner un stage --</option>
+                                {% for s in stages %}
+                                    <option value="{{ s.id_stage }}">{{ s.titre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Freelance -->
+                        <div class="mb-3" id="freelanceSelect" style="display:none;">
+                            <label class="form-label fw-bold">Freelance</label>
+                            <select name="id_freelance" class="form-control">
+                                <option value="">-- Sélectionner une mission freelance --</option>
+                                {% for f in freelances %}
+                                    <option value="{{ f.id_freelance }}">{{ f.titre_mission }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Formation -->
+                        <div class="mb-3" id="formationSelect" style="display:none;">
+                            <label class="form-label fw-bold">Formation</label>
+                            <select name="id_formation" class="form-control">
+                                <option value="">-- Sélectionner une formation --</option>
+                                {% for form in formations %}
+                                    <option value="{{ form.id_formation }}">{{ form.titre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Lettre de motivation -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">📝 Lettre de motivation</label>
+                            <textarea name="lettre_motivation" rows="4" class="form-control" placeholder="Exprimez votre intérêt..."></textarea>
+                        </div>
+
+                        <!-- CV -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">📎 Joindre votre CV</label>
+                            <input type="file" name="cv_joint" class="form-control">
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-brand-1">✅ Soumettre la Candidature</button>
+                            <a href="{% url 'candidature_liste' %}" class="btn btn-grey">⬅ Retour</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const typeSelect = document.getElementById("typeSelect");
+    const stageSelect = document.getElementById("stageSelect");
+    const freelanceSelect = document.getElementById("freelanceSelect");
+    const formationSelect = document.getElementById("formationSelect");
+
+    typeSelect.addEventListener("change", function() {
+        stageSelect.style.display = "none";
+        freelanceSelect.style.display = "none";
+        formationSelect.style.display = "none";
+
+        if (this.value === "stage") stageSelect.style.display = "block";
+        else if (this.value === "freelance") freelanceSelect.style.display = "block";
+        else if (this.value === "formation") formationSelect.style.display = "block";
+    });
+});
+</script>
+{% endblock %}

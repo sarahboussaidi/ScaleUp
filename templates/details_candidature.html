@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Détails de la Candidature{% endblock %}
+
+{% block content %}
+<section class="section-box mt-70">
+    <div class="container">
+        <div class="card p-4 shadow-lg rounded-4">
+            <div class="text-center mb-4">
+                <h2 class="text-brand-2">🧾 Détails de la Candidature</h2>
+                <p class="text-muted">Informations complètes sur la candidature sélectionnée</p>
+                <hr>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-gray-600">👤 Candidat :</h6>
+                    <p>{{ candidature.id_candidat.first_name }} {{ candidature.id_candidat.last_name }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-gray-600">📅 Date de candidature :</h6>
+                    <p>{{ candidature.date_candidature|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-gray-600">🎯 Type :</h6>
+                    <p>
+                        {% if candidature.id_stage %}Stage : {{ candidature.id_stage.titre }}
+                        {% elif candidature.id_freelance %}Freelance : {{ candidature.id_freelance.titre }}
+                        {% elif candidature.id_formation %}Formation : {{ candidature.id_formation.titre }}
+                        {% else %}Aucun type associé{% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-gray-600">📌 Statut :</h6>
+                    <p>
+                        <span class="badge 
+                            {% if candidature.statut == 'EN_ATTENTE' %}bg-warning
+                            {% elif candidature.statut == 'ACCEPTEE' %}bg-success
+                            {% elif candidature.statut == 'REFUSEE' %}bg-danger
+                            {% elif candidature.statut == 'ENTRETIEN' %}bg-info
+                            {% else %}bg-secondary{% endif %}">
+                            {{ candidature.get_statut_display }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h6 class="fw-bold text-gray-600">📝 Lettre de motivation :</h6>
+                    {% if candidature.lettre_motivation %}
+                        <p>{{ candidature.lettre_motivation }}</p>
+                    {% else %}
+                        <p class="text-muted"><em>Pas de lettre de motivation jointe.</em></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h6 class="fw-bold text-gray-600">📎 CV :</h6>
+                    {% if candidature.cv_joint %}
+                        <a href="{{ candidature.cv_joint.url }}" class="btn btn-outline-success" target="_blank">
+                            <i class="fi-rr-file"></i> Voir le CV
+                        </a>
+                    {% else %}
+                        <p class="text-muted"><em>Aucun CV joint.</em></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr class="mt-4 mb-3">
+
+            <div class="text-center">
+                <a href="{% url 'modifier_candidature' candidature.id_candidature %}" class="btn btn-brand-1 me-2">
+                    ✏️ Modifier
+                </a>
+                <a href="{% url 'supprimer_candidature' candidature.id_candidature %}" class="btn btn-danger me-2">
+                    🗑️ Supprimer
+                </a>
+                <a href="{% url 'liste_candidatures' %}" class="btn btn-grey">
+                    ⬅ Retour à la liste
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

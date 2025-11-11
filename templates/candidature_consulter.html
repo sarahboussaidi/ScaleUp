@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mes Candidatures{% endblock %}
+
+{% block content %}
+<section class="section-box mt-70">
+  <div class="container">
+    <div class="text-center mb-50">
+      <h2 class="text-brand-2 wow animate__animated animate__fadeInUp">📄 Liste des Candidatures</h2>
+      <p class="text-muted">Consultez toutes vos candidatures (stage, freelance ou formation)</p>
+    </div>
+
+    <div class="row job-listing-grid-2">
+      {% for c in candidatures %}
+      <div class="col-lg-4 col-md-6">
+        <div class="card-grid-2 hover-up wow animate__animated animate__fadeIn" data-wow-delay=".s">
+          <div class="card-block-info">
+            <div class="row">
+              <div class="col-lg-12 col-12">
+                <a href="#" class="card-2-img-text card-grid-2-img-medium">
+                  <span class="card-grid-2-img-small">
+                    <img alt="cv" src="{% static 'imgs/page/job/ui-ux3.svg' %}" />
+                  </span>
+                  <span>
+                    {% if c.id_stage %} {{ c.id_stage.titre }}
+                    {% elif c.id_freelance %} {{ c.id_freelance.titre_mission }}
+                    {% elif c.id_formation %} {{ c.id_formation.titre }}
+                    {% else %} Candidature sans type
+                    {% endif %}
+                  </span>
+                </a>
+              </div>
+            </div>
+
+            <div class="mt-15">
+              <span class="text-sm text-mutted-2 mr-20">
+                <i class="fi-rr-calendar"></i>
+                {{ c.date_candidature|date:"d M Y" }}
+              </span>
+              <span class="text-sm text-mutted-2">
+                <i class="fi-rr-shield-check"></i>
+                {{ c.get_statut_display }}
+              </span>
+            </div>
+
+            <div class="text-small mt-15">
+              {% if c.lettre_motivation %}
+                {{ c.lettre_motivation|truncatewords:20 }}
+              {% else %}
+                Aucune lettre de motivation jointe.
+              {% endif %}
+            </div>
+
+            <div class="card-2-bottom mt-30">
+              <div class="row">
+                <div class="col-lg-7 col-8">
+                  <span class="text-brand-10 text-icon-first">
+                    👤 {{ c.id_candidat.username }}
+                  </span>
+                </div>
+                <div class="col-lg-5 col-4 text-end">
+                  {% if c.cv_joint %}
+                    <a href="{{ c.cv_joint.url }}" class="btn btn-grey-small" target="_blank">📂 Voir CV</a>
+                  {% else %}
+                    <span class="text-muted">Aucun CV</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="row mt-20">
+                <div class="col-lg-6 col-6">
+                  <a href="#" class="btn btn-grey-small">📝 Détails</a>
+                </div>
+                <div class="col-lg-6 col-6 text-end pt-5">
+                  {% if c.statut == 'EN_ATTENTE' %}
+                    <span class="badge bg-warning text-dark">En attente</span>
+                  {% elif c.statut == 'VUE' %}
+                    <span class="badge bg-info text-white">Vue</span>
+                  {% elif c.statut == 'ENTRETIEN' %}
+                    <span class="badge bg-primary">Entretien</span>
+                  {% elif c.statut == 'ACCEPTEE' %}
+                    <span class="badge bg-success">Acceptée</span>
+                  {% else %}
+                    <span class="badge bg-danger">Refusée</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p class="text-center text-muted">Aucune candidature trouvée.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

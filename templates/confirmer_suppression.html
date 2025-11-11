@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width:600px;margin:50px auto;padding:30px;border-radius:10px;background:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.1);text-align:center;">
+    <h2 style="color:#e53935;">⚠️ Confirmation de suppression</h2>
+    <p style="font-size:18px;margin-top:20px;">
+        Êtes-vous sûr de vouloir <strong>supprimer cette candidature</strong> ?
+        <br><br>
+        Cette action est <strong>irréversible</strong>.
+    </p>
+
+    <form method="POST" style="margin-top:30px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger" style="background:#e53935;color:white;padding:10px 25px;border:none;border-radius:5px;cursor:pointer;">
+            Oui, supprimer
+        </button>
+        <a href="{% url 'liste_candidatures' %}" style="margin-left:15px;color:#009688;text-decoration:none;font-weight:bold;">
+            Annuler
+        </a>
+    </form>
+</div>
+{% endblock %}

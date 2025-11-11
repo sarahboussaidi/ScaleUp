@@ -1,0 +1,90 @@
+﻿{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Liste des Candidatures{% endblock %}
+
+{% block content %}
+<section class="section-box mt-70">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 class="mb-30">📄 Liste des Candidatures</h2>
+                <div class="row job-listing-grid-2">
+                    {% for candidature in candidatures %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card-grid-2 hover-up wow animate__animated animate__fadeIn" data-wow-delay=".1s">
+                            <div class="card-block-info">
+                                <div class="row">
+                                    <div class="col-lg-12 col-12">
+                                        <a href="{% url 'details_candidature' candidature.id_candidature %}" 
+                                           class="card-2-img-text card-grid-2-img-medium">
+                                            <span class="card-grid-2-img-small">
+                                                <img alt="Candidat" src="{% static 'imgs/page/job/ui-ux3.svg' %}" />
+                                            </span>
+                                            <span>
+                                                {{ candidature.id_candidat.first_name }} {{ candidature.id_candidat.last_name }}
+                                            </span>
+                                        </a>
+                                        <div class="dropdowm menu-dropdown-abs">
+                                            <button class="btn btn-dots btn-dots-abs-right dropdown-toggle" 
+                                                    type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                            <ul class="dropdown-menu dropdown-menu-light">
+                                                <li><a class="dropdown-item" href="{% url 'details_candidature' candidature.id_candidature %}">Voir</a></li>
+                                                <li><a class="dropdown-item" href="{% url 'modifier_candidature' candidature.id_candidature %}">Modifier</a></li>
+                                                <li><a class="dropdown-item text-danger" href="{% url 'supprimer_candidature' candidature.id_candidature %}">Supprimer</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-15">
+                                    <span class="text-sm text-mutted-2 mr-20">
+                                        <i class="fi-rr-briefcase"></i>
+                                        {% if candidature.id_stage %}Stage{% elif candidature.id_freelance %}Freelance{% elif candidature.id_formation %}Formation{% else %}Autre{% endif %}
+                                    </span>
+                                    <span class="text-sm text-mutted-2">
+                                        <i class="fi-rr-calendar"></i> {{ candidature.date_candidature|date:"d/m/Y H:i" }}
+                                    </span>
+                                </div>
+
+                                <div class="text-small mt-15">
+                                    <strong>Statut :</strong> 
+                                    <span class="badge 
+                                        {% if candidature.statut == 'EN_ATTENTE' %}bg-warning
+                                        {% elif candidature.statut == 'ACCEPTEE' %}bg-success
+                                        {% elif candidature.statut == 'REFUSEE' %}bg-danger
+                                        {% else %}bg-info{% endif %}">
+                                        {{ candidature.get_statut_display }}
+                                    </span>
+                                </div>
+
+                                {% if candidature.lettre_motivation %}
+                                <div class="text-small mt-15">
+                                    <em>{{ candidature.lettre_motivation|truncatewords:20 }}</em>
+                                </div>
+                                {% endif %}
+
+                                <div class="card-2-bottom mt-30">
+                                    <div class="row">
+                                        <div class="col-lg-8 col-8">
+                                            {% if candidature.cv_joint %}
+                                            <a href="{{ candidature.cv_joint.url }}" target="_blank" class="btn btn-grey-small">Voir CV</a>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-lg-4 col-4 text-end pt-5">
+                                            <a href="{% url 'details_candidature' candidature.id_candidature %}" class="btn btn-brand btn-sm">Détails</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>Aucune candidature trouvée.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

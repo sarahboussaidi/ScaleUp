@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width:700px;margin:50px auto;background:#fff;padding:30px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+    <h2 style="color:#009688;text-align:center;">✏️ Modifier une Candidature</h2>
+    <form method="POST" enctype="multipart/form-data" style="margin-top:30px;">
+        {% csrf_token %}
+
+        <div style="margin-bottom:15px;">
+            <label><b>Statut :</b></label>
+            <select name="statut" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:5px;">
+                <option value="EN_ATTENTE" {% if candidature.statut == "EN_ATTENTE" %}selected{% endif %}>En attente</option>
+                <option value="VUE" {% if candidature.statut == "VUE" %}selected{% endif %}>Vue par entreprise</option>
+                <option value="ENTRETIEN" {% if candidature.statut == "ENTRETIEN" %}selected{% endif %}>Entretien prévu</option>
+                <option value="ACCEPTEE" {% if candidature.statut == "ACCEPTEE" %}selected{% endif %}>Acceptée</option>
+                <option value="REFUSEE" {% if candidature.statut == "REFUSEE" %}selected{% endif %}>Refusée</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom:15px;">
+            <label><b>Lettre de motivation :</b></label>
+            <textarea name="lettre_motivation" rows="5" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:5px;">{{ candidature.lettre_motivation }}</textarea>
+        </div>
+
+        <div style="margin-bottom:15px;">
+            <label><b>CV joint :</b></label><br>
+            {% if candidature.cv_joint %}
+                <a href="{{ candidature.cv_joint.url }}" target="_blank">📄 Voir le CV actuel</a><br><br>
+            {% endif %}
+            <input type="file" name="cv_joint" style="margin-top:5px;">
+        </div>
+
+        <div style="text-align:center;margin-top:20px;">
+            <button type="submit" style="background-color:#009688;color:white;padding:10px 25px;border:none;border-radius:5px;cursor:pointer;">
+                💾 Enregistrer les modifications
+            </button>
+            <a href="{% url 'liste_candidatures' %}" style="margin-left:10px;color:#555;text-decoration:none;">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
