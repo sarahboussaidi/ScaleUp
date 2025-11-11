@@ -57,7 +57,6 @@ def ajouter_candidature(request):
             cv_joint=cv,
         )
 
-        # Lier selon le type choisi
         if type_cand == "stage":
             candidature.id_stage_id = request.POST.get("id_stage")
         elif type_cand == "freelance":
