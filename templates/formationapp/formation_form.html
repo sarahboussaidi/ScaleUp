@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Jobhub - Job Board HTML Website Template {% endblock %}
+
+{% block content %}
+
+
+{% if object %}
+    <h2>Modifier Formation: {{ object.name }}</h2>
+{% else %}
+    <h2>Ajouter Formation :</h2>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if object %}
+    <button type="submit" class="btn btn-default font-heading icon-send-letter" style="margin-top: 10;">Modifier</button>
+    {% else %}
+    <button type="submit" class="btn btn-default font-heading icon-send-letter" style="margin-top: 10;">Ajouter</button>
+    {% endif %}
+</form>
+
+{% endblock %}

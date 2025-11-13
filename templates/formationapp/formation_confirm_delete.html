@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+    {% block title %}Jobhub - Job Board HTML Website Template {% endblock %}
+
+    {% block content %}
+
+    <p>Are you sure you want to delete conference</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-default font-heading icon-send-letter">Yes</button>
+    </form>
+    <a href="{% url 'formation_admin' %}">No, go back</a>
+    {% endblock %}

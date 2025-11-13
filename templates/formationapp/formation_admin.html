@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Jobhub - Job Board HTML Website Template {% endblock %}
+
+{% block content %}
+<!-- Content -->
+<main class="main">
+    <section class="section-box mt-80">
+        <div class="container">
+            <div class="row">
+                <!-- SIDEBAR COLUMN (Left side) -->
+                <div class="col-lg-3 col-md-12 col-sm-12 col-12">
+
+                
+                    <div class="sidebar-with-bg background-primary bg-sidebar pb-80 mt-30">
+                        <h5 class="medium-heading text-white mb-20 mt-20">Apprentissage</h5>
+                        <p class="text-body-999 text-white mb-30">Faites connaître vos cours à des milliers d'apprenants et développez votre audience.</p>
+                        <a href="{% url 'formation_create' %}" class="btn btn-border icon-chevron-right btn-white-sm">Ajouter une formation</a>
+                    </div>
+                </div>
+
+                <!-- MAIN CONTENT COLUMN (Right side) -->
+                <div class="col-lg-9 col-md-12 col-sm-12 col-12">
+                    <div class="content-page">
+                        <div class="job-list-list mb-15">
+                            <div class="list-recent-jobs">
+                                {% for Formation in formations %}
+                                <div class="card-job hover-up wow animate__animated animate__fadeIn">
+                                    <div class="card-job-top">
+                                        <h6 class="card-job-top--info-heading">
+                                            <a href="job-single.html">{{ Formation.titre }}</a>
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="card-job-description mt-20">
+                                        {{ Formation.description }}
+                                    </div>
+                                    
+                                    <div class="card-job-bottom mt-25">
+                                        <div class="row">
+                                            <div class="col-lg-9 col-sm-8 col-12">
+                                                <a href="{% url 'formation_update' Formation.id_formation %}" class="btn btn-small background-12 mr-5">Update</a>
+                                                <a href="{% url 'formation_delete' Formation.id_formation %}" class="btn btn-small background-blue-light mr-5">Delete</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<!-- End Content -->
+{% endblock %}
+
+<!-- Vendor JS-->
+<script src="../../static/js/vendor/modernizr-3.6.0.min.js"></script>
+<script src="../../static/js/vendor/jquery-3.6.0.min.js"></script>
+<script src="../../static/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+<script src="../../static/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="../../static/js/plugins/waypoints.js"></script>
+<script src="../../static/js/plugins/wow.js"></script>
+<script src="../../static/js/plugins/magnific-popup.js"></script>
+<script src="../../static/js/plugins/perfect-scrollbar.min.js"></script>
+<script src="../../static/js/plugins/select2.min.js"></script>
+<script src="../../static/js/plugins/isotope.js"></script>
+<script src="../../static/js/plugins/scrollup.js"></script>
+<script src="../../static/js/plugins/swiper-bundle.min.js"></script>
+
+<script src="../../static/js/noUISlider.js"></script>
+<script src="../../static/js/slider.js"></script>
+<!-- Template  JS -->
+<script src="../../static/js/main.js?v=1.0"></script>

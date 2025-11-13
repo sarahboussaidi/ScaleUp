@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% load static %}
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Worki{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/plugins/animate.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=1.0" />
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'imgs/theme/worki-icon.png' %}" />
+
+    {% block head %}{% endblock %}
+    <style>
+        /* light default container so pages don't jump too wide */
+        :root{ --navbar-height: 88px; }
+        /* Give space at top so a sticky/fixed navbar doesn't cover content */
+        .page-container{ max-width: 980px; margin: 1.5rem auto; padding: calc(1rem + var(--navbar-height)) 1rem 1rem 1rem; }
+        /* Make sure header stays above content when sticky */
+    </style>
+</head>
+<body>
+    <header class="header sticky-bar">
+        <div class="container">
+            <div class="main-header">
+                <div class="header-left">
+                    <div class="header-logo">
+                        <a href="index.html" class="d-flex"><img alt="jobhub" src="../static/imgs/theme/worki-logo.svg" width="150px" /></a>
+                    </div>
+                    <div class="header-nav">
+                        <nav class="nav-main-menu d-none d-xl-block" aria-label="Main navigation">
+                            <ul class="main-menu">
+                                <li class="has-children">
+                                    <a class="active" href="index.html">Home</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="index.html">Home 1</a></li>
+                                        <li><a href="index-2.html">Home 2</a></li>
+                                        <li><a href="index-3.html">Home 3</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="job-grid.html">formation</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="job-grid.html">Job Grid</a></li>
+                                        <li><a href="job-grid-2.html">Job Grid 2</a></li>
+                                        <li><a href="job-list.html">Job List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="job-single.html">Job Single 01</a></li>
+                                        <li><a href="job-single-2.html">Job Single 02</a></li>
+                                        <li><a href="job-single-3.html">Job Single 03</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="employers-grid.html">Employers</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="employers-grid.html">Employers Grid</a></li>
+                                        <li><a href="employers-grid-2.html">Employers Grid 2</a></li>
+                                        <li><a href="employers-list.html">Employers List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="employers-single.html">Employers Single 01</a></li>
+                                        <li><a href="employers-single-2.html">Employers Single 02</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="candidates-grid.html">Candidates</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="candidates-grid.html">Candidates Grid</a></li>
+                                        <li><a href="candidates-grid-2.html">Candidates Grid 2</a></li>
+                                        <li><a href="candidates-list.html">Candidates List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="candidates-single.html">Candidates Single 01</a></li>
+                                        <li><a href="candidates-single-2.html">Candidates Single 02</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="#">Forum</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="forum-grid.html">Forum Grid</a></li>
+                                        <li><a href="forum-grid-2.html">Forum Grid Sidebar</a></li>
+                                        <li><a href="forum-list.html">Forum List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="forum-single.html">Forum Single 01</a></li>
+                                        <li><a href="forum-single-2.html">Forum Single 02</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="#">Pages</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="page-about.html">About Us</a></li>
+                                        <li><a href="page-service.html">Our Services</a></li>
+                                        <li><a href="page-pricing.html">Pricing Plan</a></li>
+                                        <li><a href="pages-faqs.html">FAQs</a></li>
+                                        <li><a href="page-contact.html">Contact Us</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </nav>
+                        <div class="burger-icon burger-icon-white">
+                            <span class="burger-icon-top"></span>
+                            <span class="burger-icon-mid"></span>
+                            <span class="burger-icon-bottom"></span>
+                        </div>
+                    </div>
+                </div>
+                <!--
+                <div class="header-right">
+                    {% if user.is_authenticated %}
+                    <div class="block-signin">
+                        <a href="#" class="text-link-bd-btom hover-up">Apply Now</a>
+                    </div>
+                    {% else %}
+                    <div class="block-signin">
+                        <a href="{% url 'login' %}" class="btn btn-default btn-shadow ml-40 hover-up">Sign in</a>
+                        <a href="{% url 'register' %}" class="btn btn-default btn-shadow ml-40 hover-up">Register</a>
+
+                    </div>
+                    {% endif %}
+                </div> 
+                -->
+            </div>
+        </div>
+    </header>
+    <!--{% if user.is_authenticated %}-->
+    <div class="mobile-header-active mobile-header-wrapper-style perfect-scrollbar">
+        <div class="mobile-header-wrapper-inner">
+            <div class="mobile-header-top">
+                <div class="user-account">
+                   <!-- usr.photo.url-->
+                    <img src="" alt="worki">
+                    <div class="content">
+                        <h6 class="user-name"> <!--{{ user.first_name }}--> name, <span class="text-brand">AliThemes</span></h6>
+                        <p class="font-xs text-muted">You have 2 new messages</p>
+                    </div>
+                </div>
+                <div class="burger-icon burger-icon-white">
+                    <span class="burger-icon-top"></span>
+                    <span class="burger-icon-mid"></span>
+                    <span class="burger-icon-bottom"></span>
+                </div>
+            </div>
+            <div class="mobile-header-content-area">
+                <div class="perfect-scroll">
+                    <div class="mobile-search mobile-header-border mb-30">
+                        <form action="#">
+                            <input type="text" placeholder="Search for items…" />
+                            <i class="fi-rr-search"></i>
+                        </form>
+                    </div>
+                    <div class="mobile-menu-wrap mobile-header-border">
+                        <!-- mobile menu start -->
+                        <nav aria-label="Mobile navigation">
+                            <ul class="mobile-menu font-heading">
+                                <li class="has-children">
+                                    <a class="active" href="index.html">Home</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="index.html">Home 1</a></li>
+                                        <li><a href="index-2.html">Home 2</a></li>
+                                        <li><a href="index-3.html">Home 3</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="job-grid.html">Formation</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="job-grid.html">Job Grid</a></li>
+                                        <li><a href="job-grid-2.html">Job Grid 2</a></li>
+                                        <li><a href="job-list.html">Job List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="job-single.html">Job Single 01</a></li>
+                                        <li><a href="job-single-2.html">Job Single 02</a></li>
+                                        <li><a href="job-single-3.html">Job Single 03</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="employers-grid.html">Employers</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="employers-grid.html">Employers Grid</a></li>
+                                        <li><a href="employers-grid-2.html">Employers Grid 2</a></li>
+                                        <li><a href="employers-list.html">Employers List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="employers-single.html">Employers Single 01</a></li>
+                                        <li><a href="employers-single-2.html">Employers Single 02</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="candidates-grid.html">Candidates</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="candidates-grid.html">Candidates Grid</a></li>
+                                        <li><a href="candidates-grid-2.html">Candidates Grid 2</a></li>
+                                        <li><a href="candidates-list.html">Candidates List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="candidates-single.html">Candidates Single 01</a></li>
+                                        <li><a href="candidates-single-2.html">Candidates Single 02</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="#">Blog</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="blog-grid.html">Blog Grid</a></li>
+                                        <li><a href="blog-grid-2.html">Blog Grid Sidebar</a></li>
+                                        <li><a href="blog-list.html">Blog List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="blog-single.html">Blog Single 01</a></li>
+                                        <li><a href="blog-single-2.html">Blog Single 02</a></li>
+                                    </ul>
+                                </li>
+                                <li class="has-children">
+                                    <a href="#">Pages</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="page-about.html">About Us</a></li>
+                                        <li><a href="page-service.html">Our Services</a></li>
+                                        <li><a href="page-pricing.html">Pricing Plan</a></li>
+                                        <li><a href="pages-faqs.html">FAQs</a></li>
+                                        <li><a href="page-contact.html">Contact Us</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </nav>
+                        <!-- mobile menu end -->
+                    </div>
+                
+                    <div class="mobile-account">
+                        <h6 class="mb-10">Your Account</h6>
+                        <ul class="mobile-menu font-heading">
+                            <li><a href="#">Profile</a></li>
+                            <li><a href="#">Work Preferences</a></li>
+                            <li><a href="#">My Boosted Shots</a></li>
+                            <li><a href="#">My Collections</a></li>
+                            <li><a href="#">Account Settings</a></li>
+                            <li><a href="#">Go Pro</a></li>
+                            <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <li><button type="submit">Sign Out</button></li><!-- url logout -->
+                            </form>
+                        </ul>
+                    </div>
+                    <div class="mobile-social-icon mb-50">
+                        <h6 class="mb-25">Follow Us</h6>
+                        <a href="#"><img src="../static/imgs/theme/icons/icon-facebook.svg" alt="jobhub" /></a>
+                        <a href="#"><img src="../static/imgs/theme/icons/icon-twitter.svg" alt="jobhub" /></a>
+                        <a href="#"><img src="../static/imgs/theme/icons/icon-instagram.svg" alt="jobhub" /></a>
+                        <a href="#"><img src="../static/imgs/theme/icons/icon-pinterest.svg" alt="jobhub" /></a>
+                        <a href="#"><img src="../static/imgs/theme/icons/icon-youtube.svg" alt="jobhub" /></a>
+                    </div>
+                    <div class="site-copyright">Copyright 2025 © WORKI. <br />Designed by AI WIZARDS.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="page-container">
+        {% block content %}{% endblock %}
+    </div>
+    <div class="paginations wow animate__animated animate__fadeIn">
+                    <ul class="pager">
+                        <li><a href="#" class="pager-prev"></a></li>
+                        <li><a href="#" class="pager-number active">1</a></li>
+                        <li><a href="#" class="pager-number">2</a></li>
+                        <li><a href="#" class="pager-number">3</a></li>
+                        <li><a href="#" class="pager-number">4</a></li>
+                        <li><a href="#" class="pager-number">5</a></li>
+                        <li><a href="#" class="pager-number">6</a></li>
+                        <li><a href="#" class="pager-number">7</a></li>
+                        <li><a href="#" class="pager-next"></a></li>
+                    </ul>
+                </div>
+    <div class="box-newsletter">
+                    <h5 class="text-md-newsletter">Sign up to get</h5>
+                    <h6 class="text-lg-newsletter">the latest jobs</h6>
+                    <div class="box-form-newsletter mt-30">
+                        <form class="form-newsletter">
+                            <input type="text" class="input-newsletter" value="" placeholder="contact.alithemes@gmail.com" />
+                            <button class="btn btn-default font-heading icon-send-letter">Subscribe</button>
+                        </form>
+                    </div>
+                </div>
+    <footer class="footer mt-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 col-sm-12">
+                    <a href="index.html"><img alt="jobhub" src="../static/imgs/theme/worki-logo.svg" width="150px"/></a>
+                    <div class="mt-20 mb-20">Worki is the heart of the design community and the best resource to discover and connect with designers and jobs worldwide.</div>
+                </div>
+                <div class="col-md-2 col-xs-6">
+                    <h6>Company</h6>
+                    <ul class="menu-footer mt-40">
+                        <li><a href="#">About us</a></li>
+                        <li><a href="#">Our Team</a></li>
+                        <li><a href="#">Products</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-xs-6">
+                    <h6>Product</h6>
+                    <ul class="menu-footer mt-40">
+                        <li><a href="#">Feature</a></li>
+                        <li><a href="#">Pricing</a></li>
+                        <li><a href="#">Credit</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-xs-6">
+                    <h6>Download</h6>
+                    <ul class="menu-footer mt-40">
+                        <li><a href="#">iOS</a></li>
+                        <li><a href="#">Android</a></li>
+                        <li><a href="#">Microsoft</a></li>
+                        <li><a href="#">Desktop</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-xs-6">
+                    <h6>Support</h6>
+                    <ul class="menu-footer mt-40">
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Help</a></li>
+                        <li><a href="#">Terms</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom mt-50">
+                <div class="row">
+                    <div class="col-md-6">
+                        Copyright ©2025 <a href="#"><strong>Worki</strong></a>. All Rights Reserved
+                    </div>
+                    <div class="col-md-6 text-md-end text-start">
+                        <div class="footer-social">
+                            <a href="#" class="icon-socials icon-facebook"></a>
+                            <a href="#" class="icon-socials icon-twitter"></a>
+                            <a href="#" class="icon-socials icon-instagram"></a>
+                            <a href="#" class="icon-socials icon-linkedin"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Vendor JS-->
+    <script src="../static/js/vendor/modernizr-3.6.0.min.js"></script>
+    <script src="../static/js/vendor/jquery-3.6.0.min.js"></script>
+    <script src="../static/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+    <script src="../static/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="../static/js/plugins/waypoints.js"></script>
+    <script src="../static/js/plugins/wow.js"></script>
+    <script src="../static/js/plugins/perfect-scrollbar.min.js"></script>
+    <script src="../static/js/plugins/select2.min.js"></script>
+    <script src="../static/js/plugins/scrollup.js"></script>
+    <script src="../static/js/plugins/counterup.js"></script>
+    <!-- Template  JS -->
+    <script src="../static/js/main.js?v=1.0"></script>
+</body>
+ 
+</html>
