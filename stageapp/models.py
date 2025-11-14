@@ -29,11 +29,13 @@ class Stage(models.Model):
     date_publication = models.DateField(default=date.today)
     type = models.CharField(max_length=50, validators=[typeValidator])
     
+    # Cette relation doit pointer vers le modèle Entreprise
     entreprise = models.ForeignKey(
         Entreprise,
         on_delete=models.CASCADE,
         related_name='stages'
     )
+
     def clean(self):
         if self.duree <= 0:
             raise ValidationError("La durée du stage doit être supérieure à 0.")
@@ -41,6 +43,7 @@ class Stage(models.Model):
             raise ValidationError("La date de publication ne peut pas être dans le futur.")
         super().clean()
 
-    # ────────────── DISPLAY ──────────────
     def __str__(self):
-        return f"{self.titre} ({self.entreprise.nom})"
+        return f"{self.titre} ({self.entreprise.nom_entreprise})"
+    
+  

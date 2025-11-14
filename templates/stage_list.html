@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Jobhub - Job Board HTML Website Template{% endblock %}
+
+{% block content %}
+<!-- Content -->
+
+
+<main class="main">
+    <section class="section-box-2">
+        <div class="box-head-single none-bg">
+            <div class="container">
+                <h4>Découvrez Nos Stages<br />Pour Votre Carrière!</h4>
+                <div class="row mt-15 mb-40">
+                    <div class="col-lg-7 col-md-9">
+                        <span class="text-mutted">Trouvez le stage parfait pour démarrer votre carrière professionnelle</span>
+                    </div>
+                    <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                        <ul class="breadcrumbs mt-sm-15">
+                            <li><a href="#">Home</a></li>
+                            <li>Stages listing</li>
+                        </ul>
+                    </div>
+                </div>
+
+
+
+
+                
+
+
+
+
+
+                
+            </div>
+        </div>
+    </section>
+
+    <section class="section-box mt-80">
+        <div class="container">
+            <div class="row flex-row-reverse">
+                <div class="col-lg-9 col-md-12 col-sm-12 col-12 float-right">
+                    <div class="content-page">
+                        <div class="box-filters-job mt-15 mb-10">
+                            <div class="row">
+                                <div class="col-lg-7">
+                                    <span class="text-small">
+                                        {% if stages %}
+                                            Affichage de <strong>{{ stages|length }}</strong> stage{{ stages|length|pluralize }}
+                                        {% else %}
+                                            Aucun stage trouvé
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        {% if stages %}
+                        <div class="row job-listing-grid-2">
+                            {% for stage in stages %}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="card-grid-2 hover-up wow animate__animated animate__fadeIn {% if user.is_authenticated and user.role == 'entreprise' and stage.entreprise.id == user.id %}highlight-card{% endif %}" data-wow-delay=".1s">
+                                    <div class="card-block-info">
+                                        <div class="row">
+                                            <div class="col-lg-12 col-12">
+                                                <a href="{% url 'stage_detail' stage.id_stage %}" class="card-2-img-text card-grid-2-img-medium">
+                                                    <span class="card-grid-2-img-small">
+                                                        <img alt="jobhub" src="/static/imgs/page/job/ui-ux.svg" />
+                                                    </span> 
+                                                    <span>{{ stage.titre }}</span>
+                                                </a>
+                                                <div class="dropdowm menu-dropdown-abs">
+                                                    <button class="btn btn-dots btn-dots-abs-right dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                                    <ul class="dropdown-menu dropdown-menu-light">
+                                                        <li><a class="dropdown-item" href="{% url 'stage_detail' stage.id_stage %}">View</a></li>
+                                                        <li><a class="dropdown-item" href="#">Bookmark</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-15">
+                                            <span class="text-sm text-mutted-2 mr-20">
+                                                <i class="fi-rr-marker"></i> {{ stage.localisation }}
+                                            </span>
+                                            <span class="text-sm text-mutted-2">
+                                                <i class="fi-rr-clock"></i> {{ stage.duree }} semaines
+                                            </span>
+                                        </div>
+
+                                        <div class="text-small mt-15">
+                                            <span class="text-brand-10 text-icon-first">🏢 {{ stage.entreprise.nom_entreprise }}</span>
+                                        </div>
+
+                                        <div class="card-2-bottom mt-30">
+                                            <div class="row">
+                                                
+                                                
+                                            </div>
+                                            <div class="row mt-20">
+                                                <div class="col-lg-8 col-8">
+                                                    <a href="{% url 'stage_detail' stage.id_stage %}" class="btn btn-grey-small">Détails</a>
+                                                    {% if user.is_authenticated and user.role == 'candidat' %}
+                                                    <a href="#" class="btn btn-grey-small">Postuler</a>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-lg-4 col-4 text-end pt-5">
+                                                    {% if user.is_authenticated and user.role == 'entreprise' and stage.entreprise.id == user.id %}
+                                                    <a href="{% url 'stage_edit' stage.id_stage %}" class="text-gray-100 text-md mr-10" title="Modifier">
+                                                        <i class="fi-rr-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'stage_delete' stage.id_stage %}" class="text-gray-100 text-md" title="Supprimer">
+                                                        <i class="fi-rr-trash"></i>
+                                                    </a>
+                                                    {% else %}
+                                                    <span class="text-gray-100 text-md"><i class="fi-rr-bookmark"></i></span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center mt-50">
+                            <div class="box-newsletter">
+                                <h5 class="text-md-newsletter">Aucun stage trouvé</h5>
+                                <h6 class="text-lg-newsletter">Essayez de modifier vos critères de recherche</h6>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="paginations">
+                            <ul class="pager">
+                                <li><a href="#" class="pager-prev"></a></li>
+                                <li><a href="#" class="pager-number active">1</a></li>
+                                <li><a href="#" class="pager-number">2</a></li>
+                                <li><a href="#" class="pager-number">3</a></li>
+                                <li><a href="#" class="pager-next"></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-12 col-sm-12 col-12">
+                    <form method="get" id="filterForm" class="filter-form">
+                        <div class="sidebar-shadow none-shadow mb-30">
+                            <div class="sidebar-filters">
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-15">🔍 Recherche</h5>
+                                    <div class="form-group">
+                                        <input type="text" name="search" class="form-control form-icons" placeholder="Développeur, Marketing..." value="{{ request.GET.search }}" />
+                                        <i class="fi-rr-search"></i>
+                                    </div>
+                                </div>
+
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-15">📅 Trier par</h5>
+                                    <div class="form-group">
+                                        <ul class="list-checkbox">
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="radio" name="tri" value="recent" {% if request.GET.tri == "recent" %}checked{% endif %}>
+                                                    <span class="text-small">Plus récents</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="radio" name="tri" value="ancien" {% if request.GET.tri == "ancien" %}checked{% endif %}>
+                                                    <span class="text-small">Plus anciens</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="radio" name="tri" value="duree" {% if request.GET.tri == "duree" %}checked{% endif %}>
+                                                    <span class="text-small">Par durée</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-15">⏱️ Durée (semaines)</h5>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <input type="number" name="duree_min" class="form-control" placeholder="Min" value="{{ request.GET.duree_min }}" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <input type="number" name="duree_max" class="form-control" placeholder="Max" value="{{ request.GET.duree_max }}" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="buttons-filter">
+                                    <button type="submit" class="btn btn-default">Apply filter</button>
+                                    <a href="?" class="btn">Reset filter</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    {% if user.is_authenticated and user.role == 'entreprise' %}
+                    <div class="sidebar-with-bg background-primary bg-sidebar pb-80">
+                        <h5 class="medium-heading text-white mb-20 mt-20">Recrutez des stagiaires?</h5>
+                        <p class="text-body-999 text-white mb-30">Publiez vos offres de stage et trouvez les meilleurs talents</p>
+                        <a href="{% url 'stage_form' %}" class="btn btn-border icon-chevron-right btn-white-sm">Publier un stage</a>
+                    </div>
+                    {% else %}
+                    <div class="sidebar-with-bg">
+                        <h5 class="font-semibold mb-10">Recevoir des alertes</h5>
+                        <p class="text-body-999">Entrez votre email pour recevoir les nouvelles offres de stage</p>
+                        <div class="box-email-reminder">
+                            <form>
+                                <div class="form-group mt-15">
+                                    <input type="text" class="form-control input-bg-white form-icons" placeholder="Votre email" />
+                                    <i class="fi-rr-envelope"></i>
+                                </div>
+                                <div class="form-group mt-25 mb-5">
+                                    <button class="btn btn-default btn-md">S'abonner</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<!-- End Content -->
+
+{% endblock %}
