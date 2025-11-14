@@ -18,12 +18,18 @@ from django.contrib import admin  # type: ignore
 from django.urls import path, include  # type: ignore
 from django.conf import settings  # type: ignore
 from django.conf.urls.static import static  # type: ignore
+from django.views.generic import TemplateView  # type: ignore
+from django.views.generic import RedirectView # type: ignore
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('userapp.urls')),  # ✅ links all URLs from userapp
+    path('home/', TemplateView.as_view(template_name='index.html'), name='home'),
+    path('', RedirectView.as_view(pattern_name='home', permanent=False)),  # <-- redirect root to home
+    path('', include('userapp.urls')),
 ]
+
 
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -124,6 +124,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
+# Instead of MEDIA, we’re using a custom 'photos' directory for user uploads
+MEDIA_URL = '/photos/'
+MEDIA_ROOT = BASE_DIR / 'photos'
 
 
 # Default primary key field type
