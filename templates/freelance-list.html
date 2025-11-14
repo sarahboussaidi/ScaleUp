@@ -6,7 +6,7 @@
 {% block content %}
     <!-- Content -->
     <main class="main">
-        <section class="section-box-2">
+     <section class="section-box-2">
             <div class="box-head-single none-bg">
                 <div class="container">
                     <h4>There Are 65.866 Jobs<br />Here For you!</h4>
@@ -17,7 +17,7 @@
                         </div>
                         <div class="col-lg-5 col-md-3 text-lg-end text-start">
                             <ul class="breadcrumbs mt-sm-15">
-                                <li><a href="#">Home</a></li>
+                                <li><a href="/home/">Home</a></li>
                                 <li>offres de freelance</li>
                             </ul>
                         </div>
@@ -112,6 +112,21 @@
                                 </div>
                             </div>
                             <div class="job-list-list mb-15">
+                                {% if request.GET.deleted %}
+                                <div id="delete-message" class="alert alert-success text-center" style="  max-height:45px;max-width:400px; padding:10px; border-radius:5px;margin: 20px auto;">
+                                Mission supprimée avec succès !
+                                </div>
+                                <script>
+                                window.addEventListener('DOMContentLoaded', () => {
+                                const msg = document.getElementById('delete-message');
+                                if(msg){
+                                setTimeout(() => { msg.style.transition = "opacity 0.3s"; msg.style.opacity = 0; }, 3000);
+                                setTimeout(() => { msg.remove(); }, 3500);
+                            }
+                            });
+                            </script>
+                            {% endif %}
+
                                 <div class="list-recent-jobs">
                                     <div class="container mt-5">
                                         {% for freelance in freelances %}
@@ -150,22 +165,26 @@
                                                     <div class="col-lg-9 col-sm-8 col-12">
                                                         <a href="#" class="btn btn-small background-12 mr-5">{{ freelance.competences_requises }}</a>
                                                     </div>
-                                                    <div class="col-lg-3 col-sm-4 col-12 text-lg-end d-lg-block d-none">
+                                                    <div class="col-lg-3 col-sm-4 col-12 d-flex justify-content-end" style="gap:10px;">
                                                         {% if freelance.id_user == user %}
-                                                        <!-- Bouton Modifier -->
+                                                            <!-- Bouton Modifier -->
                                                             <a href="{% url 'update_freelance' freelance.id_freelance %}" 
                                                             class="btn px-5 py-2 rounded-pill shadow-sm" 
                                                             style="background-color: #7badff; border: none; color: white;">
-                                                            Modifier
+                                                                Modifier
                                                             </a>
                                                             <!-- Bouton Supprimer -->
-                                                            <a href="{% url 'delete_freelance' freelance.id_freelance %}" 
-                                                           class="btn px-5 py-2 rounded-pill shadow-sm"
-                                                            style="background-color: #e0e0e0; border: none; color: #333; transition: all 0.3s;margin-top: 20px;">                                                                
-                                                            Supprimer
-                                                            </a>
+                                                            <!-- Bouton Supprimer -->
+<a href="{% url 'delete_freelance' freelance.id_freelance %}" 
+   onclick="return confirmDeleteSweet(this.href);"
+   class="btn px-5 py-2 rounded-pill shadow-sm"
+   style="background-color: #e0e0e0; border: none; color: #333;">
+   Supprimer
+</a>
+
                                                         {% endif %}
                                                     </div>
+
                                                 </div>
                                             </div>
 
@@ -180,15 +199,23 @@
                             </div>
                             <div class="paginations">
                                 <ul class="pager">
-                                    <li><a href="#" class="pager-prev"></a></li>
-                                    <li><a href="#" class="pager-number">1</a></li>
-                                    <li><a href="#" class="pager-number">2</a></li>
-                                    <li><a href="#" class="pager-number">3</a></li>
-                                    <li><a href="#" class="pager-number">4</a></li>
-                                    <li><a href="#" class="pager-number">5</a></li>
-                                    <li><a href="#" class="pager-number active">6</a></li>
-                                    <li><a href="#" class="pager-number">7</a></li>
-                                    <li><a href="#" class="pager-next"></a></li>
+                                    {% if freelances.has_previous %}
+                                     <li><a href="?page={{ freelances.previous_page_number }}" class="pager-prev"></a></li>
+                                    {% else %}
+                                    <li><span class="pager-prev disabled"></span></li>
+                                    {% endif %}
+                                    {% for num in freelances.paginator.page_range %}
+                                    {% if freelances.number == num %}
+                                    <li><span class="pager-number active">{{ num }}</span></li>
+                                    {% else %}
+                                    <li><a href="?page={{ num }}" class="pager-number">{{ num }}</a></li>
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% if freelances.has_next %}
+                                    <li><a href="?page={{ freelances.next_page_number }}" class="pager-next"></a></li>
+                                    {% else %}
+                                    <li><span class="pager-next disabled"></span></li>
+                                    {% endif %}
                                 </ul>
                             </div>
                         </div>
@@ -219,60 +246,17 @@
                                     </div>
                                 </div>
                                 <div class="filter-block mb-30">
-                                    <h5 class="medium-heading mb-15">Categoy</h5>
+                                    <h5 class="medium-heading mb-15">Domaine</h5>
                                     <div class="form-group select-style select-style-icon">
-                                        <select class="form-control form-icons select-active">
-                                            <option>Ui/UX design</option>
-                                            <option>Ui/UX design 1</option>
-                                            <option>Ui/UX design 2</option>
-                                            <option>Ui/UX design 3</option>
-                                        </select>
-                                        <i class="fi-rr-briefcase"></i>
-                                    </div>
-                                </div>
-                                <div class="filter-block mb-30">
-                                    <h5 class="medium-heading mb-15">Job type</h5>
-                                    <div class="form-group">
-                                        <ul class="list-checkbox">
-                                            <li>
-                                                <label class="cb-container">
-                                                    <input type="checkbox"> <span class="text-small">Full Time
-                                                        Jobs</span>
-                                                    <span class="checkmark"></span>
-                                                </label>
-                                                <span class="number-item">235</span>
-                                            </li>
-                                            <li>
-                                                <label class="cb-container">
-                                                    <input type="checkbox" checked="checked"> <span class="text-small">Part Time
-                                                        Jobs</span>
-                                                    <span class="checkmark"></span>
-                                                </label>
-                                                <span class="number-item">28</span>
-                                            </li>
-                                            <li>
-                                                <label class="cb-container">
-                                                    <input type="checkbox" checked="checked"> <span class="text-small">Remote
-                                                        Jobs</span>
-                                                    <span class="checkmark"></span>
-                                                </label>
-                                                <span class="number-item">67</span>
-                                            </li>
-                                            <li>
-                                                <label class="cb-container">
-                                                    <input type="checkbox"> <span class="text-small">Freelance</span>
-                                                    <span class="checkmark"></span>
-                                                </label>
-                                                <span class="number-item">92</span>
-                                            </li>
-                                            <li>
-                                                <label class="cb-container">
-                                                    <input type="checkbox"> <span class="text-small">Temporary</span>
-                                                    <span class="checkmark"></span>
-                                                </label>
-                                                <span class="number-item">14</span>
-                                            </li>
-                                        </ul>
+                                        <form method="GET" id="filterForm">
+                                            <select name="domaine" class="form-control form-icons select-active" onchange="document.getElementById('filterForm').submit()">
+                                                <option value="">Tous les domaines</option>
+                                                {% for code, label in domaines %}
+                                                    <option value="{{ code }}" {% if selected_domaine == code %}selected{% endif %}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <i class="fi-rr-briefcase"></i>
+                                        </form>
                                     </div>
                                 </div>
                                 <div class="filter-block mb-30">
@@ -325,47 +309,64 @@
                                     </div>
                                 </div>
                                 <div class="filter-block mb-40">
-                                    <h5 class="medium-heading mb-25">Salary Range</h5>
-                                    <div class="">
-                                        <div class="row mb-20">
-                                            <div class="col-sm-12">
-                                                <div id="slider-range"></div>
-                                            </div>
-                                        </div>
+                                    <h5 class="medium-heading mb-25">Filtre Par Tarif</h5>
+
+                                    <form method="GET">
+                                        {% if selected_domaine %}
+                                            <input type="hidden" name="domaine" value="{{ selected_domaine }}">
+                                        {% endif %}
+
                                         <div class="row">
                                             <div class="col-lg-6">
-                                                <label class="lb-slider">From</label>
-                                                <div class="form-group minus-input">
-                                                    <input type="text" name="min-value-money" class="input-disabled form-control min-value-money" disabled="disabled" value="" />
-                                                    <input type="hidden" name="min-value" class="form-control min-value" value="" />
-                                                </div>
+                                                <input type="number" name="min-value" class="form-control" 
+                                                    value="{{ request.GET.min_value|default:'' }}" placeholder="min /dt">
                                             </div>
                                             <div class="col-lg-6">
-                                                <label class="lb-slider">To</label>
-                                                <div class="form-group">
-                                                    <input type="text" name="max-value-money" class="input-disabled form-control max-value-money" disabled="disabled" value="" />
-                                                    <input type="hidden" name="max-value" class="form-control max-value" value="" />
-                                                </div>
+                                                <input type="number" name="max-value" class="form-control" 
+                                                    value="{{ request.GET.max_value|default:'' }}" placeholder="max /dt">
                                             </div>
                                         </div>
-                                    </div>
+
+                                        <div class="buttons-filter">
+                                            <button type="submit" class="btn btn-default" style="margin-top: 10px;">Filter</button>
+                                        </div>
+                                    </form>
                                 </div>
-                                <div class="buttons-filter">
-                                    <button class="btn btn-default">Apply filter</button>
-                                    <button class="btn">Reset filter</button>
-                                </div>
+
+                                
                             </div>
                         </div>
                         <div class="sidebar-with-bg background-primary bg-sidebar pb-80">
                             <h5 class="medium-heading text-white mb-20 mt-20">Trouvez le freelance idéal !</h5>
                             <p class="text-body-999 text-white mb-30">Publiez votre mission et accédez à des milliers de professionnels disponibles dans notre base de talents.</p>
-                            <a href="{% url 'add_freelance' %}" class="btn btn-border icon-chevron-right btn-white-sm">Post a Job</a>
+                            <a href="{% url 'add_freelance' %}" class="btn btn-border icon-chevron-right btn-white-sm">publier une mission</a>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
-       
+       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmDeleteSweet(url) {
+    Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: "Cette mission sera définitivement supprimée !",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Oui, supprimer !',
+        cancelButtonText: 'Annuler'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+    return false; // empêche le lien par défaut
+}
+</script>
+
+
     </main>
     <!-- End Content -->
 {% endblock %}

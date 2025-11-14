@@ -4,10 +4,6 @@
 {% block title %}freelance offer{% endblock %}
 
 {% block content %}
-<!-- Content -->
- <h2 class="text-center mb-4">
-  {% if update %}Modifier la mission{% else %}Ajouter une mission{% endif %}
-</h2>
 
 <main class="main">
   <div class="breacrumb-cover">
@@ -21,9 +17,10 @@
 
   <div class="archive-header pt-50 pb-30 text-center">
     <div class="container">
-      <h3 class="mb-30 text-center w-75 mx-auto">
-        Ajouter une Offre Freelance
-      </h3>
+      <h2 class="text-center mb-4">
+        {% if update %}Modifier la mission{% else %}Ajouter une mission{% endif %}
+      </h2>
+
       <p class="text-muted w-75 mx-auto">
         Remplissez le formulaire ci-dessous pour publier votre offre freelance.
       </p>
@@ -31,92 +28,181 @@
     </div>
   </div>
 
-  <!-- ======= FORM SECTION ======= -->
   <section class="section-box mt-30 mb-80">
     <div class="container">
       <div class="row justify-content-center">
-        <!-- ✅ moins large et centré -->
         <div class="col-lg-8 col-md-10">
           <div class="card-job wow animate__animated animate__fadeInUp p-5 mx-auto shadow-lg rounded-4"
                style="background: white; border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); max-width: 750px;">
             
+
+            <!-- =======================
+                 🔥 AFFICHAGE DES MESSAGES DJANGO
+                 ======================= -->
+            <!-- =======================
+     🔥 AFFICHAGE DES MESSAGES DJANGO
+======================= -->
+<div id="messages-container" style="position: relative;">
+    {% for message in messages %}
+        <div class="alert 
+                    {% if message.tags == 'success' %}alert-success{% endif %} 
+                    {% if message.tags == 'error' %}alert-error{% endif %}" 
+             style="padding: 10px; margin-bottom: 15px; border-radius:5px; text-align:center;">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+
+<!-- =======================
+🔥 MESSAGE DE SUCCÈS FORMULAIRE
+======================= -->
+{% if success %}
+<div id="success-msg" class="alert-success text-center p-3 mb-3">
+    Mission {% if update %}mise à jour{% else %}ajoutée{% endif %} avec succès !
+</div>
+{% if success %}
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+    const successMsg = document.getElementById('success-msg');
+    if(successMsg){
+        // disparition après 3s
+        setTimeout(() => {
+            successMsg.style.transition = "opacity 0.5s";
+            successMsg.style.opacity = 0;
+        }, 3000);
+
+        // redirection après disparition
+        setTimeout(() => {
+            window.location.href = "{% url 'list' %}";
+        }, 3500);
+    }
+});
+</script>
+{% endif %}
+{% endif %}
+
+
+
             <form method="POST" enctype="multipart/form-data" class="mt-4">
-  {% csrf_token %}
-  <div class="row gy-4 gx-4">
+              {% csrf_token %}
 
-    <div class="col-md-6">
-      <div class="form-group">
-        <label class="form-label">Titre de la mission</label>
-        <input type="text" name="titre_mission" class="form-control p-3" 
-               placeholder="Entrez le titre de la mission" 
-               value="{% if freelance %}{{ freelance.titre_mission }}{% endif %}" required>
-      </div>
-    </div>
+              <div class="row gy-4 gx-4">
 
-    <div class="col-md-6">
-      <div class="form-group">
-        <label class="form-label">Domaine</label>
-        <select name="domaine" class="form-control p-3" required>
-          <option value="" disabled {% if not freelance %}selected{% endif %}>Choisissez un domaine</option>
-          <option value="IT" {% if freelance and freelance.domaine == 'IT' %}selected{% endif %}>Informatique / Développement</option>
-          <option value="MARKETING" {% if freelance and freelance.domaine == 'MARKETING' %}selected{% endif %}>Marketing / Communication</option>
-          <option value="DESIGN" {% if freelance and freelance.domaine == 'DESIGN' %}selected{% endif %}>Design / Graphisme</option>
-          <option value="FINANCE" {% if freelance and freelance.domaine == 'FINANCE' %}selected{% endif %}>Finance / Comptabilité</option>
-          <option value="RH" {% if freelance and freelance.domaine == 'RH' %}selected{% endif %}>Ressources Humaines</option>
-          <option value="TRAD" {% if freelance and freelance.domaine == 'TRAD' %}selected{% endif %}>Traduction / Rédaction</option>
-          <option value="EDUCATION" {% if freelance and freelance.domaine == 'EDUCATION' %}selected{% endif %}>Éducation / Formation</option>
-          <option value="AUTRE" {% if freelance and freelance.domaine == 'AUTRE' %}selected{% endif %}>Autre</option>
-        </select>
-      </div>
-    </div>
+                <!-- =======================
+                     TITRE MISSION
+                ======================= -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Titre de la mission</label>
+                    <input type="text" name="titre_mission" class="form-control p-3"
+                           placeholder="Entrez le titre de la mission"
+                           value="{{ form.titre_mission.value|default:'' }}" >
 
-    <div class="col-md-12">
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <textarea name="description" rows="5" class="form-control p-3" placeholder="Décrivez la mission..." required>{% if freelance %}{{ freelance.description }}{% endif %}</textarea>
-      </div>
-    </div>
+                    {% for error in form.titre_mission.errors %}
+                      <p class="text-danger mt-1">{{ error }}</p>
+                    {% endfor %}
+                  </div>
+                </div>
 
-    <div class="col-md-6">
-      <div class="form-group">
-        <label class="form-label">Compétences requises</label>
-        <input type="text" name="competences_requises" class="form-control p-3" 
-               placeholder="Ex: Python, React, Photoshop" 
-               value="{% if freelance %}{{ freelance.competences_requises }}{% endif %}" required>
-      </div>
-    </div>
+                <!-- =======================
+                     DOMAINE
+                ======================= -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Domaine</label>
+                    <select name="domaine" class="form-control p-3" >
+                      <option value="" disabled selected>Choisissez un domaine</option>
+                      {% for value,label in form.fields.domaine.choices %}
+                        <option value="{{ value }}" 
+                                {% if form.domaine.value == value %}selected{% endif %}>
+                          {{ label }}
+                        </option>
+                      {% endfor %}
+                    </select>
 
-    <div class="col-md-3">
-      <div class="form-group">
-        <label class="form-label">Tarif (en DT)</label>
-        <input type="number" name="tarif" step="0.01" class="form-control p-3" 
-               placeholder="Ex: 120.00" 
-               value="{% if freelance %}{{ freelance.tarif }}{% endif %}" required>
-      </div>
-    </div>
+                    {% for error in form.domaine.errors %}
+                      <p class="text-danger mt-1">{{ error }}</p>
+                    {% endfor %}
+                  </div>
+                </div>
 
-    <div class="col-md-3">
-      <div class="form-group">
-        <label class="form-label">Durée estimée (jours)</label>
-        <input type="number" name="duree_estimee" class="form-control p-3" 
-               placeholder="Ex: 7" 
-               value="{% if freelance %}{{ freelance.duree_estimee }}{% endif %}" required>
-      </div>
-    </div>
-  </div>
+                <!-- =======================
+                     DESCRIPTION
+                ======================= -->
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" rows="5" class="form-control p-3"
+                    placeholder="Décrivez la mission...">{{ form.description.value|default:'' }}</textarea>
 
-  <!-- ✅ boutons centrés -->
-  <div class="text-center mt-5 d-flex justify-content-center gap-4">
-    <button type="submit" class="btn btn-success px-5 py-2 rounded-pill shadow-sm"
-            style="background-color: #7badff; border: none;">
-      {% if freelance %}Mettre à jour{% else %}Publier l'offre{% endif %}
-    </button>
-    <a href="{% url 'list' %}" class="btn btn-outline-secondary px-5 py-2 rounded-pill shadow-sm">
-      Annuler
-    </a>
-  </div>
-</form>
 
+                    {% for error in form.description.errors %}
+                      <p class="text-danger mt-1">{{ error }}</p>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- =======================
+                     COMPETENCES
+                ======================= -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Compétences requises</label>
+                    <input type="text" name="competences_requises" class="form-control p-3"
+                           placeholder="Ex: Python, React, Photoshop"
+                           value="{{ form.competences_requises.value|default:'' }}">
+
+                    {% for error in form.competences_requises.errors %}
+                      <p class="text-danger mt-1">{{ error }}</p>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- =======================
+                     TARIF
+                ======================= -->
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label class="form-label">Tarif (en DT)</label>
+                    <input type="number" name="tarif" step="0.01" class="form-control p-3"
+                           placeholder="Ex: 120.00"
+                           value="{{ form.tarif.value|default:'' }}" >
+
+                    {% for error in form.tarif.errors %}
+                      <p class="text-danger mt-1">{{ error }}</p>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- =======================
+                     DUREE ESTIMEE
+                ======================= -->
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label class="form-label">Durée estimée (jours)</label>
+                    <input type="number" name="duree_estimee" class="form-control p-3"
+                           placeholder="Ex: 7"
+                           value="{{ form.duree_estimee.value|default:'' }}" >
+
+                    {% for error in form.duree_estimee.errors %}
+                      <p class="text-danger mt-1">{{ error }}</p>
+                    {% endfor %}
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="text-center mt-5 d-flex justify-content-center gap-4">
+                <button type="submit" class="btn btn-success px-5 py-2 rounded-pill shadow-sm"
+                        style="background-color: #7badff; border: none;">
+                  {% if update %}Mettre à jour{% else %}Publier l'offre{% endif %}
+                </button>
+                <a href="{% url 'list' %}" class="btn btn-outline-secondary px-5 py-2 rounded-pill shadow-sm">
+                  Annuler
+                </a>
+              </div>
+            </form>
 
           </div>
         </div>
@@ -124,54 +210,46 @@
     </div>
   </section>
 </main>
-<!-- ======= STYLE ======= -->
+
 <style>
-  .form-label {
-    display: block;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
-    text-align: left;
-  }
+  
+  .messages-container {
+    margin-bottom: 20px;
+}
 
-  .form-control, select, textarea {
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    transition: all 0.3s ease;
-    width: 100%;
-  }
-
-  .form-control:focus, select:focus, textarea:focus {
-    border-color: #7badff;
-    box-shadow: 0 0 6px rgba(123, 173, 255, 0.3);
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .btn {
+/* 🔴 Style erreur */
+.alert-error {
+    background: #ffe5e5;
+    color: #842029;
+    border-left: 5px solid #d90429;
+    padding: 12px 15px;
+    border-radius: 8px;
     font-weight: 500;
-    transition: all 0.3s ease;
-  }
+    margin-bottom: 10px;
+}
 
-  .btn:hover {
-    transform: translateY(-2px);
-  }
+/* 🟢 Style succès */
+.alert-success {
+    background: #e6ffed;
+    color: #067d32;
+    border-left: 5px solid #067d32;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
 
-  .card-job {
-    padding: 50px 40px;
-  }
+/* 🟡 Style avertissement si tu l’utilises */
+.alert-warning {
+    background: #fff8e1;
+    color: #b38100;
+    border-left: 5px solid #b38100;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
 
-  /* ✅ harmonisation des colonnes */
-  .row.gy-4 > [class*="col-md-"] {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
 </style>
 
 {% endblock %}
-
-    

@@ -145,6 +145,20 @@
                             </div>
                             <!-- Grid View -->
                             <div class="row job-listing-grid-2">
+                                 {% if request.GET.deleted %}
+                                <div id="delete-message" class="alert alert-success text-center" style="  max-height:45px;max-width:400px; padding:10px; border-radius:5px;margin: 20px auto;">
+                                Mission supprimée avec succès !
+                                </div>
+                                <script>
+                                window.addEventListener('DOMContentLoaded', () => {
+                                const msg = document.getElementById('delete-message');
+                                if(msg){
+                                setTimeout(() => { msg.style.transition = "opacity 0.3s"; msg.style.opacity = 0; }, 3000);
+                                setTimeout(() => { msg.remove(); }, 3500);
+                            }
+                            });
+                            </script>
+                            {% endif %}
                                 {% for freelance in freelances %}
                                 <div class="col-lg-4 col-md-6">
                                     <div class="card-grid-2 hover-up wow animate__animated animate__fadeIn" data-wow-delay=".s">
@@ -260,15 +274,17 @@
                                     </div>
                                 </div>
                                 <div class="filter-block mb-30">
-                                    <h5 class="medium-heading mb-15">Categoy</h5>
+                                    <h5 class="medium-heading mb-15">Domaine</h5>
                                     <div class="form-group select-style select-style-icon">
-                                        <select class="form-control form-icons select-active">
-                                            <option>Ui/UX design</option>
-                                            <option>Ui/UX design 1</option>
-                                            <option>Ui/UX design 2</option>
-                                            <option>Ui/UX design 3</option>
-                                        </select>
-                                        <i class="fi-rr-briefcase"></i>
+                                        <form method="GET" id="filterForm">
+                                            <select name="domaine" class="form-control form-icons select-active" onchange="document.getElementById('filterForm').submit()">
+                                                <option value="">Tous les domaines</option>
+                                                {% for code, label in domaines %}
+                                                    <option value="{{ code }}" {% if selected_domaine == code %}selected{% endif %}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <i class="fi-rr-briefcase"></i>
+                                        </form>
                                     </div>
                                 </div>
                                 <div class="filter-block mb-30">
