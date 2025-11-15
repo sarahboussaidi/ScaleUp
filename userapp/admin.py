@@ -14,15 +14,12 @@ class SkillAdmin(admin.ModelAdmin):
     list_display = ["name", "domain"]
     list_filter = ["domain"]
 
-
 # ---------------------------
-# Candidat Admin 
+# Role-specific Inlines
 # ---------------------------
 class CandidatInline(admin.StackedInline):
     model = Candidat
     filter_horizontal = ['skills']
-    fields = ('age', 'cv', 'portfolio_website', 'years_experience', 'education_level', 'bio', 'skills')
-    extra = 0
 
 class EntrepriseInline(admin.StackedInline):
     model = Entreprise

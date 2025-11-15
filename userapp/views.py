@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout, get_user_model
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .models import Candidat, Entreprise, Admin, Domain, Skill, Utilisateur
+from django.shortcuts import render, redirect # type: ignore
+from django.contrib.auth import authenticate, login, logout, get_user_model # type: ignore
+from django.contrib import messages     # type: ignore
+from django.contrib.auth.decorators import login_required # type: ignore
+from .models import Candidat, Entreprise, Admin, Domain, Skill # type: ignore
+from django.db import models # type: ignore
 
 User = get_user_model()
 
@@ -195,3 +196,89 @@ def signin_view(request):
             return redirect('signin')
 
     return render(request, "page-signin.html")
+
+
+
+@login_required
+def candidats_listing(request):
+
+    candidates = Candidat.objects.all()
+
+    # ------------------- GET FILTERS -------------------
+    search_query = request.GET.get("search", "").strip()
+    domain_filter = request.GET.get("domain", "")
+    skill_filter = request.GET.get("skill", "")
+    education_filter = request.GET.get("education", "")
+    min_experience = request.GET.get("experience", "")
+
+    # ------------------- APPLY FILTERS -------------------
+
+    # Search by skill text OR user first_name/last_name
+    if search_query:
+        candidates = candidates.filter(
+            models.Q(user__first_name__icontains=search_query) |
+            models.Q(user__last_name__icontains=search_query) |
+            models.Q(skills__name__icontains=search_query)
+        ).distinct()
+
+    # Filter by domain (Skill → Domain)
+    if domain_filter:
+        candidates = candidates.filter(
+            skills__domain__id=domain_filter
+        ).distinct()
+
+    # Filter by specific skill ID
+    if skill_filter:
+        candidates = candidates.filter(
+            skills__id=skill_filter
+        ).distinct()
+
+    # Filter by education level
+    if education_filter:
+        candidates = candidates.filter(
+            education_level=education_filter
+        )
+
+    # Filter by minimum years of experience
+    if min_experience.isdigit():
+        candidates = candidates.filter(
+            years_experience__gte=int(min_experience)
+        )
+    selected_domain = None
+    domain_id = request.GET.get('domain')
+
+    if domain_id:
+        try:
+            selected_domain = Domain.objects.get(id=domain_id)
+
+        except:
+            selected_domain = None
+
+    selected_skill = None
+    skill_id = request.GET.get("skill")
+
+    if skill_id:
+        try:
+            selected_skill = Skill.objects.get(id=skill_id)
+        except Skill.DoesNotExist:
+            selected_skill = None
+    context = {
+        "candidates": candidates.distinct(),
+        "domains": Domain.objects.all(),
+        "skills": Skill.objects.all(),
+        "selected_domain": selected_domain,
+        "selected_skill": selected_skill,
+    }
+
+    
+    return render(request, 'candidates-grid.html', context)
+
+@login_required
+def candidat_detail(request, candidat_id):
+    candidate = Candidat.objects.filter(id=candidat_id).first()
+    if not candidate:
+        messages.error(request, "Candidate not found")
+        return redirect('candidats_listing')
+
+    context = {'candidate': candidate}
+    return render(request, 'candidates-single.html', context)
