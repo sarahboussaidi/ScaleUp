@@ -189,7 +189,7 @@
                                             {% if candidate.user.photo %}
                                             <figure><img alt="{{ candidate.user.get_full_name }}" src="{{ candidate.user.photo.url }}" /></figure>
                                             {% else %}
-                                            <figure><img alt="{{ candidate.user.get_full_name }}" src="{% static 'imgs/page/candidates/img-candidate.png' %}" /></figure>
+                                            <figure><img alt="{{ candidate.user.get_full_name }}" src="{% static 'imgs/avatar/avatar.png' %}" /></figure>
                                             {% endif %}
                                         </a>
                                     </div>
@@ -242,7 +242,153 @@
                 </div>
 
                 <div class="col-lg-3 col-md-12 col-sm-12 col-12">
-                    <!-- Sidebar filters and newsletter form -->
+                    <div class="sidebar-shadow none-shadow mb-30">
+                            <div class="sidebar-filters">
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-15">Location</h5>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control form-icons" placeholder="Location">
+                                        <i class="fi-rr-marker"></i>
+                                    </div>
+                                </div>
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-15">Categoy</h5>
+                                    <div class="form-group select-style select-style-icon">
+                                        <select class="form-control form-icons select-active select2-hidden-accessible" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                                            <option data-select2-id="3">Ui/UX design</option>
+                                            <option>Ui/UX design 1</option>
+                                            <option>Ui/UX design 2</option>
+                                            <option>Ui/UX design 3</option>
+                                        </select>
+                                        <i class="fi-rr-briefcase"></i>
+                                    </div>
+                                </div>
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-15">Job type</h5>
+                                    <div class="form-group">
+                                        <ul class="list-checkbox">
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Full Time
+                                                        Jobs</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">235</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox" checked="checked"> <span class="text-small">Part Time
+                                                        Jobs</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">28</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox" checked="checked"> <span class="text-small">Remote
+                                                        Jobs</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">67</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Freelance</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">92</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Temporary</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">14</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-10">Experience Level</h5>
+                                    <div class="form-group">
+                                        <ul class="list-checkbox">
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Expert</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">76</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Senior</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">89</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox" checked="checked"> <span class="text-small">Junior</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">54</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox" checked="checked"> <span class="text-small">Regular</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">23</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Internship</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">22</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Associate</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">14</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="filter-block mb-40">
+                                    <h5 class="medium-heading mb-25">Salary Range</h5>
+                                    <div class="">
+                                        <div class="row mb-20">
+                                            <div class="col-sm-12">
+                                                <div id="slider-range" class="noUi-target noUi-ltr noUi-horizontal noUi-background"><div class="noUi-base"><div class="noUi-origin noUi-connect" style="left: 1.5%;"><div class="noUi-handle noUi-handle-lower"></div></div><div class="noUi-origin noUi-background" style="left: 60%;"><div class="noUi-handle noUi-handle-upper"></div></div></div></div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <label class="lb-slider">From</label>
+                                                <div class="form-group minus-input">
+                                                    <input type="text" name="min-value-money" class="input-disabled form-control min-value-money" disabled="disabled" value="">
+                                                    <input type="hidden" name="min-value" class="form-control min-value" value="1500">
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label class="lb-slider">To</label>
+                                                <div class="form-group">
+                                                    <input type="text" name="max-value-money" class="input-disabled form-control max-value-money" disabled="disabled" value="">
+                                                    <input type="hidden" name="max-value" class="form-control max-value" value="60000">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="buttons-filter">
+                                    <button class="btn btn-default">Apply filter</button>
+                                    <button class="btn">Reset filter</button>
+                                </div>
+                            </div>
+                        </div>
                 </div>
             </div>
         </div>

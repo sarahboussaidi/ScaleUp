@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect # type: ignore
+from django.shortcuts import render, redirect , get_object_or_404 # type: ignore
 from django.contrib.auth import authenticate, login, logout, get_user_model # type: ignore
 from django.contrib import messages     # type: ignore
 from django.contrib.auth.decorators import login_required # type: ignore
@@ -275,10 +275,5 @@ def candidats_listing(request):
 
 @login_required
 def candidat_detail(request, candidat_id):
-    candidate = Candidat.objects.filter(id=candidat_id).first()
-    if not candidate:
-        messages.error(request, "Candidate not found")
-        return redirect('candidats_listing')
-
-    context = {'candidate': candidate}
-    return render(request, 'candidates-single.html', context)
+    candidat = get_object_or_404(Candidat, id=candidat_id)
+    return render(request, 'candidates-single-2.html', {'candidat': candidat})
