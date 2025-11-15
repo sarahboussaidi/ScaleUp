@@ -3,85 +3,552 @@
 
 {% block content %}
 <main class="main">
+
+    <!-- ============================
+         HEADER : PHOTO + BASIC INFO + ACTION BUTTONS
+    ================================ -->
     <section class="section-box">
         <div class="box-head-single box-head-single-candidate">
             <div class="container">
+
+                <!-- Candidate Photo -->
                 <div class="heading-image-rd online">
                     <a href="#">
                         {% if user.photo %}
                             <figure><img alt="photo" src="{{ user.photo.url }}"></figure>
                         {% else %}
-                            <figure><img alt="jobhub" src="{% static 'imgs/page/candidates/img-candidate.png' %}"></figure>
+                            <figure>
+                                <img alt="candidate photo" src="{% static 'imgs/page/candidates/img-candidate.png' %}">
+                            </figure>
                         {% endif %}
                     </a>
                 </div>
+
+                <!-- Main Candidate Info -->
                 <div class="heading-main-info">
                     <h4>{{ user.first_name }} {{ user.last_name }}</h4>
+
                     <div class="head-info-profile">
                         {% if user.adresse %}
                             <span class="text-small mr-20"><i class="fi-rr-marker text-mutted"></i> {{ user.adresse }}</span>
                         {% endif %}
-                        {% if user.skills.all %}
-                            <span class="text-small mr-20"><i class="fi-rr-briefcase text-mutted"></i>
-                                {% for s in user.skills.all %}
-                                    {{ s.name }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            </span>
-                        {% endif %}
-                        {% if user.years_experience %}
-                            <span class="text-small"><i class="fi-rr-clock text-mutted"></i> {{ user.years_experience }} years exp.</span>
-                        {% endif %}
+
+                        <div class="rate-reviews-small">
+                            {% for i in "12345" %}
+                                <span><img src="{% static 'imgs/theme/icons/star.svg' %}" alt="star" /></span>
+                            {% endfor %}
+                            <span class="ml-10 text-muted text-small">({{ candidat.rating|default:"5.0" }})</span>
+                        </div>
                     </div>
-                    <div class="mt-3">
-                        <a href="{% url 'update_profile' %}" class="btn btn-default mr-10">Edit Profile</a>
-                        <form method="POST" action="{% url 'delete_account' %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-border text-danger">Delete Account</button>
-                        </form>
-                        <a href="{% url 'logout' %}" class="btn btn-outline-secondary ml-10">Log Out</a>
+
+                    <!-- Skills / Languages Tags + CV + Breadcrumbs -->
+                    <div class="row align-items-end">
+                        <div class="col-lg-6">
+                            {% for skill in candidat.languages.all %}
+                                <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ skill.name }}</a>
+                            {% empty %}
+                                <span class="text-muted">No languages added.</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-lg-3">
+                            {% if candidat.cv %}
+                                <a href="{{ candidat.cv.url }}" class="btn btn-default" download>Download CV</a>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-lg-3 text-lg-end">
+                            <ul class="breadcrumbs mt-10">
+                                <li><a href="{% url 'home' %}">Home</a></li>
+                                <li>{{ user.first_name }} {{ user.last_name }}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="row mt-20">
+                        <div class="col-12 d-flex justify-content-end gap-2">
+                            <button class="btn btn-default" data-bs-toggle="collapse" data-bs-target="#updateAccountForm">Update Account</button>
+                            <button class="btn btn-border" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</button>
+                            <button class="btn btn-border" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================
+         INLINE UPDATE ACCOUNT FORM
+    ================================ -->
+    <div class="collapse mt-30" id="updateAccountForm">
+        <div class="container">
+            <div class="card p-20 shadow-sm">
+                <h5>Update Account</h5>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- User Fields -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>First Name</label>
+                            <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Last Name</label>
+                            <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input type="email" name="email" value="{{ user.email }}" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Address</label>
+                        <input type="text" name="adresse" value="{{ user.adresse }}" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Telephone</label>
+                        <input type="text" name="telephone" value="{{ user.telephone }}" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Photo</label>
+                        <input type="file" name="photo" class="form-control">
+                    </div>
+
+                    <!-- Candidat Fields -->
+                    <div class="mb-3">
+                        <label>Age</label>
+                        <input type="number" name="age" value="{{ candidat.age }}" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>CV</label>
+                        <input type="file" name="cv" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Portfolio Website</label>
+                        <input type="url" name="portfolio_website" value="{{ candidat.portfolio_website }}" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Years of Experience</label>
+                        <input type="number" name="years_experience" value="{{ candidat.years_experience }}" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Education Level</label>
+                        <select name="education_level" class="form-control">
+                            <option value="">Select</option>
+                            {% for level, display in candidat.get_education_choices %}
+                                <option value="{{ level }}" {% if candidat.education_level == level %}selected{% endif %}>{{ display }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Biography</label>
+                        <textarea name="bio" class="form-control">{{ candidat.bio }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Skills (by Domain)</label>
+                        <div class="accordion" id="skillsAccordion">
+                            {% for domain in domains %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="heading_{{ domain.id }}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{ domain.id }}" aria-expanded="false">
+                                            {{ domain.name }}
+                                        </button>
+                                    </h2>
+                                    <div id="collapse_{{ domain.id }}" class="accordion-collapse collapse" data-bs-parent="#skillsAccordion">
+                                        <div class="accordion-body p-3">
+                                            {% for skill in domain.skills.all %}
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="skills" value="{{ skill.id }}" id="skill_{{ skill.id }}" {% if skill in candidat.skills.all %}checked{% endif %}>
+                                                    <label class="form-check-label" for="skill_{{ skill.id }}">
+                                                        {{ skill.name }}
+                                                    </label>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Languages</label>
+                        <div id="languagesContainer">
+                            {% for lang in candidat.languages.all %}
+                                <div class="row mb-2 language-item" data-lang-id="{{ lang.id }}">
+                                    <div class="col-md-6">
+                                        <input type="text" name="lang_name_{{ lang.id }}" value="{{ lang.name }}" class="form-control form-control-sm" placeholder="Language name">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select name="lang_prof_{{ lang.id }}" class="form-control form-control-sm">
+                                            <option value="A1" {% if lang.proficiency == 'A1' %}selected{% endif %}>A1</option>
+                                            <option value="A2" {% if lang.proficiency == 'A2' %}selected{% endif %}>A2</option>
+                                            <option value="B1" {% if lang.proficiency == 'B1' %}selected{% endif %}>B1</option>
+                                            <option value="B2" {% if lang.proficiency == 'B2' %}selected{% endif %}>B2</option>
+                                            <option value="C1" {% if lang.proficiency == 'C1' %}selected{% endif %}>C1</option>
+                                            <option value="C2" {% if lang.proficiency == 'C2' %}selected{% endif %}>C2</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-sm btn-danger w-100" onclick="removeLanguage(this)">Remove</button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="addLanguageField()">+ Add Language</button>
+                    </div>
+
+                    <button type="submit" class="btn btn-default">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         LOGOUT CONFIRMATION MODAL
+    ================================ -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to logout?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-border" data-bs-dismiss="modal">Cancel</button>
+                    <a href="{% url 'logout' %}" class="btn btn-default">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         DELETE ACCOUNT CONFIRMATION MODAL
+    ================================ -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to permanently delete your account? This action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-border" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" action="{% url 'delete_account' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-default">Delete Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         CONTENT + SIDEBAR
+    ================================ -->
+    <section class="section-box mt-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-md-12 col-sm-12 col-12">
+                    <div class="content-single">
+                        <h4 class="mb-20">Biography</h4>
+                        <p>
+                            Hi, I am <strong>{{ user.first_name }} {{ user.last_name }},</strong>
+                            {% if candidat.years_experience %}a professional with {{ candidat.years_experience }}+ years of experience{% endif %}.
+                            {% if candidat.bio %}{{ candidat.bio }}{% endif %}
+                        </p>
+
+                        <div class="divider"></div>
+
+                        <h4 class="mb-20 mt-25">Work Experience</h4>
+                        <div class="row">
+                            {% for job in candidat.jobs.all %}
+                                <div class="col-md-4 col-sm-6 col-12 mb-60">
+                                    <strong class="text-md-bold">{{ job.company_name }}</strong>
+                                    <span class="dis-block text-muted text-md-lh24">
+                                        {{ job.location }}<br>
+                                        {{ job.start_date|date:"M Y" }} — 
+                                        {% if job.end_date %}{{ job.end_date|date:"M Y" }}{% else %}Present{% endif %}
+                                    </span>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted">No work experience added yet.</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <h4 class="mt-30 mb-30">Education</h4>
+                        <div class="row">
+                            {% for edu in candidat.education.all %}
+                                <div class="col-lg-6">
+                                    <ul>
+                                        <li>{{ edu.school }} ({{ edu.start_year }}-{{ edu.end_year }})</li>
+                                    </ul>
+                                </div>
+                            {% empty %}
+                                <div class="col-lg-6">
+                                    <p class="text-muted">No education added yet.</p>
+                                </div>
+                            {% endfor %}
+                            <div class="col-lg-6">
+                                <p class="text-muted lh-32">
+                                    {% if candidat.education_description %}{{ candidat.education_description }}{% else %}Education description not provided.{% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <h4 class="mb-10 mt-30">Professional Skills</h4>
+                        {% for domain in domains %}
+                            {% if domain.skills.all %}
+                                <h6 class="mt-20 mb-15">{{ domain.name }}</h6>
+                                <div class="block-progress-status">
+                                    {% for skill in domain.skills.all %}
+                                        {% if skill in candidat.skills.all %}
+                                            <div class="item-progress">
+                                                <div class="title-progress"><strong class="text-md-bold">{{ skill.name }}</strong></div>
+                                                <div class="info-progress">
+                                                    <div class="progress">
+                                                        <div style="width: 80%" class="progress-bar"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <h4 class="mb-10 mt-30">Languages</h4>
+                        {% regroup candidat.languages.all by proficiency as languages_by_proficiency %}
+                        {% for proficiency_group in languages_by_proficiency %}
+                            <h6 class="mt-15 mb-10">Level {{ proficiency_group.grouper }}</h6>
+                            <div class="block-tags">
+                                {% for lang in proficiency_group.list %}
+                                    <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ lang.name }}</a>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="single-apply-jobs">
+                        <div class="row align-items-center">
+                            <div class="col-md-5">
+                                <a href="#" class="btn btn-default mr-15">Hire Now</a>
+                                <a href="#" class="btn btn-border">Save</a>
+                            </div>
+                            <div class="col-md-7 text-lg-end social-share">
+                                <a href="#" class="btn btn-border btn-sm mr-10"><img alt="share" src="{% static 'imgs/theme/icons/share-fb.svg' %}" /> Share</a>
+                                <a href="#" class="btn btn-border btn-sm mr-10"><img alt="tweet" src="{% static 'imgs/theme/icons/share-tw.svg' %}" /> Tweet</a>
+                                <a href="#" class="btn btn-border btn-sm"><img alt="pin" src="{% static 'imgs/theme/icons/share-pinterest.svg' %}" /> Pin</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-12 col-sm-12 col-12 pl-40 pl-lg-15 mt-lg-30">
+                    <div class="sidebar-shadow">
+                        <h5 class="font-bold">Overview</h5>
+                        <div class="sidebar-list-job mt-10">
+                            <ul>
+                                {% if candidat.years_experience %}
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-briefcase"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Experience</span>
+                                        <strong class="small-heading">{{ candidat.years_experience }} years</strong>
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if user.adresse %}
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-marker"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">From</span>
+                                        <strong class="small-heading">{{ user.adresse }}<br />Remote Friendly</strong>
+                                    </div>
+                                </li>
+                                {% endif %}
+                                {% if user.date_joined %}
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-clock"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Member since</span>
+                                        <strong class="small-heading">{{ user.date_joined|date:"M Y" }}</strong>
+                                    </div>
+                                </li>
+                                {% endif %}
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-time-fast"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Last Delivery</span>
+                                        <strong class="small-heading">4 days</strong>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="sidebar-list-job mt-10">
+                            <a href="#" class="btn btn-default mr-10">Contact Me</a>
+                            <a href="#" class="btn btn-border">Get a Quote</a>
+                        </div>
+
+                        <div class="sidebar-team-member none-bd pt-10">
+                            <h6 class="small-heading">Follower</h6>
+                            <div class="sidebar-list-member sidebar-list-follower">
+                                <ul>
+                                    <li>
+                                        <a href="#">
+                                            <figure><img alt="avatar" src="{% static 'imgs/page/job-single/avatar1.png' %}" /></figure>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="online">
+                                            <figure><img alt="avatar" src="{% static 'imgs/page/job-single/avatar2.png' %}" /></figure>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <figure><img alt="avatar" src="{% static 'imgs/page/job-single/avatar3.png' %}" /></figure>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <figure><img alt="avatar" src="{% static 'imgs/page/job-single/avatar4.png' %}" /></figure>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <figure><img alt="avatar" src="{% static 'imgs/page/job-single/avatar5.png' %}" /></figure>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <figure><img alt="avatar" src="{% static 'imgs/page/job-single/avatar6.png' %}" /></figure>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <figure><img alt="avatar" src="{% static 'imgs/page/job-single/avatar7.png' %}" /></figure>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <figure><img alt="avatar" src="{% static 'imgs/page/job-single/avatar8.png' %}" /></figure>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-shadow">
+                        <h5 class="sidebar-title">Skills</h5>
+                        {% for domain in domains %}
+                            {% if domain.skills.all %}
+                                <h6 class="mt-15 mb-10">{{ domain.name }}</h6>
+                                <div class="block-tags">
+                                    {% for skill in domain.skills.all %}
+                                        {% if skill in candidat.skills.all %}
+                                            <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ skill.name }}</a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div class="sidebar-shadow">
+                        <h5 class="sidebar-title">Languages</h5>
+                        {% regroup candidat.languages.all by proficiency as languages_by_proficiency %}
+                        {% for proficiency_group in languages_by_proficiency %}
+                            <h6 class="mt-15 mb-10">Level {{ proficiency_group.grouper }}</h6>
+                            <div class="block-tags">
+                                {% for lang in proficiency_group.list %}
+                                    <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ lang.name }}</a>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="sidebar-normal">
+                        <div>
+                            <h6 class="small-heading">Are you also hiring?</h6>
+                            <ul class="ul-lists">
+                                <li><a href="#">Writing & Translation</a></li>
+                                <li><a href="#">Video & Animation</a></li>
+                                <li><a href="#">Music & Audio</a></li>
+                                <li><a href="#">Digital Marketing</a></li>
+                                <li><a href="#">Business</a></li>
+                                <li><a href="#">Programming & Tech</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-   <section class="section-box mt-50">
-    <div class="container">
-        <div class="content-single">
-            <h4 class="mb-20">Biography</h4>
-            <p>{{ candidat.bio|default:"No biography available." }}</p>
-
-            <div class="divider"></div>
-
-            <h4 class="mb-20 mt-25">Education</h4>
-            {% if candidat.education_level %}
-                <p><strong>Education Level:</strong> {{ candidat.education_level }}</p>
-            {% else %}
-                <p class="text-muted">Not specified.</p>
-            {% endif %}
-
-            <div class="divider"></div>
-            <h4 class="mb-10 mt-30">Professional Skills</h4>
-            <ul>
-                {% for skill in candidat.skills.all %}
-                    <li>{{ skill.name }}</li>
-                {% empty %}
-                    <li class="text-muted">No skills added yet.</li>
-                {% endfor %}
-            </ul>
-
-            <div class="divider"></div>
-            <h4 class="mb-10 mt-30">Languages</h4>
-            <ul>
-                {% for lang in candidat.languages.all %}
-                    <li>{{ lang.name }} ({{ lang.proficiency }})</li>
-                {% empty %}
-                    <li class="text-muted">No languages added yet.</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-</section>
-
 </main>
 {% endblock %}
+
+<script>
+let languageCounter = 0;
+
+function addLanguageField() {
+    const container = document.getElementById('languagesContainer');
+    const newId = 'new_' + languageCounter++;
+    
+    const newLanguageRow = document.createElement('div');
+    newLanguageRow.className = 'row mb-2 language-item new-language';
+    newLanguageRow.innerHTML = `
+        <div class="col-md-6">
+            <input type="text" name="lang_name_${newId}" class="form-control form-control-sm" placeholder="Language name" required>
+        </div>
+        <div class="col-md-4">
+            <select name="lang_prof_${newId}" class="form-control form-control-sm">
+                <option value="A1">A1</option>
+                <option value="A2">A2</option>
+                <option value="B1">B1</option>
+                <option value="B2">B2</option>
+                <option value="C1">C1</option>
+                <option value="C2" selected>C2</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-sm btn-danger w-100" onclick="removeLanguage(this)">Remove</button>
+        </div>
+    `;
+    
+    container.appendChild(newLanguageRow);
+    console.log('Added language field with id: ' + newId);
+}
+
+function removeLanguage(button) {
+    const row = button.closest('.language-item');
+    const langId = row.getAttribute('data-lang-id');
+    
+    if (langId && langId !== 'null') {
+        // Mark for deletion via hidden input
+        const form = row.closest('form');
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'delete_language_' + langId;
+        hiddenInput.value = langId;
+        form.appendChild(hiddenInput);
+        console.log('Marked language ' + langId + ' for deletion');
+    }
+    
+    row.remove();
+}
+</script>

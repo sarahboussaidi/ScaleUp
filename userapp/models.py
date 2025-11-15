@@ -144,8 +144,12 @@ class Candidat(models.Model):
         blank=True,
         null=True
     )
+    
+    
     bio = models.TextField(blank=True, null=True)
-
+    
+    def get_education_choices(self):
+        return self._meta.get_field('education_level').choices
     class Meta:
         verbose_name = "Candidat"
 
@@ -161,15 +165,19 @@ class Candidat(models.Model):
 # LANGUAGES model for candidates
 # ========================
 class Language(models.Model):
-    candidat = models.ForeignKey(Candidat, on_delete=models.CASCADE, related_name="languages")
-    name = models.CharField(max_length=50)
+    utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE)
+    language = models.CharField(max_length=100)
     proficiency = models.CharField(
         max_length=5,
-        choices=[('A1','A1'),('A2','A2'),('B1','B1'),('B2','B2'),('C1','C1'),('C2','C2')]
+        choices=[
+            ('A1','A1'),('A2','A2'),
+            ('B1','B1'),('B2','B2'),
+            ('C1','C1'),('C2','C2')
+        ]
     )
 
     def __str__(self):
-        return f"{self.name} ({self.proficiency})"
+        return f"{self.language} ({self.proficiency})"
 
 # ========================
 # ENTREPRISE model adjustments

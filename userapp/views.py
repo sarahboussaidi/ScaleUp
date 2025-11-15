@@ -20,35 +20,71 @@ def logout_view(request):
 # ---------------------------
 # Profile View
 # ---------------------------
+
 @login_required
 def profile_view(request):
     user = request.user
 
-    if user.role == 'candidat':
-        candidat = getattr(user, 'candidat', None)
-        if not candidat:
-            messages.error(request, "No Candidat profile found.")
-            return redirect('home')
-        return render(request, 'candidates-single.html', {
-            'user': user,
-            'candidat': candidat
-        })
+    # SAFELY get role-specific profile
+    candidat = getattr(user, "candidat", None)
+    entreprise = getattr(user, "entreprise", None)
+    admin_profile = getattr(user, "admin", None)
 
-    elif user.role == 'entreprise':
-        entreprise = getattr(user, 'entreprise', None)
-        if not entreprise:
-            messages.error(request, "No Entreprise profile found.")
-            return redirect('home')
-        return render(request, 'employers-single.html', {
-            'user': user,
-            'entreprise': entreprise
-        })
+    # ---------------------------
+    # POST REQUEST: Update data
+    # ---------------------------
+    if request.method == "POST":
+        # Update Utilisateur fields
+        user.first_name = request.POST.get("first_name", user.first_name)
+        user.last_name = request.POST.get("last_name", user.last_name)
+        user.email = request.POST.get("email", user.email)
+        user.adresse = request.POST.get("adresse", user.adresse)
 
-    elif user.role == 'admin':
-        return redirect('/admin/')
+        if request.FILES.get("photo"):
+            user.photo = request.FILES.get("photo")
 
-    return redirect('home')
+        user.save()
 
+        # ---------------------------
+        # Update role-specific fields
+        # ---------------------------
+        if candidat:
+            candidat.title = request.POST.get("title", candidat.title)
+            candidat.salary = request.POST.get("salary", candidat.salary)
+            candidat.bio = request.POST.get("bio", candidat.bio)
+            candidat.years_experience = request.POST.get("years_experience", candidat.years_experience)
+            candidat.save()
+
+        elif entreprise:
+            entreprise.nom_entreprise = request.POST.get("nom_entreprise", entreprise.nom_entreprise)
+            entreprise.domaine = request.POST.get("domaine", entreprise.domaine)
+            entreprise.site_web = request.POST.get("site_web", entreprise.site_web)
+            entreprise.save()
+
+        elif admin_profile:
+            # Add any admin fields if needed
+            pass
+
+        messages.success(request, "Profile updated successfully.")
+        return redirect("profile")
+
+    # ---------------------------
+    # GET REQUEST
+    # ---------------------------
+    context = {
+        "user": user,
+        "candidat": candidat,
+        "entreprise": entreprise,
+        "admin_profile": admin_profile,
+    }
+
+    # Render different templates by role (recommended)
+    if candidat:
+        return render(request, "candidates-single.html", context)
+    elif entreprise:
+        return render(request, "employers-single.html", context)
+    else:
+        return redirect("/admin/") # Redirect admins to their dashboard
 
 # ---------------------------
 # Update Profile
@@ -104,8 +140,11 @@ def delete_account(request):
 # Register
 # ---------------------------
 def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
     if request.method == "POST":
-        fullname = request.POST.get('fullname', '')
+        firstname = request.POST.get('firstname', '')
+        lastname = request.POST.get('lastname', '')
         email = request.POST.get('emailaddress', '')
         username = request.POST.get('username', '')
         password = request.POST.get('password', '')
@@ -128,7 +167,8 @@ def register_view(request):
             username=username,
             email=email,
             password=password,
-            first_name=fullname,
+            first_name=firstname,
+            last_name=lastname,
             role=role
         )
 
@@ -150,13 +190,22 @@ def register_view(request):
 # Sign-in
 # ---------------------------
 def signin_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
+
         user = authenticate(request, email=email, password=password)
+
         if user:
             login(request, user)
-            return redirect('profile')
+            return redirect('home')
         else:
             messages.error(request, "Invalid email or password")
+            return redirect('signin')
+
     return render(request, "page-signin.html")
+
+
