@@ -9,13 +9,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="/static/imgs/theme/worki-icon.png" />
 
     {% block head %}{% endblock %}
-    <style>
-        /* light default container so pages don't jump too wide */
-        :root{ --navbar-height: 88px; }
-        /* Give space at top so a sticky/fixed navbar doesn't cover content */
-        .page-container{ max-width: 980px; margin: 1.5rem auto; padding: calc(1rem + var(--navbar-height)) 1rem 1rem 1rem; }
-        /* Make sure header stays above content when sticky */
-    </style>
+   
 </head>
 <body>
     <header class="header sticky-bar">
@@ -220,7 +214,7 @@
                     <div class="mobile-account">
                         <h6 class="mb-10">Your Account</h6>
                         <ul class="mobile-menu font-heading">
-                            <li><a href="#">Profile</a></li>
+                            <li><a href="{% url 'profile' %}">Profile</a></li>
                             <li><a href="#">Work Preferences</a></li>
                             <li><a href="#">My Boosted Shots</a></li>
                             <li><a href="#">My Collections</a></li>
@@ -228,7 +222,7 @@
                             <li><a href="#">Go Pro</a></li>
                             <form method="post" style="display:inline;">
                             {% csrf_token %}
-                            <li><button type="submit" action="{% url 'logout' %}">Sign Out</button></li>
+                            <li><button type="submit" class="btn-default" action="{% url 'logout' %}">Sign Out</button></li>
                             </form>
                         </ul>
                     </div>

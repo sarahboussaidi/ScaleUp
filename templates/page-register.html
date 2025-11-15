@@ -2,86 +2,69 @@
 {% load static %}
 
 {% block content %}
-
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8 col-md-10 col-sm-12">
-      <div class="card shadow-lg rounded-4 p-4" style="border-radius: 15px; background-color: #ffffffcc;">
-        <div class="text-center mb-4">
-          <p class="font-sm text-primary">Register</p>
-          <h2 class="mb-2 text-dark">Start for Free Today</h2>
-          {% if messages %}
-            <div class="alert alert-danger">
-              {% for message in messages %}
-                {{ message }}
-              {% endfor %}
-            </div>
-          {% endif %}
-          <p class="text-muted">Access all features. No credit card required.</p>
-        </div>
-
-        <form action="{% url 'register' %}" method="POST" class="mt-3">
-          {% csrf_token %}
-          <div class="row g-3">
-            <!-- Column 1 -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label" for="input-1">Full Name *</label>
-                <input class="form-control form-control-lg" id="input-1" type="text" name="fullname" placeholder="Steven Job" required>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" for="input-2">Email *</label>
-                <input class="form-control form-control-lg" id="input-2" type="email" name="emailaddress" placeholder="stevenjob@gmail.com" required>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" for="input-3">Username *</label>
-                <input class="form-control form-control-lg" id="input-3" type="text" name="username" placeholder="stevenjob" required>
-              </div>
-            </div>
-
-            <!-- Column 2 -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label" for="input-4">Password *</label>
-                <input class="form-control form-control-lg" id="input-4" type="password" name="password" placeholder="************" required>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" for="input-5">Re-Password *</label>
-                <input class="form-control form-control-lg" id="input-5" type="password" name="re-password" placeholder="************" required>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" for="role">Select your role *</label>
-                <select class="form-select form-select-lg" id="role" name="role" required>
-                  <option value="candidat">Candidat</option>
-                  <option value="entreprise">Entreprise</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-check mb-3 mt-2">
-            <input class="form-check-input" type="checkbox" id="terms">
-            <label class="form-check-label" for="terms">
-              I agree to <a href="#" class="text-decoration-underline">terms and policy</a>
-            </label>
-          </div>
-
-          <div class="d-grid mb-3">
-            <button type="submit" class="btn btn-default btn-brand-hover">Submit & Register</button>
-          </div>
-
-          <p class="text-center text-muted mb-0">
-            Already have an account? <a href="{% url 'signin' %}" class="text-decoration-underline">Sign in</a>
-          </p>
-        </form>
-      </div>
-    </div>
+    <!--End header-->
+    <main class="main">
+      <section class="pt-100 login-register">
+        <div class="container"> 
+          <div class="row login-register-cover">
+            <div class="col-lg-4 col-md-6 col-sm-12 mx-auto">
+              <div class="text-center">
+                <p class="font-sm text-brand-2">Register </p>
+                <h2 class="mt-10 mb-5 text-brand-1">Start for free Today</h2>
+                {% if messages %}
+  <div class="alert alert-danger" style="color:red;">
+    {% for message in messages %}
+      {{ message }}
+    {% endfor %}
   </div>
-</div>
+{% endif %}
 
-{% endblock %}
+                <p class="font-sm text-muted mb-30">Access to all features. No credit card required.</p>
+              </div>
+<form class="login-register text-start mt-20" action="{% url 'register' %}" method="POST">
+  {% csrf_token %}
+                <div class="form-group">
+                  <label class="form-label" for="input-1">Full Name *</label>
+                  <input class="form-control" id="input-1" type="text" required="" name="fullname" placeholder="Steven Job">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="input-2">Email *</label>
+                  <input class="form-control" id="input-2" type="email" required="" name="emailaddress" placeholder="stevenjob@gmail.com">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="input-3">Username *</label>
+                  <input class="form-control" id="input-3" type="text" required="" name="username" placeholder="stevenjob">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="input-4">Password *</label>
+                  <input class="form-control" id="input-4" type="password" required="" name="password" placeholder="************">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="input-5">Re-Password *</label>
+                  <input class="form-control" id="input-5" type="password" required="" name="re-password" placeholder="************">
+                </div>
+                <div class="form-group">
+                    <label for="role">Select your role:</label>
+                    <select name="role" id="role" class="form-control" required>
+                        <option value="candidat">Candidat</option>
+                        <option value="entreprise">Entreprise</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <div class="login_footer form-group d-flex justify-content-between">
+                  <label class="cb-container">
+                    <input type="checkbox"><span class="text-small">Agree our terms and policy</span><span class="checkmark"></span>
+                  </label><a class="text-muted" href="page-contact.html">Lean more</a>
+                </div>
+                <div class="form-group">
+                  <button class="btn btn-default btn-shadow ml-40 hover-up" style="width: 75%;" type="submit" name="login">Submit &amp; Register</button>
+                </div>
+                <div class="text-muted text-center">Already have an account? <a href="{% url 'signin' %}">Sign in</a></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    {% endblock %}

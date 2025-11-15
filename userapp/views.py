@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout, get_user_model
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect # type: ignore
+from django.contrib.auth import authenticate, login, logout, get_user_model # type: ignore
+from django.contrib import messages # type: ignore
+from django.contrib.auth.decorators import login_required # type: ignore
 from .models import Candidat, Entreprise, Admin
 
 User = get_user_model()
