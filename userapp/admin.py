@@ -1,6 +1,6 @@
 from django.contrib import admin # type: ignore
 from django.contrib.auth.admin import UserAdmin # type: ignore
-from .models import Utilisateur, Candidat, Entreprise, Admin, Domain, Skill , Language
+from .models import Utilisateur, Candidat, Entreprise, Admin, Domain, Skill
 
 # ---------------------------
 # Domain & Skill Admins
@@ -14,17 +14,15 @@ class SkillAdmin(admin.ModelAdmin):
     list_display = ["name", "domain"]
     list_filter = ["domain"]
 
-# ---------------------------
-class LanguageInline(admin.TabularInline):
-    model = Language
-    extra = 1
 
 # ---------------------------
-# Role-specific Inlines
+# Candidat Admin 
 # ---------------------------
 class CandidatInline(admin.StackedInline):
     model = Candidat
     filter_horizontal = ['skills']
+    fields = ('age', 'cv', 'portfolio_website', 'years_experience', 'education_level', 'bio', 'skills')
+    extra = 0
 
 class EntrepriseInline(admin.StackedInline):
     model = Entreprise
@@ -55,24 +53,24 @@ class UtilisateurAdmin(UserAdmin):
     )
 
     def get_inline_instances(self, request, obj=None):
+        """
+        Return only the inline corresponding to the user's role
+        """
         if not obj:
             return []
 
-        inlines = []
-
         if obj.role == 'candidat':
-            inlines = [
-                CandidatInline(self.model, self.admin_site),
-                LanguageInline(self.model, self.admin_site)  # 👈 ADD LANGUAGES HERE
-            ]
+            return [CandidatInline(self.model, self.admin_site)]
         elif obj.role == 'entreprise':
-            inlines = [EntrepriseInline(self.model, self.admin_site)]
+            return [EntrepriseInline(self.model, self.admin_site)]
         elif obj.role == 'admin':
-            inlines = [AdminInline(self.model, self.admin_site)]
-
-        return inlines
+            return [AdminInline(self.model, self.admin_site)]
+        return []
 
     def save_model(self, request, obj, form, change):
+        """
+        Ensure role is set when creating a new user
+        """
         if not change and not obj.role:
             obj.role = 'candidat'
         super().save_model(request, obj, form, change)

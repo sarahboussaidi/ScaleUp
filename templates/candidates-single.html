@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block content %}
@@ -43,13 +43,6 @@
 
                     <!-- Skills / Languages Tags + CV + Breadcrumbs -->
                     <div class="row align-items-end">
-                        <div class="col-lg-6">
-                            {% for skill in candidat.languages.all %}
-                                <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ skill.name }}</a>
-                            {% empty %}
-                                <span class="text-muted">No languages added.</span>
-                            {% endfor %}
-                        </div>
 
                         <div class="col-lg-3">
                             {% if candidat.cv %}
@@ -86,7 +79,8 @@
         <div class="container">
             <div class="card p-20 shadow-sm">
                 <h5>Update Account</h5>
-                <form method="POST" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data" action="{% url 'update_profile' %}">
+
                     {% csrf_token %}
 
                     <!-- User Fields -->
@@ -173,33 +167,7 @@
                             {% endfor %}
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label>Languages</label>
-                        <div id="languagesContainer">
-                            {% for lang in candidat.languages.all %}
-                                <div class="row mb-2 language-item" data-lang-id="{{ lang.id }}">
-                                    <div class="col-md-6">
-                                        <input type="text" name="lang_name_{{ lang.id }}" value="{{ lang.name }}" class="form-control form-control-sm" placeholder="Language name">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <select name="lang_prof_{{ lang.id }}" class="form-control form-control-sm">
-                                            <option value="A1" {% if lang.proficiency == 'A1' %}selected{% endif %}>A1</option>
-                                            <option value="A2" {% if lang.proficiency == 'A2' %}selected{% endif %}>A2</option>
-                                            <option value="B1" {% if lang.proficiency == 'B1' %}selected{% endif %}>B1</option>
-                                            <option value="B2" {% if lang.proficiency == 'B2' %}selected{% endif %}>B2</option>
-                                            <option value="C1" {% if lang.proficiency == 'C1' %}selected{% endif %}>C1</option>
-                                            <option value="C2" {% if lang.proficiency == 'C2' %}selected{% endif %}>C2</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-sm btn-danger w-100" onclick="removeLanguage(this)">Remove</button>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="addLanguageField()">+ Add Language</button>
-                    </div>
-
+                    
                     <button type="submit" class="btn btn-default">Save Changes</button>
                 </form>
             </div>
@@ -329,16 +297,7 @@
                             {% endif %}
                         {% endfor %}
 
-                        <h4 class="mb-10 mt-30">Languages</h4>
-                        {% regroup candidat.languages.all by proficiency as languages_by_proficiency %}
-                        {% for proficiency_group in languages_by_proficiency %}
-                            <h6 class="mt-15 mb-10">Level {{ proficiency_group.grouper }}</h6>
-                            <div class="block-tags">
-                                {% for lang in proficiency_group.list %}
-                                    <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ lang.name }}</a>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
+                
                     </div>
 
                     <div class="single-apply-jobs">
@@ -468,19 +427,6 @@
                         {% endfor %}
                     </div>
 
-                    <div class="sidebar-shadow">
-                        <h5 class="sidebar-title">Languages</h5>
-                        {% regroup candidat.languages.all by proficiency as languages_by_proficiency %}
-                        {% for proficiency_group in languages_by_proficiency %}
-                            <h6 class="mt-15 mb-10">Level {{ proficiency_group.grouper }}</h6>
-                            <div class="block-tags">
-                                {% for lang in proficiency_group.list %}
-                                    <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ lang.name }}</a>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
-                    </div>
-
                     <div class="sidebar-normal">
                         <div>
                             <h6 class="small-heading">Are you also hiring?</h6>
@@ -501,54 +447,3 @@
 
 </main>
 {% endblock %}
-
-<script>
-let languageCounter = 0;
-
-function addLanguageField() {
-    const container = document.getElementById('languagesContainer');
-    const newId = 'new_' + languageCounter++;
-    
-    const newLanguageRow = document.createElement('div');
-    newLanguageRow.className = 'row mb-2 language-item new-language';
-    newLanguageRow.innerHTML = `
-        <div class="col-md-6">
-            <input type="text" name="lang_name_${newId}" class="form-control form-control-sm" placeholder="Language name" required>
-        </div>
-        <div class="col-md-4">
-            <select name="lang_prof_${newId}" class="form-control form-control-sm">
-                <option value="A1">A1</option>
-                <option value="A2">A2</option>
-                <option value="B1">B1</option>
-                <option value="B2">B2</option>
-                <option value="C1">C1</option>
-                <option value="C2" selected>C2</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-sm btn-danger w-100" onclick="removeLanguage(this)">Remove</button>
-        </div>
-    `;
-    
-    container.appendChild(newLanguageRow);
-    console.log('Added language field with id: ' + newId);
-}
-
-function removeLanguage(button) {
-    const row = button.closest('.language-item');
-    const langId = row.getAttribute('data-lang-id');
-    
-    if (langId && langId !== 'null') {
-        // Mark for deletion via hidden input
-        const form = row.closest('form');
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'delete_language_' + langId;
-        hiddenInput.value = langId;
-        form.appendChild(hiddenInput);
-        console.log('Marked language ' + langId + ' for deletion');
-    }
-    
-    row.remove();
-}
-</script>

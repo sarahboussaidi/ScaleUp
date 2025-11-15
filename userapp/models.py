@@ -128,7 +128,6 @@ class Candidat(models.Model):
     age = models.PositiveIntegerField(blank=True, null=True)
     cv = models.FileField(upload_to='cv/', blank=True, null=True)
     skills = models.ManyToManyField(Skill, blank=True)
-    
     # New fields
     portfolio_website = models.URLField(blank=True, null=True)
     years_experience = models.PositiveIntegerField(blank=True, null=True)
@@ -161,23 +160,7 @@ class Candidat(models.Model):
         super().save(*args, **kwargs)
 
 
-# ========================
-# LANGUAGES model for candidates
-# ========================
-class Language(models.Model):
-    utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE)
-    language = models.CharField(max_length=100)
-    proficiency = models.CharField(
-        max_length=5,
-        choices=[
-            ('A1','A1'),('A2','A2'),
-            ('B1','B1'),('B2','B2'),
-            ('C1','C1'),('C2','C2')
-        ]
-    )
 
-    def __str__(self):
-        return f"{self.language} ({self.proficiency})"
 
 # ========================
 # ENTREPRISE model adjustments
