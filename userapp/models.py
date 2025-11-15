@@ -171,7 +171,8 @@ class Entreprise(models.Model):
     domaine = models.CharField(max_length=100)
     site_web = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-
+    telephone = models.CharField(max_length=20, blank=True, null=True)
+    adresse = models.CharField(max_length=255, null=True, blank=True)
     class Meta:
         verbose_name = "Entreprise"
 

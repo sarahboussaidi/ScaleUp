@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect # type: ignore
-from django.contrib.auth import authenticate, login, logout, get_user_model # type: ignore
-from django.contrib import messages # type: ignore
-from django.contrib.auth.decorators import login_required # type: ignore
-from .models import Candidat, Entreprise, Admin , Domain, Skill, Utilisateur
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Candidat, Entreprise, Admin, Domain, Skill, Utilisateur
 
 User = get_user_model()
 
@@ -20,7 +20,6 @@ def logout_view(request):
 # ---------------------------
 # Profile View
 # ---------------------------
-
 @login_required
 def profile_view(request):
     user = request.user
@@ -35,7 +34,6 @@ def profile_view(request):
         "admin_profile": admin_profile,
         "domains": Domain.objects.all(),
         "skills": Skill.objects.all(),
-
     }
 
     if candidat:
@@ -45,66 +43,74 @@ def profile_view(request):
     else:
         return redirect("/admin/")
 
+
 # ---------------------------
 # Update Profile
 # ---------------------------
 @login_required
 def update_profile(request):
     user = request.user
-
-    # Get linked roles safely
     candidat = getattr(user, "candidat", None)
     entreprise = getattr(user, "entreprise", None)
 
     if request.method == "POST":
-
-        # ------------- UPDATE USER FIELDS -------------
+        # ----------------- Update Utilisateur fields -----------------
         user.first_name = request.POST.get("first_name", user.first_name)
         user.last_name = request.POST.get("last_name", user.last_name)
         user.email = request.POST.get("email", user.email)
         user.adresse = request.POST.get("adresse", user.adresse)
         user.telephone = request.POST.get("telephone", user.telephone)
 
-        # Photo
         if request.FILES.get("photo"):
             user.photo = request.FILES["photo"]
 
         user.save()
 
-        # ----------------- Handle Languages -----------------
+        # ----------------- Update Candidat fields -----------------
         if candidat:
-            # ----- Update Candidat fields -----
             candidat.age = request.POST.get("age", candidat.age)
-            candidat.cv = request.FILES.get("cv") or candidat.cv
             candidat.portfolio_website = request.POST.get("portfolio_website", candidat.portfolio_website)
             candidat.years_experience = request.POST.get("years_experience", candidat.years_experience)
             candidat.education_level = request.POST.get("education_level", candidat.education_level)
             candidat.bio = request.POST.get("bio", candidat.bio)
+
+            if request.FILES.get("cv"):
+                candidat.cv = request.FILES["cv"]
+
+            skill_ids = request.POST.getlist("skills")
+            if skill_ids:
+                candidat.skills.set(Skill.objects.filter(id__in=skill_ids))
+            else:
+                candidat.skills.clear()
+
             candidat.save()
 
-        # ------------- UPDATE ENTREPRISE FIELDS -------------
+        # ----------------- Update Entreprise fields -----------------
         if entreprise:
             entreprise.nom_entreprise = request.POST.get("nom_entreprise", entreprise.nom_entreprise)
             entreprise.domaine = request.POST.get("domaine", entreprise.domaine)
+            entreprise.adresse = request.POST.get("adresse", entreprise.adresse)
+            entreprise.telephone = request.POST.get("telephone", entreprise.telephone)
             entreprise.site_web = request.POST.get("site_web", entreprise.site_web)
             entreprise.description = request.POST.get("description", entreprise.description)
+            entreprise.save()
+            if request.FILES.get("photo"):
+                user.photo = request.FILES["photo"]
+
             entreprise.save()
 
         messages.success(request, "Profile updated successfully.")
         return redirect("profile")
 
-    # GET → show the form page
-    from .models import Domain
-    domains = Domain.objects.all()
-
+    # ----------------- GET → show form -----------------
     context = {
         "user": user,
         "candidat": candidat,
         "entreprise": entreprise,
-        "domains": domains,
+        "domains": Domain.objects.all(),
     }
-
-    return render(request, "profile_edit.html", context)
+    
+    return render(request, "employers-single.html" if entreprise else "candidat-single.html", context)
 
 
 # ---------------------------
@@ -124,6 +130,7 @@ def delete_account(request):
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('home')
+
     if request.method == "POST":
         firstname = request.POST.get('firstname', '')
         lastname = request.POST.get('lastname', '')
@@ -178,7 +185,6 @@ def signin_view(request):
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
-
         user = authenticate(request, email=email, password=password)
 
         if user:

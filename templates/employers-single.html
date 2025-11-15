@@ -3,58 +3,274 @@
 
 {% block content %}
 <main class="main">
+
+    <!-- Header -->
     <section class="section-box">
-        <div class="box-head-single box-head-single-employer">
+        <div class="box-head-single box-head-single-candidate">
             <div class="container">
+
+                <!-- Photo -->
                 <div class="heading-image-rd online">
-                    {% if user.photo %}
-                        <figure><img alt="photo" src="{{ user.photo.url }}"></figure>
-                    {% else %}
-                        <figure><img alt="jobhub" src="{% static 'imgs/page/employers/employer-12.png' %}"></figure>
-                    {% endif %}
+                    <a href="#">
+                        {% if user.photo %}
+                            <figure><img alt="entreprise photo" src="{{ user.photo.url }}"></figure>
+                        {% else %}
+                            <figure><img alt="entreprise" src="{% static 'imgs/page/employers/employer-12.png' %}"></figure>
+                        {% endif %}
+                    </a>
                 </div>
+
+                <!-- Main header info -->
                 <div class="heading-main-info">
-                    <h4 class="text-2xl font-bold">{{ entreprise.nom_entreprise }}</h4>
+                    <h4>{{ entreprise.nom_entreprise }}</h4>
+
                     <div class="head-info-profile">
+                        {% if entreprise.domaine %}
+                            <span class="text-small mr-20"><i class="fi-rr-briefcase text-mutted"></i> {{ entreprise.domaine }}</span>
+                        {% endif %}
+
                         {% if user.adresse %}
                             <span class="text-small mr-20"><i class="fi-rr-marker text-mutted"></i> {{ user.adresse }}</span>
                         {% endif %}
-                        {% if user.domaine %}
-                            <span class="text-small mr-20"><i class="fi-rr-briefcase text-mutted"></i> {{ user.domaine }}</span>
-                        {% endif %}
-                        {% if user.site_web %}
-                            <span class="text-small"><i class="fi-rr-globe text-mutted"></i> <a href="{{ user.site_web }}" target="_blank">{{ user.site_web }}</a></span>
+                        
+                        {% if user.telephone %}
+                            <span class="text-small mr-20"><i class="fi-rr-phone-call text-mutted"></i> {{ user.telephone }}</span>
                         {% endif %}
                     </div>
 
-                    <div class="mt-3">
-                        <a href="{% url 'update_profile' %}" class="btn btn-default mr-10">Edit Profile</a>
-                        <form method="POST" action="{% url 'delete_account' %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-border text-danger">Delete Account</button>
-                        </form>
-                        <a href="{% url 'logout' %}" class="btn btn-outline-secondary ml-10">Log Out</a>
+                    <!-- Action Buttons -->
+                    <div class="row mt-20">
+                        <div class="col-12 d-flex justify-content-end gap-2">
+                            <button class="btn btn-default" data-bs-toggle="collapse" data-bs-target="#updateAccountForm">Update Account</button>
+                            <button class="btn btn-border" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</button>
+                            <button class="btn btn-border" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
+                        </div>
                     </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    
+    <!-- ============================
+         INLINE UPDATE ACCOUNT FORM
+    ================================ -->
+    <div class="collapse mt-30" id="updateAccountForm">
+        <div class="container">
+            <div class="card p-20 shadow-sm">
+                <h5>Update Account</h5>
+
+                <form method="POST" enctype="multipart/form-data" action="{% url 'update_profile' %}">
+                    {% csrf_token %}
+
+                    <!-- USER FIELDS -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>First Name</label>
+                            <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Last Name</label>
+                            <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input type="email" name="email" value="{{ user.email }}" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Address</label>
+                        <input type="text" name="adresse" value="{{ entreprise.adresse }}" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Telephone</label>
+                        <input type="text" name="telephone" value="{{ entreprise.telephone }}" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Photo</label>
+                        <input type="file" name="photo" class="form-control">
+                    </div>
+
+                    <hr>
+
+                    <!-- ENTREPRISE-SPECIFIC FIELDS -->
+                    <div class="mb-3">
+                        <label>Company Name</label>
+                        <input type="text" name="nom_entreprise" value="{{ entreprise.nom_entreprise }}" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Domain</label>
+                        <select name="domaine" class="form-control">
+                            <option value="">Select domain</option>
+                            {% for domain in domains %}
+                                <option value="{{ domain.name }}" {% if entreprise.domaine == domain.name %}selected{% endif %}>
+                                    {{ domain.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Website</label>
+                        <input type="url" name="site_web" value="{{ entreprise.site_web }}" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea name="description" class="form-control" rows="4">{{ entreprise.description }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-default">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         LOGOUT CONFIRMATION MODAL
+    ================================ -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">Are you sure you want to logout?</div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-border" data-bs-dismiss="modal">Cancel</button>
+                    <a href="{% url 'logout' %}" class="btn btn-default">Logout</a>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
+    <!-- ============================
+         DELETE ACCOUNT CONFIRMATION MODAL
+    ================================ -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    Are you sure you want to permanently delete your account?
+                    This action cannot be undone.
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-border" data-bs-dismiss="modal">Cancel</button>
+
+                    <form method="POST" action="{% url 'delete_account' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-default">Delete Account</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ENTREPRISE DETAILS -->
     <section class="section-box mt-50">
         <div class="container">
-            <div class="content-single">
-                <h4 class="mb-20">About Company</h4>
-                <p>{{ user.description|default:"This company has not added a description yet." }}</p>
+            <div class="row">
 
-                <div class="divider"></div>
-                <h4 class="mb-20 mt-25">Contact Info</h4>
-                <ul>
-                    <li><strong>Email:</strong> {{ user.email }}</li>
-                    <li><strong>Phone:</strong> {{ user.telephone|default:"Not provided" }}</li>
-                    <li><strong>Address:</strong> {{ user.adresse|default:"Not provided" }}</li>
-                </ul>
+                <!-- LEFT: about entreprise -->
+                <div class="col-lg-8 col-md-12">
+                    <div class="content-single">
+
+                        <!-- Description -->
+                        <h4 class="mb-20">About the Company</h4>
+                        <p>{{ entreprise.description|default:"This company has not added a description yet." }}</p>
+
+                        <div class="divider"></div>
+
+                        <!-- Website -->
+                        <h4 class="mb-20 mt-25">Website</h4>
+                        {% if entreprise.site_web %}
+                            <p><a href="{{ entreprise.site_web }}" target="_blank">{{ entreprise.site_web }}</a></p>
+                        {% else %}
+                            <p class="text-muted">No website provided.</p>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDEBAR -->
+                <div class="col-lg-4 col-md-12 pl-40 pl-lg-15 mt-lg-30">
+                    <div class="sidebar-shadow">
+
+                        <h5 class="font-bold">Company Info</h5>
+
+                        <div class="sidebar-list-job mt-10">
+                            <ul>
+
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-building"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Company Name</span>
+                                        <strong class="small-heading">{{ entreprise.nom_entreprise }}</strong>
+                                    </div>
+                                </li>
+
+                                {% if entreprise.domaine %}
+                                    <li>
+                                        <div class="sidebar-icon-item"><i class="fi-rr-briefcase"></i></div>
+                                        <div class="sidebar-text-info">
+                                            <span class="text-description">Domain</span>
+                                            <strong class="small-heading">{{ entreprise.domaine }}</strong>
+                                        </div>
+                                    </li>
+                                {% endif %}
+
+                                {% if user.adresse %}
+                                    <li>
+                                        <div class="sidebar-icon-item"><i class="fi-rr-marker"></i></div>
+                                        <div class="sidebar-text-info">
+                                            <span class="text-description">Address</span>
+                                            <strong class="small-heading">{{ entreprise.adresse }}</strong>
+                                        </div>
+                                    </li>
+                                {% endif %}
+
+                                {% if user.telephone %}
+                                    <li>
+                                        <div class="sidebar-icon-item"><i class="fi-rr-phone-call"></i></div>
+                                        <div class="sidebar-text-info">
+                                            <span class="text-description">Phone</span>
+                                            <strong class="small-heading">{{ entreprise.telephone }}</strong>
+                                        </div>
+                                    </li>
+                                {% endif %}
+
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-calendar"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Member Since</span>
+                                        <strong class="small-heading">{{ user.date_joined|date:"M Y" }}</strong>
+                                    </div>
+                                </li>
+
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
+
+
 </main>
 {% endblock %}
