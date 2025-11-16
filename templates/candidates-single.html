@@ -1,27 +1,37 @@
-
 {% extends "base.html" %}
 {% load static %}
 
 {% block content %}
 
-
 {% if errors %}
 <script>
-    var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-    errorModal.show();
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Show the Error Modal (assuming you have one with ID 'errorModal')
+        var errorModalEl = document.getElementById('errorModal');
+        if (errorModalEl) {
+            var errorModal = new bootstrap.Modal(errorModalEl);
+            errorModal.show();
+        }
+
+        // 2. Open the Update Account Modal so the user can fix the errors
+        // Delay opening the second modal to avoid conflicts with the first one closing/opening
+        setTimeout(function() {
+            var updateModalEl = document.getElementById('updateAccountModal');
+            if (updateModalEl) {
+                var updateModal = new bootstrap.Modal(updateModalEl);
+                updateModal.show();
+            }
+        }, 500); 
+    });
 </script>
 {% endif %}
+
 <main class="main">
     
-
-    <!-- ============================
-         HEADER : PHOTO + BASIC INFO + ACTION BUTTONS
-    ================================ -->
     <section class="section-box">
         <div class="box-head-single box-head-single-candidate">
             <div class="container">
 
-                <!-- Candidate Photo -->
                 <div class="heading-image-rd online">
                     <a href="#">
                         {% if user.photo %}
@@ -34,7 +44,6 @@
                     </a>
                 </div>
 
-                <!-- Main Candidate Info -->
                 <div class="heading-main-info">
                     <h4>{{ user.first_name }} {{ user.last_name }}</h4>
 
@@ -51,7 +60,6 @@
                         </div>
                     </div>
 
-                    <!-- Skills / Languages Tags + CV + Breadcrumbs -->
                     <div class="row align-items-end">
 
                         <div class="col-lg-3">
@@ -68,10 +76,9 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
                     <div class="row mt-20">
                         <div class="col-12 d-flex justify-content-end gap-2">
-                            <button class="btn btn-default" data-bs-toggle="collapse" data-bs-target="#updateAccountForm">Update Account</button>
+                            <button class="btn btn-default" data-bs-toggle="modal" data-bs-target="#updateAccountModal">Update Account</button>
                             <button class="btn btn-border" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</button>
                             <button class="btn btn-border" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
                         </div>
@@ -82,134 +89,199 @@
         </div>
     </section>
 
-    <!-- ============================
-         INLINE UPDATE ACCOUNT FORM
-    ================================ -->
-    <!-- ERROR POPUP MODAL -->
-<div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-danger">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Error</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                {% if errors %}
-                    <ul class="mb-0">
-                        {% for field, error in errors.items %}
-                            <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-    <div class="collapse mt-30" id="updateAccountForm">
-        <div class="container">
-            <div class="card p-20 shadow-sm">
-                <h5>Update Account</h5>
-                <form method="POST" enctype="multipart/form-data" action="{% url 'update_profile' %}">
+    <div class="modal fade" id="updateAccountModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="login-register text-start needs-validation" 
+                        id="updateForm"
+                        action="{% url 'update_profile' %}" 
+                        method="POST" 
+                        enctype="multipart/form-data" 
+                        novalidate>
 
-                    {% csrf_token %}
+                        {% csrf_token %}
 
-                    <!-- User Fields -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label>First Name</label>
-                            <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label>Last Name</label>
-                            <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label>Email</label>
-                        <input type="email" name="email" value="{{ user.email }}" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label>Address</label>
-                        <input type="text" name="adresse" value="{{ user.adresse }}" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label>Telephone</label>
-                        <input type="text" name="telephone" value="{{ user.telephone }}" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label>Photo</label>
-                        <input type="file" name="photo" class="form-control">
-                    </div>
-
-                    <!-- Candidat Fields -->
-                    <div class="mb-3">
-                        <label>Age</label>
-                        <input type="number" name="age" value="{{ candidat.age }}" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label>CV</label>
-                        <input type="file" name="cv" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label>Portfolio Website</label>
-                        <input type="url" name="portfolio_website" value="{{ candidat.portfolio_website }}" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label>Years of Experience</label>
-                        <input type="number" name="years_experience" value="{{ candidat.years_experience }}" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label>Education Level</label>
-                        <select name="education_level" class="form-control">
-                            <option value="">Select</option>
-                            {% for level, display in candidat.get_education_choices %}
-                                <option value="{{ level }}" {% if candidat.education_level == level %}selected{% endif %}>{{ display }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label>Biography</label>
-                        <textarea name="bio" class="form-control">{{ candidat.bio }}</textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label>Skills (by Domain)</label>
-                        <div class="accordion" id="skillsAccordion">
-                            {% for domain in domains %}
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="heading_{{ domain.id }}">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{ domain.id }}" aria-expanded="false">
-                                            {{ domain.name }}
-                                        </button>
-                                    </h2>
-                                    <div id="collapse_{{ domain.id }}" class="accordion-collapse collapse" data-bs-parent="#skillsAccordion">
-                                        <div class="accordion-body p-3">
-                                            {% for skill in domain.skills.all %}
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="skills" value="{{ skill.id }}" id="skill_{{ skill.id }}" {% if skill in candidat.skills.all %}checked{% endif %}>
-                                                    <label class="form-check-label" for="skill_{{ skill.id }}">
-                                                        {{ skill.name }}
-                                                    </label>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
+                        {% if messages %}
+                            <div class="mb-3">
+                                {% for message in messages %}
+                                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                                        {{ message }}
                                     </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="first_name_modal">First Name *</label>
+                                <input class="form-control {% if errors.first_name %}is-invalid{% endif %}" 
+                                       id="first_name_modal" type="text" name="first_name" required 
+                                       placeholder="First Name" value="{{ request.POST.first_name|default:user.first_name }}">
+                                <div class="invalid-feedback">
+                                    {% if errors.first_name %}{{ errors.first_name }}{% else %}First name is required.{% endif %}
                                 </div>
-                            {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="last_name_modal">Last Name *</label>
+                                <input class="form-control {% if errors.last_name %}is-invalid{% endif %}" 
+                                       id="last_name_modal" type="text" name="last_name" required 
+                                       placeholder="Last Name" value="{{ request.POST.last_name|default:user.last_name }}">
+                                <div class="invalid-feedback">
+                                    {% if errors.last_name %}{{ errors.last_name }}{% else %}Last name is required.{% endif %}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-default">Save Changes</button>
-                </form>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="email_modal">Email *</label>
+                            <input class="form-control {% if errors.email %}is-invalid{% endif %}" 
+                                   id="email_modal" type="email" name="email" required 
+                                   placeholder="stevenjob@gmail.com" value="{{ request.POST.email|default:user.email }}">
+                            <div class="invalid-feedback">
+                                {% if errors.email %}{{ errors.email }}{% else %}Please enter a valid email.{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="adresse_modal">Address *</label>
+                            <input class="form-control {% if errors.adresse %}is-invalid{% endif %}" 
+                                   id="adresse_modal" type="text" name="adresse" required 
+                                   placeholder="Address" value="{{ request.POST.adresse|default:user.adresse }}">
+                            <div class="invalid-feedback">
+                                {% if errors.adresse %}{{ errors.adresse }}{% else %}Address is required.{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="telephone_modal">Telephone (8 digits) *</label>
+                            <input class="form-control {% if errors.telephone %}is-invalid{% endif %}" 
+                                   id="telephone_modal" type="text" name="telephone" pattern="^\d{8}$" required 
+                                   placeholder="12345678" value="{{ request.POST.telephone|default:user.telephone }}">
+                            <div class="invalid-feedback">
+                                {% if errors.telephone %}{{ errors.telephone }}{% else %}Phone must be 8 digits.{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="photo_modal">Photo</label>
+                            <input class="form-control" id="photo_modal" type="file" name="photo" accept="image/*">
+                            {% if user.photo %}
+                                <small>Current: <a href="{{ user.photo.url }}" target="_blank">View Photo</a></small>
+                            {% endif %}
+                        </div>
+
+                        {% if candidat %}
+                            <div class="mb-3">
+                                <label class="form-label" for="age_modal">Age *</label>
+                                <input class="form-control {% if errors.age %}is-invalid{% endif %}" 
+                                       id="age_modal" type="number" name="age" min="0" required 
+                                       placeholder="Age" value="{{ request.POST.age|default:candidat.age }}">
+                                <div class="invalid-feedback">
+                                    {% if errors.age %}{{ errors.age }}{% else %}Age must be positive.{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="cv_modal">CV (PDF only)</label>
+                                <input class="form-control" id="cv_modal" type="file" name="cv" accept="application/pdf">
+                                {% if candidat.cv %}
+                                    <small>Current: <a href="{{ candidat.cv.url }}" target="_blank">View CV</a></small>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="portfolio_website_modal">Portfolio Website *</label>
+                                <input class="form-control {% if errors.portfolio_website %}is-invalid{% endif %}" 
+                                       id="portfolio_website_modal" type="url" name="portfolio_website" required 
+                                       placeholder="https://example.com" value="{{ request.POST.portfolio_website|default:candidat.portfolio_website }}">
+                                <div class="invalid-feedback">
+                                    {% if errors.portfolio_website %}{{ errors.portfolio_website }}{% else %}Please enter a valid URL.{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="years_experience_modal">Years of Experience *</label>
+                                <input class="form-control {% if errors.years_experience %}is-invalid{% endif %}" 
+                                       id="years_experience_modal" type="number" name="years_experience" min="0" required 
+                                       placeholder="0" value="{{ request.POST.years_experience|default:candidat.years_experience }}">
+                                <div class="invalid-feedback">
+                                    {% if errors.years_experience %}{{ errors.years_experience }}{% else %}Experience cannot be negative.{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="education_level_modal">Education Level *</label>
+                                <select class="form-control {% if errors.education_level %}is-invalid{% endif %}" id="education_level_modal" name="education_level" required>
+                                    <option value="">Select</option>
+                                    {% for level, display in candidat.get_education_choices %}
+                                        <option value="{{ level }}" {% if request.POST.education_level == level or candidat.education_level == level %}selected{% endif %}>{{ display }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    {% if errors.education_level %}{{ errors.education_level }}{% else %}Education level is required.{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="bio_modal">Biography *</label>
+                                <textarea class="form-control {% if errors.bio %}is-invalid{% endif %}" id="bio_modal" name="bio" placeholder="Write something about yourself..." required>{{ request.POST.bio|default:candidat.bio }}</textarea>
+                                <div class="invalid-feedback">
+                                    {% if errors.bio %}{{ errors.bio }}{% else %}Biography is required.{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Skills (select at least one) *</label>
+                                <div class="accordion" id="skillsAccordion">
+                                    {% for domain in domains %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="heading_{{ domain.id }}">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{ domain.id }}" aria-expanded="false">
+                                                    {{ domain.name }}
+                                                </button>
+                                            </h2>
+                                            <div id="collapse_{{ domain.id }}" class="accordion-collapse collapse" data-bs-parent="#skillsAccordion">
+                                                <div class="accordion-body p-3">
+                                                    {% for skill in domain.skills.all %}
+                                                        <div class="form-check">
+                                                            <input class="form-check-input skill-checkbox" 
+                                                                   type="checkbox" name="skills" 
+                                                                   value="{{ skill.id }}" 
+                                                                   id="skill_{{ skill.id }}" 
+                                                                   {% if skill in candidat.skills.all %}checked{% endif %}>
+
+                                                            <label class="form-check-label" for="skill_{{ skill.id }}">{{ skill.name }}</label>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="invalid-feedback d-block {% if not errors.skills %}d-none{% endif %}" id="skills-feedback">
+                                    {% if errors.skills %}{{ errors.skills }}{% else %}Please select at least one skill.{% endif %}
+                                </div>
+
+                            </div>
+                        {% endif %}
+
+                        <div class="form-group mt-20">
+                            <button class="btn btn-default btn-shadow hover-up w-100" type="submit">Save Changes</button>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-border" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- ============================
-         LOGOUT CONFIRMATION MODAL
-    ================================ -->
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -228,9 +300,6 @@
         </div>
     </div>
 
-    <!-- ============================
-         DELETE ACCOUNT CONFIRMATION MODAL
-    ================================ -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -252,9 +321,6 @@
         </div>
     </div>
 
-    <!-- ============================
-         CONTENT + SIDEBAR
-    ================================ -->
     <section class="section-box mt-50">
         <div class="container">
             <div class="row">
@@ -271,11 +337,11 @@
                         <h4 class="mt-30 mb-30">Education</h4>
                         <div class="row">
                             
-                                <div class="col-lg-6">
-                                    <ul>
-                                        <li>{% if candidat.education_level %}{{ candidat.education_level }}{% else %}Education description not provided.{% endif %}</li>
-                                    </ul>
-                                </div>
+                            <div class="col-lg-6">
+                                <ul>
+                                    <li>{% if candidat.education_level %}{{ candidat.education_level }}{% else %}Education description not provided.{% endif %}</li>
+                                </ul>
+                            </div>
                             
                         </div>
 
@@ -302,7 +368,6 @@
                             {% endif %}
                         {% endfor %}
 
-                
                     </div>
 
                     <div class="single-apply-jobs">
@@ -452,4 +517,41 @@
     </section>
 
 </main>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Custom validation for skills (remains the same) ---
+        const updateForm = document.getElementById('updateForm');
+        
+        if (updateForm) {
+            updateForm.addEventListener('submit', event => {
+                const skillCheckboxes = updateForm.querySelectorAll('.skill-checkbox');
+                const skillsChecked = Array.from(skillCheckboxes).some(cb => cb.checked);
+                const skillsFeedback = document.getElementById('skills-feedback');
+
+                // Check if the form is already valid based on standard HTML5/Bootstrap validation
+                const standardValid = updateForm.checkValidity();
+
+                if (!skillsChecked) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    skillsFeedback.classList.remove('d-none');
+                    skillsFeedback.classList.add('d-block');
+                } else {
+                    skillsFeedback.classList.remove('d-block');
+                    skillsFeedback.classList.add('d-none');
+                }
+
+                // If standard validation or custom validation fails, prevent submission
+                if (!standardValid || !skillsChecked) {
+                     event.preventDefault();
+                     event.stopPropagation();
+                }
+                
+                updateForm.classList.add('was-validated');
+            });
+        }
+    });
+</script>
+
+
 {% endblock %}

@@ -11,54 +11,64 @@
               <div class="text-center">
                 <p class="font-sm text-brand-2">Register </p>
                 <h2 class="mt-10 mb-5 text-brand-1">Start for free Today</h2>
-                {% if messages %}
-  <div class="alert alert-danger" style="color:red;">
-    {% for message in messages %}
-      {{ message }}
-    {% endfor %}
-  </div>
-{% endif %}
+                
 
                 <p class="font-sm text-muted mb-30">Access to all features. No credit card required.</p>
               </div>
-<form class="login-register text-start mt-20" action="{% url 'register' %}" method="POST">
-  {% csrf_token %}
-                
-                <div class="form-group">
-                  <label class="form-label" for="input-2">Email *</label>
-                  <input class="form-control" id="input-2" type="email" required="" name="emailaddress" placeholder="stevenjob@gmail.com">
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="input-3">Username *</label>
-                  <input class="form-control" id="input-3" type="text" required="" name="username" placeholder="stevenjob">
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="input-4">Password *</label>
-                  <input class="form-control" id="input-4" type="password" required="" name="password" placeholder="************">
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="input-5">Re-Password *</label>
-                  <input class="form-control" id="input-5" type="password" required="" name="re-password" placeholder="************">
-                </div>
-                <div class="form-group">
-                    <label for="role">Select your role:</label>
-                    <select name="role" id="role" class="form-control" required>
-                        <option value="candidat">Candidat</option>
-                        <option value="entreprise">Entreprise</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
+<form class="login-register text-start mt-20 needs-validation" 
+      action="{% url 'register' %}" 
+      method="POST" 
+      novalidate>
 
-                <div class="login_footer form-group d-flex justify-content-between">
-                  <label class="cb-container">
-                    <input type="checkbox"><span class="text-small">Agree our terms and policy</span><span class="checkmark"></span>
-                  </label><a class="text-muted" href="page-contact.html">Lean more</a>
-                </div>
-                <div class="form-group">
-                  <button class="btn btn-default btn-shadow ml-40 hover-up" style="width: 75%;" type="submit" name="login">Submit &amp; Register</button>
-                </div>
-                <div class="text-muted text-center">Already have an account? <a href="{% url 'signin' %}">Sign in</a></div>
-              </form>
+  {% csrf_token %}
+
+  <div class="form-group">
+    <label class="form-label" for="input-2">Email *</label>
+    <input class="form-control" id="input-2" type="email" name="emailaddress" required placeholder="stevenjob@gmail.com">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="input-3">Username *</label>
+    <input class="form-control" id="input-3" type="text" name="username" required placeholder="stevenjob">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="input-4">Password *</label>
+    <input class="form-control" id="input-4" type="password" name="password" required placeholder="************">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="input-5">Re-Password *</label>
+    <input class="form-control" id="input-5" type="password" name="re-password" required placeholder="************">
+  </div>
+
+  <div class="form-group">
+      <label for="role">Select your role:</label>
+      <select name="role" id="role" class="form-control" required>
+          <option value="candidat">Candidat</option>
+          <option value="entreprise">Entreprise</option>
+          <option value="admin">Admin</option>
+      </select>
+  </div>
+
+  <div class="login_footer form-group d-flex justify-content-between">
+    <label class="cb-container">
+      <input type="checkbox" required>
+      <span class="text-small">Agree to our terms and policy</span>
+      <span class="checkmark"></span>
+    </label>
+    <a class="text-muted" href="page-contact.html">Learn more</a>
+  </div>
+
+  <div class="form-group">
+    <button class="btn btn-default btn-shadow ml-40 hover-up" style="width: 75%;" type="submit">Submit & Register</button>
+  </div>
+
+  <div class="text-muted text-center">Already have an account? 
+      <a href="{% url 'signin' %}">Sign in</a>
+  </div>
+</form>
+
             </div>
           </div>
         </div>

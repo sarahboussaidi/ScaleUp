@@ -4,7 +4,9 @@ from django.contrib import messages     # type: ignore
 from django.contrib.auth.decorators import login_required # type: ignore
 from .models import Candidat, Entreprise, Admin, Domain, Skill # type: ignore
 from django.db import models # type: ignore
-
+from django.core.exceptions import ValidationError # type: ignore
+from django.core.validators import validate_email, URLValidator # type: ignore
+import re # type: ignore
 User = get_user_model()
 
 
@@ -49,7 +51,7 @@ def profile_view(request):
 # Update Profile
 # ---------------------------
 
-
+"""
 @login_required
 def update_profile(request):
     user = request.user
@@ -115,9 +117,128 @@ def update_profile(request):
         "domains": Domain.objects.all(),
     }
     
-    return render(request, "employers-single.html" if entreprise else "candidat-single.html", context)
+    return render(request, "employers-single.html" if entreprise else "candidates-single.html", context)
+"""
+
+@login_required
+def update_profile(request):
+    user = request.user
+    candidat = getattr(user, "candidat", None)
+    entreprise = getattr(user, "entreprise", None)
+
+    errors = {}
+
+    if request.method == "POST":
+        # ----------------- User Fields -----------------
+        # Retrieve hidden fields. The template ensures these are non-empty for non-candidate users.
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        
+        email = request.POST.get("email", "").strip()
+        adresse = request.POST.get("adresse", "").strip()
+        telephone = request.POST.get("telephone", "").strip()
+
+        # CRITICAL FIX: Only run First & Last Name Validation if the user is a candidate.
+        # For 'entreprise' users, we assume the fields passed from the template are valid placeholders.
+        if user.role == 'candidat':
+            if not re.match(r'^[A-Za-z]+$', first_name):
+                errors['first_name'] = "First name should contain only letters."
+            if not re.match(r'^[A-Za-z]+$', last_name):
+                errors['last_name'] = "Last name should contain only letters."
+        # If the user is an entreprise, we do NOT set an error, allowing the update to proceed.
+
+        # Email validation
+        try:
+            validate_email(email)
+        except ValidationError:
+            errors['email'] = "Invalid email address."
+
+        # ----------------- Candidat Fields -----------------
+        age = request.POST.get("age")
+        years_experience = request.POST.get("years_experience")
+        skills_selected = request.POST.getlist("skills")
+
+        if candidat:
+            if age and (not age.isdigit() or int(age) <= 0):
+                errors['age'] = "Age must be a positive number."
+            if years_experience and (not years_experience.isdigit() or int(years_experience) < 0):
+                errors['years_experience'] = "Experience must be a positive number."
+            # Only validate skills if the user is a candidate and the field is expected
+            # if not skills_selected:
+            #     errors['skills'] = "Select at least one skill."
 
 
+        # ----------------- Entreprise Fields Validation (Add if needed) -----------------
+        # ... Add any required validation for nom_entreprise, site_web, description here ...
+        
+        # ----------------- Save if no errors -----------------
+        if not errors:
+            # Update user fields
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.adresse = adresse
+            user.telephone = telephone # Use the submitted telephone (can be updated by both roles)
+
+            if request.FILES.get("photo"):
+                user.photo = request.FILES["photo"]
+
+            user.save()
+
+            if candidat:
+                candidat.age = age or candidat.age
+                candidat.years_experience = years_experience or candidat.years_experience
+                candidat.portfolio_website = request.POST.get("portfolio_website", candidat.portfolio_website)
+                candidat.education_level = request.POST.get("education_level", candidat.education_level)
+                candidat.bio = request.POST.get("bio", candidat.bio)
+
+                if request.FILES.get("cv"):
+                    candidat.cv = request.FILES["cv"]
+
+                candidat.skills.set(Skill.objects.filter(id__in=skills_selected))
+                candidat.save()
+
+            if entreprise:
+                # Retrieve and update entreprise specific fields
+                entreprise.nom_entreprise = request.POST.get("nom_entreprise", entreprise.nom_entreprise)
+                entreprise.domaine = request.POST.get("domaine", entreprise.domaine)
+                # Use submitted adresse and telephone (already assigned to user model above)
+                entreprise.site_web = request.POST.get("site_web", entreprise.site_web)
+                entreprise.description = request.POST.get("description", entreprise.description)
+                if request.FILES.get("photo"):
+                    # Note: You use 'photo' for user.photo above, and request.FILES["photo"] here.
+                    # This is correct if you intend to update the User photo field and the Entreprise logo field with the same file.
+                    entreprise.logo = request.FILES["photo"] 
+                entreprise.save()
+
+            messages.success(request, "Profile updated successfully.")
+            return redirect("profile")
+
+        else:
+            # Display errors in form
+            for field, msg in errors.items():
+                messages.error(request, msg)
+
+    
+    if request.method == "POST":
+        selected_skills = request.POST.getlist("skills")
+    elif candidat:
+        selected_skills = list(candidat.skills.values_list('id', flat=True))
+    else:
+        selected_skills = []
+
+    context = {
+        "user": user,
+        "candidat": candidat,
+        "entreprise": entreprise,
+        "domains": Domain.objects.all(),
+        "skills": Skill.objects.all(),
+        "errors": errors,
+        "selected_skills": [str(s) for s in selected_skills],  # convert to string for template
+    }
+
+    template = "employers-single.html" if entreprise else "candidates-single.html"
+    return render(request, template, context)
 # ---------------------------
 # Delete Account
 # ---------------------------
@@ -137,8 +258,6 @@ def register_view(request):
         return redirect('home')
 
     if request.method == "POST":
-        firstname = request.POST.get('firstname', '')
-        lastname = request.POST.get('lastname', '')
         email = request.POST.get('emailaddress', '')
         username = request.POST.get('username', '')
         password = request.POST.get('password', '')
@@ -161,8 +280,6 @@ def register_view(request):
             username=username,
             email=email,
             password=password,
-            first_name=firstname,
-            last_name=lastname,
             role=role
         )
 
@@ -194,6 +311,7 @@ def signin_view(request):
 
         if user:
             login(request, user)
+            messages.success(request, "Welcome back!")   # ✅ popup
             return redirect('home')
         else:
             messages.error(request, "Invalid email or password")
