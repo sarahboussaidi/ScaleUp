@@ -173,6 +173,8 @@ class Entreprise(models.Model):
     description = models.TextField(blank=True, null=True)
     telephone = models.CharField(max_length=20, blank=True, null=True)
     adresse = models.CharField(max_length=255, null=True, blank=True)
+    logo = models.ImageField(upload_to='entreprises/logos/', blank=True, null=True)  # <- new field
+
     class Meta:
         verbose_name = "Entreprise"
 
