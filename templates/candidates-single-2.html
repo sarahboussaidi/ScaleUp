@@ -6,7 +6,7 @@
     <div class="breacrumb-cover">
         <div class="container">
             <ul class="breadcrumbs">
-                <li><a href="#">Home</a></li>
+                <li><a href="{% url 'home' %}">Home</a></li>
                 <li>{{ candidat.user.first_name }} {{ candidat.user.last_name }}</li>
             </ul>
         </div>
@@ -24,7 +24,7 @@
                                     {% if candidat.user.photo %}
                                         <img alt="{{ candidat.user.first_name }}" src="{{ candidat.user.photo.url }}">
                                     {% else %}
-                                        <img alt="No Photo" src="{% static 'assets/imgs/page/candidates/img-candidate.png' %}">
+                                        <img alt="No Photo" src="{% static 'imgs/avatar/avatar.png' %}">
                                     {% endif %}
                                 </figure>
                             </a>
@@ -60,15 +60,11 @@
 
                         <div class="divider"></div>
 
-                        <!-- Work Experience -->
-                        <h4 class="mb-20 mt-25">Work Experience</h4>
-                        <div class="row">
-                            {% comment %} Replace below static work experiences with dynamic ones if you store them in a related model {% endcomment %}
-                            <div class="col-md-4 col-sm-6 col-12 mb-60">
-                                <strong class="text-md-bold">Sample Company</strong>
-                                <span class="dis-block text-muted text-md-lh24">NY, US<br />Jan 2021 — Present</span>
-                            </div>
-                        </div>
+                        <!-- portfolio -->
+                        <h4 class="mb-20">Portfolio</h4>
+                        <p><a href="{{ candidat.portfolio_website }}">{{ candidat.portfolio_website|default:"No portfolio website provided." }}</a></p>
+
+                        <div class="divider"></div>
 
                         <div class="divider"></div>
 
@@ -120,6 +116,13 @@
                                     <div class="sidebar-text-info">
                                         <span class="text-description">Location</span>
                                         <strong class="small-heading">{{ candidat.user.adresse|default:"Not specified" }}</strong>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-shield-check"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Telephone</span>
+                                        <strong class="small-heading">{{ candidat.user.telephone|default:"Not specified" }}</strong>
                                     </div>
                                 </li>
                             </ul>
