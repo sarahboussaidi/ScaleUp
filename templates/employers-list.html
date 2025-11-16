@@ -38,10 +38,11 @@
                                             <div class="employers-logo online mr-15">
                                                 <a href="{% url 'entreprise_detail' entreprise.id %}">
                                                     {% if entreprise.logo %}
-                                                        <figure><img src="{{ entreprise.logo.url }}" alt="{{ entreprise.nom_entreprise }}"></figure>
-                                                    {% else %}
-                                                        <figure><img src="{% static 'imgs/avatar/avatar.png' %}" alt="{{ entreprise.nom_entreprise }}"></figure>
-                                                    {% endif %}
+    <figure><img src="{{ entreprise.logo.url }}" alt="{{ entreprise.nom_entreprise }}"></figure>
+{% else %}
+    <figure><img src="{% static 'imgs/avatar/avatar.png' %}" alt="{{ entreprise.nom_entreprise }}"></figure>
+{% endif %}
+
                                                 </a>
                                             </div>
                                             <div class="employers-name">

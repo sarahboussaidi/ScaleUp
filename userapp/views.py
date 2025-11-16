@@ -48,6 +48,8 @@ def profile_view(request):
 # ---------------------------
 # Update Profile
 # ---------------------------
+
+
 @login_required
 def update_profile(request):
     user = request.user
@@ -88,6 +90,7 @@ def update_profile(request):
 
         # ----------------- Update Entreprise fields -----------------
         if entreprise:
+
             entreprise.nom_entreprise = request.POST.get("nom_entreprise", entreprise.nom_entreprise)
             entreprise.domaine = request.POST.get("domaine", entreprise.domaine)
             entreprise.adresse = request.POST.get("adresse", entreprise.adresse)
@@ -95,10 +98,11 @@ def update_profile(request):
             entreprise.site_web = request.POST.get("site_web", entreprise.site_web)
             entreprise.description = request.POST.get("description", entreprise.description)
             entreprise.save()
+            
             if request.FILES.get("photo"):
-                user.photo = request.FILES["photo"]
-
+                entreprise.logo = request.FILES["photo"]
             entreprise.save()
+
 
         messages.success(request, "Profile updated successfully.")
         return redirect("profile")
@@ -278,33 +282,8 @@ def candidat_detail(request, candidat_id):
     candidat = get_object_or_404(Candidat, id=candidat_id)
     return render(request, 'candidates-single-2.html', {'candidat': candidat})
 
-"""
+
 @login_required
-def employers_list(request):
-    # Optional: implement search
-    query = request.GET.get('q', '')
-    if query:
-        entreprises = Entreprise.objects.filter(
-            nom_entreprise__icontains=query
-        ) | Entreprise.objects.filter(
-            domaine__icontains=query
-        )
-    else:
-        entreprises = Entreprise.objects.all()
-    
-    context = {
-        'entreprises': entreprises
-    }
-    return render(request, 'employers-list.html', context)
-
-
-def entreprise_detail(request, pk):
-    entreprise = get_object_or_404(Entreprise, pk=pk)
-    context = {
-        'entreprise': entreprise
-    }
-    return render(request, 'entreprise-single-2.html', context)"""
-
 def entreprise_list(request):
     q = request.GET.get('q')
     if q:

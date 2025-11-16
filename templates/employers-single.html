@@ -12,11 +12,12 @@
                 <!-- Photo -->
                 <div class="heading-image-rd online">
                     <a href="#">
-                        {% if user.photo %}
-                            <figure><img alt="entreprise photo" src="{{ user.photo.url }}"></figure>
+                        {% if entreprise.logo %}
+                            <figure><img alt="{{ entreprise.nom_entreprise }}" src="{{ entreprise.logo.url }}"></figure>
                         {% else %}
                             <figure><img alt="entreprise" src="{% static 'imgs/avatar/avatar.png' %}"></figure>
                         {% endif %}
+
                     </a>
                 </div>
 
@@ -63,17 +64,7 @@
                 <form method="POST" enctype="multipart/form-data" action="{% url 'update_profile' %}">
                     {% csrf_token %}
 
-                    <!-- USER FIELDS -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label>First Name</label>
-                            <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label>Last Name</label>
-                            <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control">
-                        </div>
-                    </div>
+                    
 
                     <div class="mb-3">
                         <label>Email</label>
@@ -94,6 +85,7 @@
                         <label>Photo</label>
                         <input type="file" name="photo" class="form-control">
                     </div>
+
 
                     <hr>
 
