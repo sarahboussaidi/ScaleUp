@@ -12,17 +12,28 @@ def modifier_candidature(request, id):
     candidature = get_object_or_404(Candidature, pk=id)
 
     if request.method == 'POST':
-        
-        candidature.statut = request.POST.get('statut')
-        candidature.lettre_motivation = request.POST.get('lettre_motivation')
-        if request.FILES.get('cv_joint'):
-            candidature.cv_joint = request.FILES.get('cv_joint')
-        candidature.save()
+        statut = request.POST.get('statut')
+        lettre = request.POST.get('lettre_motivation')
+        cv = request.FILES.get('cv_joint')
+        if not statut:
+            messages.error(request, "Veuillez sélectionner un statut.")
+        elif not lettre or lettre.strip() == "":
+            messages.error(request, "Veuillez saisir une lettre de motivation.")
+        elif cv and not cv.name.lower().endswith(('.pdf', '.doc', '.docx')):
+            messages.error(request, "Le CV doit être un fichier PDF ou Word (.pdf, .doc, .docx).")
+        else:
+            # ✅ Mise à jour de la candidature
+            candidature.statut = statut
+            candidature.lettre_motivation = lettre
 
-        messages.success(request, "✅ Candidature modifiée avec succès !")
-        return redirect('liste_candidatures')
+            # Met à jour le CV uniquement si un nouveau fichier est envoyé
+            if cv:
+                candidature.cv_joint = cv
 
-    
+            candidature.save()
+            messages.success(request, "✅ Candidature modifiée avec succès !")
+            return redirect('liste_candidatures')
+
     return render(request, 'candidature_modifier.html', {'candidature': candidature})
 
 
@@ -50,23 +61,34 @@ def ajouter_candidature(request):
         type_cand = request.POST.get("type")
         lettre = request.POST.get("lettre_motivation")
         cv = request.FILES.get("cv_joint")
+        if not id_candidat:
+            messages.error(request, "Veuillez sélectionner un candidat.")
+        elif not type_cand:
+            messages.error(request, "Veuillez sélectionner le type de candidature (stage, formation, freelance...).")
+        elif not cv:
+            messages.error(request, "Veuillez joindre un fichier CV.")
+        elif not lettre or lettre.strip() == "":
+            messages.error(request, "Veuillez rédiger une lettre de motivation.")
+        else:
+            # ✅ Si tout est valide → création de la candidature
+            candidature = Candidature.objects.create(
+                id_candidat_id=id_candidat,
+                lettre_motivation=lettre,
+                cv_joint=cv,
+            )
 
-        candidature = Candidature.objects.create(
-            id_candidat_id=id_candidat,
-            lettre_motivation=lettre,
-            cv_joint=cv,
-        )
+            if type_cand == "stage":
+                candidature.id_stage_id = request.POST.get("id_stage")
+            elif type_cand == "freelance":
+                candidature.id_freelance_id = request.POST.get("id_freelance")
+            elif type_cand == "formation":
+                candidature.id_formation_id = request.POST.get("id_formation")
 
-        if type_cand == "stage":
-            candidature.id_stage_id = request.POST.get("id_stage")
-        elif type_cand == "freelance":
-            candidature.id_freelance_id = request.POST.get("id_freelance")
-        elif type_cand == "formation":
-            candidature.id_formation_id = request.POST.get("id_formation")
+            candidature.save()
+            messages.success(request, "✅ Candidature ajoutée avec succès !")
+            return redirect('liste_candidatures')
 
-        candidature.save()
-        return redirect('liste_candidatures')
-
+    # Si GET ou erreur de saisie → on recharge la page avec les messages
     return render(request, 'candidature_ajouter.html', {
         'utilisateurs': utilisateurs,
         'stages': stages,
@@ -76,14 +98,15 @@ def ajouter_candidature(request):
 
 
 def supprimer_candidature(request, id):
-    candidature = get_object_or_404(Candidature, pk=id)
+    candidature = get_object_or_404(Candidature, id_candidature=id)
 
-    if request.method == "POST":
+    if request.method == 'POST':
         candidature.delete()
-        messages.success(request, "✅ Candidature supprimée avec succès.")
-        return redirect('liste_candidatures')
+        messages.success(request, 'La candidature a été supprimée avec succès.')
+    else:
+        messages.error(request, 'Méthode non autorisée.')
 
-    return render(request, 'confirmer_suppression.html', {'candidature': candidature})
+    return redirect('liste_candidatures')
 
 def details_candidature(request, id):
     candidature = get_object_or_404(Candidature, id_candidature=id)

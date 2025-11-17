@@ -1,92 +1,254 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
-
 {% block title %}Détails de la Candidature{% endblock %}
-
 {% block content %}
-<section class="section-box mt-70">
-    <div class="container">
-        <div class="card p-4 shadow-lg rounded-4">
-            <div class="text-center mb-4">
-                <h2 class="text-brand-2">🧾 Détails de la Candidature</h2>
-                <p class="text-muted">Informations complètes sur la candidature sélectionnée</p>
-                <hr>
-            </div>
+<!-- SweetAlert2 CSS/JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h6 class="fw-bold text-gray-600">👤 Candidat :</h6>
-                    <p>{{ candidature.id_candidat.first_name }} {{ candidature.id_candidat.last_name }}</p>
+<!-- Content -->
+<main class="main">
+    <section class="section-box-2">
+        <div class="box-head-single none-bg">
+            <div class="container">
+                <h4>Détails de votre candidature<br />Suivez son évolution !</h4>
+                <div class="row mt-15 mb-40">
+                    <div class="col-lg-7 col-md-9">
+                        <span class="text-mutted">Retrouvez toutes les informations concernant votre candidature.</span>
+                    </div>
+                    <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                        <ul class="breadcrumbs mt-sm-15">
+                            <li><a href="/">Accueil</a></li>
+                            <li><a href="{% url 'liste_candidatures' %}">Candidatures</a></li>
+                            <li>Détails</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <h6 class="fw-bold text-gray-600">📅 Date de candidature :</h6>
-                    <p>{{ candidature.date_candidature|date:"d/m/Y H:i" }}</p>
-                </div>
-            </div>
-
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h6 class="fw-bold text-gray-600">🎯 Type :</h6>
-                    <p>
-                        {% if candidature.id_stage %}Stage : {{ candidature.id_stage.titre }}
-                        {% elif candidature.id_freelance %}Freelance : {{ candidature.id_freelance.titre }}
-                        {% elif candidature.id_formation %}Formation : {{ candidature.id_formation.titre }}
-                        {% else %}Aucun type associé{% endif %}
-                    </p>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="fw-bold text-gray-600">📌 Statut :</h6>
-                    <p>
-                        <span class="badge 
-                            {% if candidature.statut == 'EN_ATTENTE' %}bg-warning
-                            {% elif candidature.statut == 'ACCEPTEE' %}bg-success
-                            {% elif candidature.statut == 'REFUSEE' %}bg-danger
-                            {% elif candidature.statut == 'ENTRETIEN' %}bg-info
-                            {% else %}bg-secondary{% endif %}">
-                            {{ candidature.get_statut_display }}
-                        </span>
-                    </p>
-                </div>
-            </div>
-
-            <div class="row mb-4">
-                <div class="col-md-12">
-                    <h6 class="fw-bold text-gray-600">📝 Lettre de motivation :</h6>
-                    {% if candidature.lettre_motivation %}
-                        <p>{{ candidature.lettre_motivation }}</p>
-                    {% else %}
-                        <p class="text-muted"><em>Pas de lettre de motivation jointe.</em></p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="row mb-4">
-                <div class="col-md-12">
-                    <h6 class="fw-bold text-gray-600">📎 CV :</h6>
-                    {% if candidature.cv_joint %}
-                        <a href="{{ candidature.cv_joint.url }}" class="btn btn-outline-success" target="_blank">
-                            <i class="fi-rr-file"></i> Voir le CV
-                        </a>
-                    {% else %}
-                        <p class="text-muted"><em>Aucun CV joint.</em></p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <hr class="mt-4 mb-3">
-
-            <div class="text-center">
-                <a href="{% url 'modifier_candidature' candidature.id_candidature %}" class="btn btn-brand-1 me-2">
-                    ✏️ Modifier
-                </a>
-                <a href="{% url 'supprimer_candidature' candidature.id_candidature %}" class="btn btn-danger me-2">
-                    🗑️ Supprimer
-                </a>
-                <a href="{% url 'liste_candidatures' %}" class="btn btn-grey">
-                    ⬅ Retour à la liste
-                </a>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+    <section class="section-box mt-80">
+        <div class="container">
+            <div class="row">
+                <!-- Contenu principal -->
+                <div class="col-lg-8">
+                    <div class="card-job hover-up wow animate__animated animate__fadeIn">
+                        <div class="card-block-info p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-20">
+                                <div>
+                                    <h3 class="post-title mb-10">
+                                        {{ candidature.id_candidat.first_name }} {{ candidature.id_candidat.last_name }}
+                                    </h3>
+                                    <div class="post-meta text-muted d-flex align-items-center">
+                                        <div class="author d-flex align-items-center mr-30">
+                                            {% if candidature.id_stage %}
+                                                <span class="badge bg-info me-2">Stage</span>
+                                                <span class="text-sm">{{ candidature.id_stage.titre }}</span>
+                                            {% elif candidature.id_formation %}
+                                                <span class="badge bg-success me-2">Formation</span>
+                                                <span class="text-sm">{{ candidature.id_formation.titre }}</span>
+                                            {% elif candidature.id_freelance %}
+                                                <span class="badge bg-warning text-dark me-2">Freelance</span>
+                                                <span class="text-sm">{{ candidature.id_freelance.titre_mission }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary me-2">Autre</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="date">
+                                            <span><i class="fi-rr-calendar mr-5 text-grey-6"></i> {{ candidature.date_candidature|date:"d/m/Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="badge
+                                        {% if candidature.statut == 'ACCEPTEE' %}bg-success
+                                        {% elif candidature.statut == 'REFUSEE' %}bg-danger
+                                        {% elif candidature.statut == 'ENTRETIEN' %}bg-info
+                                        {% elif candidature.statut == 'VUE' %}bg-primary
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ candidature.get_statut_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <hr class="my-3">
+
+                            <div class="mb-20">
+                                <h5 class="fw-bold mb-15">📝 Lettre de motivation :</h5>
+                                {% if candidature.lettre_motivation %}
+                                    <div class="bg-light p-3 rounded">
+                                        <p class="mb-0">{{ candidature.lettre_motivation }}</p>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted"><em>Aucune lettre de motivation fournie.</em></p>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-20">
+                                <h5 class="fw-bold mb-15">📎 CV joint :</h5>
+                                {% if candidature.cv_joint %}
+                                    <a href="{{ candidature.cv_joint.url }}" class="btn btn-border btn-brand-hover" target="_blank">
+                                        <i class="fi-rr-file me-1"></i> Voir le CV
+                                    </a>
+                                {% else %}
+                                    <p class="text-muted mb-0"><em>Aucun CV joint.</em></p>
+                                {% endif %}
+                            </div>
+
+                            {% if candidature.id_stage %}
+                            <div class="mb-20">
+                                <h5 class="fw-bold mb-15">📍 Détails du stage :</h5>
+                                <div class="bg-light p-3 rounded">
+                                    <p class="mb-1"><strong>Entreprise :</strong> {{ candidature.id_stage.entreprise }}</p>
+                                    <p class="mb-1"><strong>Lieu :</strong> {{ candidature.id_stage.lieu }}</p>
+                                    <p class="mb-1"><strong>Durée :</strong> {{ candidature.id_stage.duree }} mois</p>
+                                    <p class="mb-0"><strong>Description :</strong> {{ candidature.id_stage.description|truncatewords:20 }}</p>
+                                </div>
+                            </div>
+                            {% elif candidature.id_formation %}
+                            <div class="mb-20">
+                                <h5 class="fw-bold mb-15">🎓 Détails de la formation :</h5>
+                                <div class="bg-light p-3 rounded">
+                                    <p class="mb-1"><strong>Organisme :</strong> {{ candidature.id_formation.organisme }}</p>
+                                    <p class="mb-1"><strong>Lieu :</strong> {{ candidature.id_formation.lieu }}</p>
+                                    <p class="mb-1"><strong>Durée :</strong> {{ candidature.id_formation.duree }} heures</p>
+                                    <p class="mb-0"><strong>Description :</strong> {{ candidature.id_formation.description|truncatewords:20 }}</p>
+                                </div>
+                            </div>
+                            {% elif candidature.id_freelance %}
+                            <div class="mb-20">
+                                <h5 class="fw-bold mb-15">💼 Détails de la mission freelance :</h5>
+                                <div class="bg-light p-3 rounded">
+                                    <p class="mb-1"><strong>Domaine :</strong> {{ candidature.id_freelance.domaine }}</p>
+                                    <p class="mb-1"><strong>Durée estimée :</strong> {{ candidature.id_freelance.duree_estimee }} jours</p>
+                                    <p class="mb-1"><strong>Tarif :</strong> {{ candidature.id_freelance.tarif }} DT</p>
+                                    <p class="mb-0"><strong>Description :</strong> {{ candidature.id_freelance.description|truncatewords:20 }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="card-2-bottom mt-30">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="keep-reading">
+                                        <a href="{% url 'modifier_candidature' candidature.id_candidature %}" class="btn btn-border btn-brand-hover">
+                                            <i class="fi-rr-edit me-1"></i> Modifier
+                                        </a>
+                                    </div>
+                                    <div class="tags text-lg-end">
+                                        <button class="btn btn-border btn-danger-hover" onclick="confirmDelete({{ candidature.id_candidature }})">
+                                            <i class="fi-rr-trash me-1"></i> Supprimer
+                                        </button>
+                                        <a href="{% url 'liste_candidatures' %}" class="btn btn-border btn-secondary-hover">
+                                            <i class="fi-rr-angle-left me-1"></i> Retour
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barre latérale -->
+                <div class="col-lg-4 col-md-12 col-sm-12 col-12 pl-40 pl-lg-15 mt-lg-30">
+                    <div class="widget_search mb-40">
+                        <div class="search-form">
+                            <form action="#">
+                                <input type="text" placeholder="Rechercher...">
+                                <button type="submit"><i class="fi-rr-search"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="sidebar-shadow widget-categories">
+                        <h5 class="sidebar-title">Actions rapides</h5>
+                        <ul>
+                            <li class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'ajouter_candidature' %}">Ajouter une candidature</a>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'liste_candidatures' %}">Liste des candidatures</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="sidebar-shadow sidebar-news-small">
+                        <h5 class="sidebar-title">Candidatures récentes</h5>
+                        <div class="post-list-small">
+                            {% for recent_candidature in recent_candidatures %}
+                            <div class="post-list-small-item d-flex align-items-center">
+                                <div class="content">
+                                    <h6>{{ recent_candidature.id_candidat.first_name }} {{ recent_candidature.id_candidat.last_name }}</h6>
+                                    <div class="post-meta text-muted d-flex align-items-center mb-15">
+                                        <div class="date">
+                                            <span><i class="fi-rr-calendar mr-5 text-grey-6"></i> {{ recent_candidature.date_candidature|date:"d/m/Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted">Aucune candidature récente.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="sidebar-shadow">
+                        <h5 class="sidebar-title">Filtres</h5>
+                        <div class="block-tags">
+                            <a href="#" class="btn btn-tags-sm mb-10 mr-5">Stage</a>
+                            <a href="#" class="btn btn-tags-sm mb-10 mr-5">Formation</a>
+                            <a href="#" class="btn btn-tags-sm mb-10 mr-5">Freelance</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Script pour gérer les pop-ups -->
+<script>
+    function confirmDelete(candidatureId) {
+        Swal.fire({
+            title: 'Êtes-vous sûr ?',
+            text: "Cette candidature sera définitivement supprimée !",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Oui, supprimer !',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/supprimer/${candidatureId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => {
+                    if (response.ok) {
+                        Swal.fire(
+                            'Supprimé !',
+                            'La candidature a été supprimée avec succès.',
+                            'success'
+                        ).then(() => {
+                            window.location.href = '{% url "liste_candidatures" %}';
+                        });
+                    } else {
+                        Swal.fire(
+                            'Erreur !',
+                            'Une erreur est survenue lors de la suppression.',
+                            'error'
+                        );
+                    }
+                })
+                .catch(error => {
+                    Swal.fire(
+                        'Erreur !',
+                        'Une erreur est survenue lors de la suppression.',
+                        'error'
+                    );
+                });
+            }
+        });
+    }
+</script>
 {% endblock %}

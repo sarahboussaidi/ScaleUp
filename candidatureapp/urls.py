@@ -13,7 +13,7 @@ urlpatterns = [
     path('modifier/<int:id>/', views.modifier_candidature, name='modifier_candidature'),
     path('supprimer/<int:id>/', views.supprimer_candidature, name='supprimer_candidature'),
     path('register/', views.register_view, name='register'),
-    path('confirmer_suppression/<int:id>/', views.supprimer_candidature, name='confirmer_suppression'),
+    
     path('logout/', views.login_view, name='logout'),
    
     

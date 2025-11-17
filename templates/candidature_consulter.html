@@ -1,99 +1,236 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
-
 {% block title %}Mes Candidatures{% endblock %}
-
 {% block content %}
-<section class="section-box mt-70">
-  <div class="container">
-    <div class="text-center mb-50">
-      <h2 class="text-brand-2 wow animate__animated animate__fadeInUp">📄 Liste des Candidatures</h2>
-      <p class="text-muted">Consultez toutes vos candidatures (stage, freelance ou formation)</p>
-    </div>
-
-    <div class="row job-listing-grid-2">
-      {% for c in candidatures %}
-      <div class="col-lg-4 col-md-6">
-        <div class="card-grid-2 hover-up wow animate__animated animate__fadeIn" data-wow-delay=".s">
-          <div class="card-block-info">
-            <div class="row">
-              <div class="col-lg-12 col-12">
-                <a href="#" class="card-2-img-text card-grid-2-img-medium">
-                  <span class="card-grid-2-img-small">
-                    <img alt="cv" src="{% static 'imgs/page/job/ui-ux3.svg' %}" />
-                  </span>
-                  <span>
-                    {% if c.id_stage %} {{ c.id_stage.titre }}
-                    {% elif c.id_freelance %} {{ c.id_freelance.titre_mission }}
-                    {% elif c.id_formation %} {{ c.id_formation.titre }}
-                    {% else %} Candidature sans type
-                    {% endif %}
-                  </span>
-                </a>
-              </div>
-            </div>
-
-            <div class="mt-15">
-              <span class="text-sm text-mutted-2 mr-20">
-                <i class="fi-rr-calendar"></i>
-                {{ c.date_candidature|date:"d M Y" }}
-              </span>
-              <span class="text-sm text-mutted-2">
-                <i class="fi-rr-shield-check"></i>
-                {{ c.get_statut_display }}
-              </span>
-            </div>
-
-            <div class="text-small mt-15">
-              {% if c.lettre_motivation %}
-                {{ c.lettre_motivation|truncatewords:20 }}
-              {% else %}
-                Aucune lettre de motivation jointe.
-              {% endif %}
-            </div>
-
-            <div class="card-2-bottom mt-30">
-              <div class="row">
-                <div class="col-lg-7 col-8">
-                  <span class="text-brand-10 text-icon-first">
-                    👤 {{ c.id_candidat.username }}
-                  </span>
+<!-- Content -->
+<main class="main">
+    <section class="section-box-2">
+        <div class="box-head-single none-bg">
+            <div class="container">
+                <h4>Consultez vos candidatures<br />et suivez leur progression !</h4>
+                <div class="row mt-15 mb-40">
+                    <div class="col-lg-7 col-md-9">
+                        <span class="text-mutted">Retrouvez toutes vos candidatures (stage, freelance ou formation) en un seul endroit.</span>
+                    </div>
+                    <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                        <ul class="breadcrumbs mt-sm-15">
+                            <li><a href="/">Accueil</a></li>
+                            <li>Mes Candidatures</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="col-lg-5 col-4 text-end">
-                  {% if c.cv_joint %}
-                    <a href="{{ c.cv_joint.url }}" class="btn btn-grey-small" target="_blank">📂 Voir CV</a>
-                  {% else %}
-                    <span class="text-muted">Aucun CV</span>
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="row mt-20">
-                <div class="col-lg-6 col-6">
-                  <a href="#" class="btn btn-grey-small">📝 Détails</a>
-                </div>
-                <div class="col-lg-6 col-6 text-end pt-5">
-                  {% if c.statut == 'EN_ATTENTE' %}
-                    <span class="badge bg-warning text-dark">En attente</span>
-                  {% elif c.statut == 'VUE' %}
-                    <span class="badge bg-info text-white">Vue</span>
-                  {% elif c.statut == 'ENTRETIEN' %}
-                    <span class="badge bg-primary">Entretien</span>
-                  {% elif c.statut == 'ACCEPTEE' %}
-                    <span class="badge bg-success">Acceptée</span>
-                  {% else %}
-                    <span class="badge bg-danger">Refusée</span>
-                  {% endif %}
-                </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
-      {% empty %}
-      <p class="text-center text-muted">Aucune candidature trouvée.</p>
-      {% endfor %}
-    </div>
-  </div>
-</section>
+    </section>
+    <section class="section-box mt-80">
+        <div class="container">
+            <div class="row flex-row-reverse">
+                <div class="col-lg-9 col-md-12 col-sm-12 col-12 float-right">
+                    <div class="content-page">
+                        <div class="box-filters-job mt-15 mb-10">
+                            <div class="row">
+                                <div class="col-lg-7">
+                                    <h3 class="text-brand-2 wow animate__animated animate__fadeInUp">📄 Liste des Candidatures</h3>
+                                    <p class="text-muted">Consultez toutes vos candidatures (stage, freelance ou formation)</p>
+                                </div>
+                                <div class="col-lg-5 text-lg-end mt-sm-15">
+                                    <span class="text-small">Affichage de <strong>1-{{ candidatures|length }}</strong> sur <strong>{{ candidatures|length }}</strong> candidatures</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="job-list-list mb-15">
+                            <div class="list-recent-jobs">
+                                <div class="container mt-5">
+                                    {% for c in candidatures %}
+                                    <!-- Item candidature -->
+                                    <div class="card-job hover-up wow animate__animated animate__fadeIn">
+                                        <div class="card-job-top">
+                                            <div class="card-job-top--image">
+                                                <figure>
+                                                    <img alt="candidature" src="{% static 'imgs/page/job/ui-ux3.svg' %}" />
+                                                </figure>
+                                            </div>
+                                            <div class="card-job-top--info">
+                                                <h6 class="card-job-top--info-heading">
+                                                    <a href="{% url 'details_candidature' c.id_candidature %}">
+                                                        {% if c.id_stage %} {{ c.id_stage.titre }}
+                                                        {% elif c.id_freelance %} {{ c.id_freelance.titre_mission }}
+                                                        {% elif c.id_formation %} {{ c.id_formation.titre }}
+                                                        {% else %} Candidature sans type
+                                                        {% endif %}
+                                                    </a>
+                                                </h6>
+                                                <div class="row">
+                                                    <div class="col-lg-7">
+                                                        <span class="card-job-top--company">
+                                                            👤 {{ c.id_candidat.username }}
+                                                        </span>
+                                                        <span class="card-job-top--location text-sm">
+                                                            <i class="fi-rr-calendar"></i> {{ c.date_candidature|date:"d M Y" }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="col-lg-5 text-lg-end">
+                                                        <span class="badge
+                                                            {% if c.statut == 'EN_ATTENTE' %}bg-warning text-dark
+                                                            {% elif c.statut == 'VUE' %}bg-info text-white
+                                                            {% elif c.statut == 'ENTRETIEN' %}bg-primary
+                                                            {% elif c.statut == 'ACCEPTEE' %}bg-success
+                                                            {% else %}bg-danger{% endif %}
+                                                            text-sm p-2">
+                                                            {{ c.get_statut_display }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-job-description mt-20">
+                                            {% if c.lettre_motivation %}
+                                                {{ c.lettre_motivation|truncatewords:20 }}
+                                            {% else %}
+                                                <em class="text-muted">Aucune lettre de motivation jointe.</em>
+                                            {% endif %}
+                                        </div>
+                                        <div class="card-job-bottom mt-25">
+                                            <div class="row">
+                                                <div class="col-lg-7 col-8">
+                                                    {% if c.cv_joint %}
+                                                        <a href="{{ c.cv_joint.url }}" class="btn btn-small btn-border mr-5" target="_blank">
+                                                            <i class="fi-rr-file"></i> Voir CV
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="text-muted">Aucun CV joint</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-lg-5 col-4 text-end">
+                                                    <a href="{% url 'details_candidature' c.id_candidature %}" class="btn btn-small btn-border">
+                                                        <i class="fi-rr-eye"></i> Détails
+                                                    </a>
+                                                    <a href="{% url 'modifier_candidature' c.id_candidature %}" class="btn btn-small btn-border">
+                                                        <i class="fi-rr-edit"></i> Modifier
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End item candidature -->
+                                    {% empty %}
+                                    <div class="text-center py-5">
+                                        <img src="{% static 'imgs/page/job/empty.svg' %}" alt="Aucune candidature" width="120" class="mb-3">
+                                        <h5 class="text-muted">Aucune candidature trouvée.</h5>
+                                        <p class="text-muted">Commencez par <a href="{% url 'ajouter_candidature' %}">ajouter une candidature</a>.</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="paginations">
+                                <ul class="pager">
+                                    {% if candidatures.has_previous %}
+                                        <li><a href="?page={{ candidatures.previous_page_number }}" class="pager-prev"></a></li>
+                                    {% else %}
+                                        <li><span class="pager-prev disabled"></span></li>
+                                    {% endif %}
+                                    {% for num in candidatures.paginator.page_range %}
+                                        {% if candidatures.number == num %}
+                                            <li><span class="pager-number active">{{ num }}</span></li>
+                                        {% else %}
+                                            <li><a href="?page={{ num }}" class="pager-number">{{ num }}</a></li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if candidatures.has_next %}
+                                        <li><a href="?page={{ candidatures.next_page_number }}" class="pager-next"></a></li>
+                                    {% else %}
+                                        <li><span class="pager-next disabled"></span></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-12 col-sm-12 col-12">
+                    <div class="sidebar-with-bg">
+                        <h5 class="font-semibold mb-10">Rappel de candidature</h5>
+                        <p class="text-body-999">Entrez votre email pour recevoir des notifications sur vos candidatures.</p>
+                        <div class="box-email-reminder">
+                            <form>
+                                <div class="form-group mt-15">
+                                    <input type="email" class="form-control input-bg-white form-icons" placeholder="Entrez votre email" />
+                                    <i class="fi-rr-envelope"></i>
+                                </div>
+                                <div class="form-group mt-25 mb-5">
+                                    <button class="btn btn-default btn-md">Soumettre</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="sidebar-shadow none-shadow mb-30">
+                        <div class="sidebar-filters">
+                            <div class="filter-block mb-30">
+                                <h5 class="medium-heading mb-15">Filtrer par type</h5>
+                                <div class="form-group select-style select-style-icon">
+                                    <form method="GET" id="filterTypeForm">
+                                        <select name="type" class="form-control form-icons select-active" onchange="document.getElementById('filterTypeForm').submit()">
+                                            <option value="">Tous les types</option>
+                                            <option value="stage" {% if request.GET.type == 'stage' %}selected{% endif %}>Stages</option>
+                                            <option value="freelance" {% if request.GET.type == 'freelance' %}selected{% endif %}>Freelances</option>
+                                            <option value="formation" {% if request.GET.type == 'formation' %}selected{% endif %}>Formations</option>
+                                        </select>
+                                        <i class="fi-rr-briefcase"></i>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="filter-block mb-30">
+                                <h5 class="medium-heading mb-15">Filtrer par statut</h5>
+                                <div class="form-group">
+                                    <ul class="list-checkbox">
+                                        <li>
+                                            <label class="cb-container">
+                                                <input type="checkbox" name="statut" value="EN_ATTENTE" {% if request.GET.statut == 'EN_ATTENTE' %}checked{% endif %}>
+                                                <span class="text-small">En attente</span>
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="cb-container">
+                                                <input type="checkbox" name="statut" value="VUE" {% if request.GET.statut == 'VUE' %}checked{% endif %}>
+                                                <span class="text-small">Vue</span>
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="cb-container">
+                                                <input type="checkbox" name="statut" value="ENTRETIEN" {% if request.GET.statut == 'ENTRETIEN' %}checked{% endif %}>
+                                                <span class="text-small">Entretien</span>
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="cb-container">
+                                                <input type="checkbox" name="statut" value="ACCEPTEE" {% if request.GET.statut == 'ACCEPTEE' %}checked{% endif %}>
+                                                <span class="text-small">Acceptée</span>
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="cb-container">
+                                                <input type="checkbox" name="statut" value="REFUSEE" {% if request.GET.statut == 'REFUSEE' %}checked{% endif %}>
+                                                <span class="text-small">Refusée</span>
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sidebar-with-bg background-primary bg-sidebar pb-80">
+                        <h5 class="medium-heading text-white mb-20 mt-20">Ajoutez une nouvelle candidature</h5>
+                        <p class="text-body-999 text-white mb-30">Postulez à de nouvelles opportunités et élargissez vos horizons professionnels.</p>
+                        <a href="{% url 'ajouter_candidature' %}" class="btn btn-border icon-chevron-right btn-white-sm">Ajouter une candidature</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<!-- End Content -->
 {% endblock %}
