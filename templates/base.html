@@ -9,94 +9,92 @@
     <link rel="shortcut icon" type="image/x-icon" href="/static/imgs/theme/worki-icon.png" />
 
     {% block head %}{% endblock %}
+   <style>
+    /* Toast container: fixed, top-right, non-blocking clicks */
+    .toast-container {
+        position: fixed;
+        top: 80px; /* below sticky header */
+        right: 1rem;
+        z-index: 2000;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+    }
 
-    <style>
-        /* Toast container: fixed, top-right, non-blocking clicks */
-        .toast-container {
-            position: fixed;
-            top: 80px; /* below sticky header */
-            right: 1rem;
-            z-index: 2000;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            gap: 0.7rem;
-        }
+    /* Toast card */
+    .toast {
+        pointer-events: auto; 
+        max-width: 360px;
+        margin-bottom: 0;
+        border-radius: 12px;
+        box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        font-size: 15px;
+        padding: 0;
+        overflow: hidden;
+        position: relative;
+        animation: slideIn 0.4s ease-out;
+        cursor: pointer;
+        display: flex;
+    }
 
-        /* Toast card */
-        .toast {
-            pointer-events: auto; 
-            max-width: 360px;
-            margin-bottom: 0;
-            border-radius: 12px;
-            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-            font-size: 15px;
-            padding: 0;
-            overflow: hidden;
-            position: relative;
-            animation: slideIn 0.4s ease-out;
-            cursor: pointer;
-            display: flex;
-        }
+    /* Slide-in animation */
+    @keyframes slideIn {
+        from { transform: translateX(50px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
 
-        /* Slide-in animation */
-        @keyframes slideIn {
-            from { transform: translateX(50px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+    /* Toast icon circle */
+    .toast-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: white;
+        flex-shrink: 0;
+    }
 
-        /* Toast icon circle */
-        .toast-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: white;
-            flex-shrink: 0;
-        }
+    /* Toast message */
+    .toast-message {
+        font-weight: 600;
+        line-height: 1.4;
+        padding: 0.75rem 1rem;
+        flex: 1;
+    }
 
-        /* Toast message */
-        .toast-message {
-            font-weight: 600;
-            line-height: 1.4;
-            padding: 0.75rem 1rem;
-            flex: 1;
-        }
+    /* Variants */
+    .toast-success   { background: linear-gradient(145deg, #28a745, #53d07c); }
+    .toast-error     { background: linear-gradient(145deg, #dc3545, #ff6b81); }
+    .toast-warning   { background: linear-gradient(145deg, #ffc107, #ffd760); color: black; }
+    .toast-info      { background: linear-gradient(145deg, #17a2b8, #63d3e0); }
 
-        /* Variants */
-        .toast-success   { background: linear-gradient(145deg, #28a745, #53d07c); }
-        .toast-error     { background: linear-gradient(145deg, #dc3545, #ff6b81); }
-        .toast-warning   { background: linear-gradient(145deg, #ffc107, #ffd760); color: black; }
-        .toast-info      { background: linear-gradient(145deg, #17a2b8, #63d3e0); }
+    /* Left color bar */
+    .toast-color-bar {
+        width: 6px;
+        border-radius: 12px 0 0 12px;
+    }
 
-        /* Left color bar */
-        .toast-color-bar {
-            width: 6px;
-            border-radius: 12px 0 0 12px;
-        }
+    /* Progress bar */
+    .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        background-color: rgba(255,255,255,0.7);
+        animation: progressBar linear forwards;
+    }
 
-        /* Progress bar */
-        .toast-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 4px;
-            background-color: rgba(255,255,255,0.7);
-            animation: progressBar linear forwards;
-        }
+    @keyframes progressBar {
+        from { width: 100%; }
+        to { width: 0%; }
+    }
 
-        @keyframes progressBar {
-            from { width: 100%; }
-            to { width: 0%; }
-        }
-
-        /* light default container so pages don't jump too wide */
-        :root{ --navbar-height: 88px; }
-        .page-container{ max-width: 980px; margin: 1.5rem auto; padding: calc(1rem + var(--navbar-height)) 1rem 1rem 1rem; }
     </style>
+
+
 </head>
 <body>
     <header class="header sticky-bar">
@@ -110,7 +108,7 @@
                         <nav class="nav-main-menu d-none d-xl-block" aria-label="Main navigation">
                             <ul class="main-menu">
                                 <li class="has-children">
-                                    <a class="active" href="{% url 'home' %}">Home</a>
+                                    <a class="active" href="{% url 'register' %}">Home</a>
                                 </li>
                                 <li class="has-children">
                                     <a href="job-grid.html">Browse Jobs</a>
@@ -126,6 +124,7 @@
                                 </li>
                                 <li class="has-children">
                                     <a href="{% url 'entreprise_list' %}">Employers</a>
+                                    
                                 </li>
                                 <li class="has-children">
                                     <a href="{% url 'candidats_listing' %}">Candidates</a>
@@ -214,18 +213,58 @@
                                 </li>
                                 <li class="has-children">
                                     <a href="job-grid.html">Browse Jobs</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="job-grid.html">Job Grid</a></li>
+                                        <li><a href="job-grid-2.html">Job Grid 2</a></li>
+                                        <li><a href="job-list.html">Job List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="job-single.html">Job Single 01</a></li>
+                                        <li><a href="job-single-2.html">Job Single 02</a></li>
+                                        <li><a href="job-single-3.html">Job Single 03</a></li>
+                                    </ul>
                                 </li>
                                 <li class="has-children">
                                     <a href="employers-grid.html">Employers</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="employers-grid.html">Employers Grid</a></li>
+                                        <li><a href="employers-grid-2.html">Employers Grid 2</a></li>
+                                        <li><a href="employers-list.html">Employers List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="employers-single.html">Employers Single 01</a></li>
+                                        <li><a href="employers-single-2.html">Employers Single 02</a></li>
+                                    </ul>
                                 </li>
                                 <li class="has-children">
                                     <a href="candidates-grid.html">Candidates</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="candidates-grid.html">Candidates Grid</a></li>
+                                        <li><a href="candidates-grid-2.html">Candidates Grid 2</a></li>
+                                        <li><a href="candidates-list.html">Candidates List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="candidates-single.html">Candidates Single 01</a></li>
+                                        <li><a href="candidates-single-2.html">Candidates Single 02</a></li>
+                                    </ul>
                                 </li>
                                 <li class="has-children">
                                     <a href="#">Blog</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="blog-grid.html">Blog Grid</a></li>
+                                        <li><a href="blog-grid-2.html">Blog Grid Sidebar</a></li>
+                                        <li><a href="blog-list.html">Blog List</a></li>
+                                        <li class="hr"><span></span></li>
+                                        <li><a href="blog-single.html">Blog Single 01</a></li>
+                                        <li><a href="blog-single-2.html">Blog Single 02</a></li>
+                                    </ul>
                                 </li>
                                 <li class="has-children">
                                     <a href="#">Pages</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="page-about.html">About Us</a></li>
+                                        <li><a href="page-service.html">Our Services</a></li>
+                                        <li><a href="page-pricing.html">Pricing Plan</a></li>
+                                        <li><a href="pages-faqs.html">FAQs</a></li>
+                                        <li><a href="page-contact.html">Contact Us</a></li>
+                                    </ul>
                                 </li>
                             </ul>
                         </nav>
@@ -246,6 +285,9 @@
                                 <li><a href="{% url 'signin' %}">Sign In</a></li>
                                 <li><a href="{% url 'register' %}">Register</a></li>
                             {% endif %}
+                            
+                            
+                            </form>
                         </ul>
                     </div>
                     <div class="mobile-social-icon mb-50">
@@ -265,17 +307,17 @@
     <div class="page-container">
         {% block content %}{% endblock %}
     </div>
-
+    
     <div class="box-newsletter">
-        <h5 class="text-md-newsletter">Sign up to get</h5>
-        <h6 class="text-lg-newsletter">the latest jobs</h6>
-        <div class="box-form-newsletter mt-30">
-            <form class="form-newsletter">
-                <input type="text" class="input-newsletter" value="" placeholder="contact.alithemes@gmail.com" />
-                <button class="btn btn-default font-heading icon-send-letter">Subscribe</button>
-            </form>
-        </div>
-    </div>
+                    <h5 class="text-md-newsletter">Sign up to get</h5>
+                    <h6 class="text-lg-newsletter">the latest jobs</h6>
+                    <div class="box-form-newsletter mt-30">
+                        <form class="form-newsletter">
+                            <input type="text" class="input-newsletter" value="" placeholder="contact.alithemes@gmail.com" />
+                            <button class="btn btn-default font-heading icon-send-letter">Subscribe</button>
+                        </form>
+                    </div>
+                </div>
     <footer class="footer mt-50">
         <div class="container">
             <div class="row">
@@ -351,7 +393,20 @@
     <!-- Template  JS -->
     <script src="/static/js/main.js?v=1.0"></script>
 
-    <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
+    <div class="toast-container">
+        <div id="messageToast" class="toast border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div id="toastColorBar" class="toast-color-bar"></div>
+                <div class="toast-body d-flex align-items-center gap-3">
+                    <div id="toastIcon" class="toast-icon">!</div>
+                    <div id="messageToastBody" class="toast-message"></div>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-progress"></div>
+        </div>
+    </div>
+
 
     {% if messages %}
     <div id="django-messages"
@@ -364,68 +419,59 @@
 
         function showToast(type, message) {
             const container = document.querySelector('.toast-container');
+            const template = document.getElementById('messageToast');
+            const toastEl = template.cloneNode(true);
+            toastEl.id = "";
 
-            const toastEl = document.createElement('div');
-            toastEl.className = 'toast border-0';
-            toastEl.setAttribute('role','alert');
-            toastEl.setAttribute('aria-live','assertive');
-            toastEl.setAttribute('aria-atomic','true');
-
-            toastEl.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-color-bar"></div>
-                    <div class="toast-body d-flex align-items-center gap-3">
-                        <div class="toast-icon">!</div>
-                        <div class="toast-message"></div>
-                    </div>
-                    <button type="button" class="btn-close me-2 m-auto"></button>
-                </div>
-                <div class="toast-progress"></div>
-            `;
-
-            const toastIcon = toastEl.querySelector('.toast-icon');
-            const toastMessage = toastEl.querySelector('.toast-message');
-            const colorBar = toastEl.querySelector('.toast-color-bar');
-            const progress = toastEl.querySelector('.toast-progress');
+            const toastIcon = toastEl.querySelector("#toastIcon");
+            const toastMessage = toastEl.querySelector("#messageToastBody");
+            const colorBar = toastEl.querySelector("#toastColorBar");
+            const progress = toastEl.querySelector(".toast-progress");
 
             toastMessage.innerHTML = message;
 
-            let icon = 'ℹ️', classes = 'toast-info', barColor = '#0dcaf0';
-            if (type === 'success') { icon = '✔️'; classes = 'toast-success'; barColor = '#28a745'; }
-            else if (type === 'error' || type === 'danger') { icon = '❌'; classes = 'toast-error'; barColor = '#dc3545'; }
-            else if (type === 'warning') { icon = '⚠️'; classes = 'toast-warning'; barColor = '#ffc107'; }
+            let icon = "ℹ️", classes = "toast-info", barColor = "#0dcaf0";
+
+            if (type === "success") { icon = "✔️"; classes = "toast-success"; barColor = "#28a745"; }
+            else if (type === "error" || type === "danger") { icon = "❌"; classes = "toast-error"; barColor = "#dc3545"; }
+            else if (type === "warning") { icon = "⚠️"; classes = "toast-warning"; barColor = "#ffc107"; }
 
             toastIcon.textContent = icon;
             colorBar.style.backgroundColor = barColor;
-            toastEl.className = 'toast ' + classes + ' border-0';
+            toastEl.className = "toast " + classes;
 
             container.appendChild(toastEl);
 
-            // Auto-remove after delay with progress animation
-            progress.style.animationDuration = '5000ms';
-            setTimeout(() => { toastEl.remove(); }, 5000);
+            const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+            toast.show();
+
+            // Animate progress bar
+            progress.style.animationDuration = "5000ms";
 
             // Pause on hover
-            toastEl.addEventListener('mouseenter', () => progress.style.animationPlayState = 'paused');
-            toastEl.addEventListener('mouseleave', () => progress.style.animationPlayState = 'running');
+            toastEl.addEventListener("mouseenter", () => progress.style.animationPlayState = "paused");
+            toastEl.addEventListener("mouseleave", () => progress.style.animationPlayState = "running");
+
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
         }
 
+
         // Handle Django messages
-        const containerMsg = document.getElementById('django-messages');
+        const containerMsg = document.getElementById("django-messages");
         if (containerMsg) {
-            const messages = JSON.parse(containerMsg.getAttribute('data-messages'));
+            const messages = JSON.parse(containerMsg.getAttribute("data-messages"));
             messages.forEach(msg => showToast(msg.level, msg.text));
         }
 
-        // Client-side validation: simple required check
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                const requiredFields = form.querySelectorAll('input[required], textarea[required], select[required]');
+        // Client-side validation
+        document.querySelectorAll("form").forEach(form => {
+            form.addEventListener("submit", function(e) {
+                const requiredFields = form.querySelectorAll("input[required], textarea[required], select[required]");
                 for (let field of requiredFields) {
                     if (!field.value.trim()) {
                         e.preventDefault();
-                        field.classList.add('is-invalid');
-                        showToast('error', 'Please fill out: ' + (field.name || 'this field'));
+                        field.classList.add("is-invalid");
+                        showToast("error", "Please fill out: " + (field.name || "this field"));
                         field.focus();
                         return false;
                     }
@@ -435,5 +481,7 @@
 
     });
     </script>
+
 </body>
+ 
 </html>
