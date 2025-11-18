@@ -123,14 +123,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-<<<<<<< HEAD
-=======
-
+ 
 # Instead of MEDIA, we’re using a custom 'photos' directory for user uploads
 MEDIA_URL = '/photos/'
 MEDIA_ROOT = BASE_DIR / 'photos'
-
->>>>>>> origin/user
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
