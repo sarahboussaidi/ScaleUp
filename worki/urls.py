@@ -25,8 +25,11 @@ urlpatterns = [
     path('home/', TemplateView.as_view(template_name='index.html'), name='home'),
     path('', RedirectView.as_view(pattern_name='home', permanent=False)),  # redirect root to /home/
     path('', include('userapp.urls')),
+    path('forum/', include('forumapp.urls')),
+
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

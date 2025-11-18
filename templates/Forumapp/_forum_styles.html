@@ -1,0 +1,39 @@
+<style>
+/* Forum-specific image sizing: slightly smaller and consistent */
+.card-blog-1 .post-thumb img { width: 140px; max-width: 100%; height: auto; object-fit: cover; }
+.post-list-small .thumb img, .post-list-small-item .thumb img { width: 44px; height: 44px; object-fit: cover; }
+.card-blog-1 .author img, .post-list-small-item .author img { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; }
+.card-blog-1 .post-thumb img, .post-list-small .thumb img { display:block; }
+
+/* Smaller question thumb in sujet view */
+.card-blog-1 .post-thumb img.question-thumb { width: 64px; height: auto; }
+
+@media (max-width: 768px) {
+    .card-blog-1 .post-thumb img { width: 100%; }
+    .card-blog-1 .author img { width: 28px; height: 28px; }
+    .post-list-small .thumb img { width: 36px; height: 36px; }
+}
+
+/* Simple CSS-only modal (uses checkbox hack) */
+.forum-modal-toggle { display:none; }
+.forum-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,6,23,0.48);
+  z-index: 9999;
+}
+.forum-modal .modal-box {
+  background: #fff;
+  padding: 1.25rem;
+  border-radius: 10px;
+  max-width: 520px;
+  width: 90%;
+  box-shadow: 0 20px 50px rgba(2,6,23,0.2);
+}
+.forum-modal .modal-actions { display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem; }
+.forum-modal-toggle:checked ~ .forum-modal { display: flex; }
+.forum-modal .close-label { cursor: pointer; }
+</style>

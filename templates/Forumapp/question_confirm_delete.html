@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Confirmer la suppression de la réponse | Worki{% endblock %}
+
+{% block head %}
+    <style>
+        .page-container{ max-width:900px; }
+        form { background:#fff; border:1px solid #e3e6ee; padding:1rem; border-radius:8px; box-shadow:0 1px 2px rgba(16,24,40,0.03);} 
+        button{ margin-top:1rem; padding:.5rem 1rem; background-color:#dc2626; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+        button:hover{ background-color:#b91c1c; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h1>Confirmer la Suppression de la Réponse</h1>
+    <p>Êtes-vous sûr de vouloir supprimer cette réponse ? Cette action est irréversible.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Confirmer la Suppression</button>
+        <button type="button" onclick="window.history.back();">Annuler</button>
+    </form>
+{% endblock %}

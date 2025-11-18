@@ -1,0 +1,24 @@
+<script>
+// Small client-side helper to ensure HTML5 validation is enforced
+(function(){
+    function init() {
+        var forms = document.querySelectorAll('form.forum-validate');
+        forms.forEach(function(f){
+            // use HTML5 constraint validation first
+            f.addEventListener('submit', function(e){
+                if(!f.checkValidity()){
+                    // let browser show validation UI
+                    e.preventDefault();
+                    f.reportValidity();
+                    return false;
+                }
+                // simple debounce to prevent double submit
+                var submitBtn = f.querySelector('button[type=submit], input[type=submit]');
+                if(submitBtn){ submitBtn.disabled = true; setTimeout(function(){ submitBtn.disabled = false; }, 1200); }
+                return true;
+            }, false);
+        });
+    }
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>

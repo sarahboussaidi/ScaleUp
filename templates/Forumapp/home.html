@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}Forums | Worki{% endblock %}
+
+{% block content %}
+    <h1>Forum Home Page</h1>
+    <p>Welcome to the forum! Here you can find various discussion topics.</p>
+    <a href="{% url 'list_sujets' %}">View All Topics</a>
+{% endblock %}

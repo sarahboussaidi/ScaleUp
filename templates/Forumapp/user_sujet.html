@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Mes Sujets | Worki{% endblock %}
+
+{% block head %}
+    {% include 'Forumapp/_forum_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    <h1>Liste des Sujets</h1>
+    <p>Voici les sujets de discussion que vous avez créés :</p>
+    {% for sujet in sujets %}
+        <div class="card-blog-1 mb-30 post-list hover-up wow animate__animated animate__fadeIn" data-wow-delay=".0s">
+            <figure class="post-thumb">
+                <a href="{% url 'view_sujet' sujet.id %}">
+                    <img alt="{{ sujet.titre }}" src="{% if sujet.image %}{{ sujet.image.url }}{% else %}/static/imgs/blog/thumb-1.png{% endif %}" />
+                </a>
+            </figure>
+            <div class="card-block-info">
+                <h3 class="post-title mb-15"><a href="{% url 'view_sujet' sujet.id %}">{{ sujet.titre }}</a></h3>
+                <div class="post-meta text-muted d-flex align-items-center mb-15">
+                    <div class="author d-flex align-items-center mr-30">
+                        {% if sujet.author %}
+                            {% if sujet.author.photo %}
+                                <img alt="{{ sujet.author.username }}" src="{{ sujet.author.photo.url }}" />
+                            {% endif %}
+                            <span>{{ sujet.author.username }}</span>
+                        {% else %}
+                            <span>Anonyme</span>
+                        {% endif %}
+                    </div>
+                    <div class="date">
+                        <span><i class="fi-rr-edit mr-5 text-grey-6"></i>{{ sujet.date_creation|date:"d M Y" }}</span>
+                    </div>
+                </div>
+                <p class="post-excerpt text-muted d-none d-lg-block">
+                    {{ sujet.description|truncatechars:120 }}
+                </p>
+                <div class="card-2-bottom mt-30">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="keep-reading d-flex align-items-center gap-2">
+                            <a href="{% url 'view_sujet' sujet.id %}" class="btn btn-border btn-brand-hover btn-sm d-inline-flex align-items-center" aria-label="Voir les détails">
+                                <i class="fi-rr-eye mr-8" aria-hidden="true"></i>
+                                <span class="d-none d-md-inline">Voir</span>
+                            </a>
+                            {% if user == sujet.author %}
+                                <a href="{% url 'update_sujet' sujet.id %}" class="btn btn-border btn-brand-hover btn-sm d-inline-flex align-items-center" aria-label="Modifier sujet">
+                                    <i class="fi-rr-edit mr-8" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline">Modifier</span>
+                                </a>
+                                {# CSS-only modal trigger + modal for deleting a sujet #}
+                                <input id="forum-delete-sujet-{{ sujet.id }}" class="forum-modal-toggle" type="checkbox" />
+                                <label for="forum-delete-sujet-{{ sujet.id }}" class="btn btn-border btn-brand-hover btn-sm d-inline-flex align-items-center" aria-label="Supprimer sujet">
+                                    <i class="fi-rr-trash mr-8" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline">Supprimer</span>
+                                </label>
+                                <div class="forum-modal" aria-hidden="true">
+                                    <div class="modal-box">
+                                        <h4>Confirmer la suppression</h4>
+                                        <p>Êtes-vous sûr de vouloir supprimer le sujet « {{ sujet.titre }} » ? Cette action est irréversible.</p>
+                                        <form method="post" action="{% url 'delete_sujet' sujet.id %}">
+                                            {% csrf_token %}
+                                            <div class="modal-actions">
+                                                <label for="forum-delete-sujet-{{ sujet.id }}" class="btn close-label">Annuler</label>
+                                                <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="tags text-lg-end">
+                            {% if sujet.tags.all %}
+                                {% for tag in sujet.tags.all %}
+                                    <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ tag.name }}</a>
+                                {% endfor %}
+                            {% else %}
+                                <a href="#" class="btn btn-tags-sm mb-10 mr-5">Discussion</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <a href="{% url 'add_sujet' %}" class="btn btn-default btn-shadow ml-40 hover-up" style="background-color: blue; color: #fff; text-decoration: none;">Ajouter un Sujet</a>
+
+{% endblock %}

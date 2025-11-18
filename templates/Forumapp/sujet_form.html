@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter un Sujet | Worki{% endblock %}
+
+{% block head %}
+    <style>
+        .page-container{ max-width:900px; }
+        form { background:#fff; border:1px solid #e3e6ee; padding:1rem; border-radius:8px; box-shadow:0 1px 2px rgba(16,24,40,0.03);} 
+        label{ display:block; margin-top:1rem; font-weight:bold;} 
+        input[type="text"], textarea{ width:100%; padding:.5rem; margin-top:.25rem; border:1px solid #ccc; border-radius:4px; }
+        button{ margin-top:1rem; padding:.5rem 1rem; background-color:#2563eb; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+        button:hover{ background-color:#1e40af; }
+    </style>
+    {% include 'Forumapp/_forum_validation.html' %}
+{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+    <h1>Ajouter un Nouveau Sujet</h1>
+    <form method="post" class="forum-validate">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="hidden" name="author" value="{{ user.pk }}">
+        <button type="submit">Soumettre</button>
+        <button type="button" onclick="window.history.back();">Annuler</button>
+    </form>
+    {% else %}
+        <p>Vous devez être connecté pour ajouter un nouveau sujet.</p>
+    {% endif %}
+{% endblock %}

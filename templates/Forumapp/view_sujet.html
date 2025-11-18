@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% block title %}{{ sujet.titre }} | Worki{% endblock %}
+
+{% block head %}
+    {% include 'Forumapp/_forum_styles.html' %}
+    {% include 'Forumapp/_forum_validation.html' %}
+{% endblock %}
+
+{% block content %}
+<style>
+    :root{
+        --accent: #2563eb;
+        --accent-hover: #0ea56e;
+        --muted: #6b7280;
+    }
+
+    h1 { margin-bottom: .5rem; }
+    h2 { margin: .6rem 0; }
+
+    button {
+        padding: .5rem .85rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color .12s ease, transform .08s ease;
+        box-shadow: 0 6px 18px rgba(37,99,235,0.12);
+        background: var(--accent);
+        color: #fff;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    button[aria-ghost="true"]{
+        background: transparent;
+        color: var(--muted);
+        box-shadow:none;
+        border:1px solid rgba(15,23,42,0.06);
+    }
+
+    /* Response block inside question card */
+    .responses {
+        margin-top: .75rem;
+        padding-top: .75rem;
+        border-top: 1px dashed rgba(15,23,42,0.06);
+    }
+
+    .responses p {
+        background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,250,250,0.6));
+        padding: .5rem;
+        border-radius: 6px;
+        margin: .35rem 0;
+    }
+
+    /* Modal base */
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(2,6,23,0.48);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .modal .card {
+        max-width: 640px;
+        width: 100%;
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 20px 50px rgba(2,6,23,0.2);
+        position: relative;
+    }
+
+    .modal .close {
+        position: absolute;
+        right: 12px;
+        top: 10px;
+        background: transparent;
+        border: none;
+        font-size: 18px;
+        color: var(--muted);
+        cursor: pointer;
+    }
+
+    form { display:block; margin-top: .5rem; }
+    label { font-weight:600; color:#111827; display:block; margin-bottom:.35rem; font-size:.95rem; }
+    textarea, input[type="text"], input[type="hidden"] {
+        font-family: inherit;
+        font-size: .95rem;
+        padding: .5rem;
+        border-radius: 8px;
+        border:1px solid rgba(15,23,42,0.08);
+        width:100%;
+        box-sizing:border-box;
+        background:#fff;
+    }
+
+    form > button { margin-right: .5rem; }
+    button[type="button"] { background: transparent; color: var(--muted); border:1px solid rgba(15,23,42,0.06); padding:.45rem .8rem; box-shadow:none; }
+    button[type="submit"] { background: var(--accent); border:none; color:white; }
+    button[type="submit"]:hover { background: var(--accent-hover); }
+
+    @media (max-width:640px){
+        button { width: 100%; }
+        .modal .card { margin: 0 6px; }
+    }
+</style>
+
+<h1>{{ sujet.titre }}</h1>
+<p>{{ sujet.description }}</p>
+
+{% for question in questions %}
+    <div class="card-blog-1 hover-up wow animate__animated animate__fadeIn" data-wow-delay=".0s" style="margin-bottom:1rem;">
+        <figure class="post-thumb mb-15">
+            <a href="javascript:void(0)">
+                <img alt="question-thumb" src="/static/imgs/blog/blog-thumb-1.png" width="80px" />
+            </a>
+        </figure>
+        <div class="card-block-info">
+            <div class="post-meta text-muted d-flex align-items-center mb-15" style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="author d-flex align-items-center mr-30" style="display:flex;align-items:center;">
+                    {% if question.utilisateur.photo %}
+                        <img alt="avatar" src="{{ question.utilisateur.photo.url }}" style="width:36px;height:36px;border-radius:50%;margin-right:.5rem;" />
+                    {% else %}
+                        <img alt="avatar" src="/static/imgs/default-avatar.png" style="width:36px;height:36px;border-radius:50%;margin-right:.5rem;" />
+                    {% endif %}
+                    <span>{{ question.utilisateur }}</span>
+                </div>
+                <div class="date">
+                    <span><i class="fi-rr-edit mr-5 text-grey-6"></i>{{ question.date_creation }}</span>
+                </div>
+            </div>
+
+            <h3 class="post-title mb-15" style="margin:0 0 .5rem 0;"><a href="javascript:void(0)">{{ question.texte }}</a></h3>
+
+            <p class="post-excerpt text-muted" style="margin:0 0 .75rem;">
+                {% if question.excerpt %}{{ question.excerpt }}{% else %}{{ question.texte|truncatechars:150 }}{% endif %}
+            </p>
+
+            
+
+            <div class="card-2-bottom mt-30" style="margin-top:.75rem;">
+                <div class="d-flex align-items-center justify-content-between" style="display:flex;align-items:center;justify-content:space-between;">
+                    <div class="keep-reading">
+                        <a href="javascript:void(0)" class="btn btn-border btn-brand-hover" onclick="document.getElementById('responses-{{ question.id }}').style.display='block'; this.style.display='none';">Voir les réponses</a>
+                    </div>
+                    <div class="tags text-lg-end" style="display:flex;align-items:center;gap:.5rem;">
+                        <span id="votes-{{ question.id }}" data-up="{{ question.upvotes|default:"0" }}" data-down="{{ question.downvotes|default:"0" }}" style="font-weight:600;color:var(--muted);">
+                            Votes: {{ question.upvotes|default:"0" }} - {{ question.downvotes|default:"0" }}
+                        </span>
+                        <script>
+                            (function(){
+                                var el = document.getElementById('votes-{{ question.id }}');
+                                if(!el) return;
+                                var up = parseInt(el.dataset.up) || 0;
+                                var down = parseInt(el.dataset.down) || 0;
+                                el.textContent = 'Votes: ' + (up - down);
+                            })();
+                        </script>
+                        {% if user.is_authenticated and question.utilisateur == user %}
+                            <!-- Open an inline edit modal for this question -->
+                            <button type="button" aria-ghost="true" style="font-size:.9rem;padding:.3rem .6rem;" onclick="document.getElementById('editQuestionModal-{{ question.id }}').style.display='flex'">Modifier</button>
+                            {# CSS-only modal trigger + modal for deleting a question #}
+                            <input id="forum-delete-question-{{ question.id }}" class="forum-modal-toggle" type="checkbox" />
+                            <label for="forum-delete-question-{{ question.id }}" class="btn" style="font-size:.9rem;padding:.3rem .6rem;color:red;background:transparent;border:1px solid rgba(255,0,0,0.08);">Supprimer</label>
+                            <div class="forum-modal" aria-hidden="true">
+                                <div class="modal-box">
+                                    <h4>Confirmer la suppression</h4>
+                                    <p>Êtes-vous sûr de vouloir supprimer cette question ? Cette action est irréversible.</p>
+                                    <form method="post" action="{% url 'delete_question' question.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-actions">
+                                            <label for="forum-delete-question-{{ question.id }}" class="btn close-label">Annuler</label>
+                                            <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            
+                        {% endif %}
+                        <a href="javascript:void(0)" class="btn btn-tags-sm mb-10 mr-5" onclick="document.getElementById('addResponseModal-{{ question.id }}').style.display='flex'">Répondre</a>
+                        <a href="javascript:void(0)" class="mt-10"><img alt="bookmark" src="/static/imgs/theme/icons/bookmark.svg"  /></a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="responses-{{ question.id }}" class="responses" style="display:none; margin-top:1rem;">
+                {% for reponse in reponses %}
+                    {% if reponse.question == question %}
+                        <div style="background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,250,250,0.6)); padding:.6rem; border-radius:8px; margin-bottom:.6rem;">
+                            <p style="margin:0 0 .35rem;">{{ reponse.texte }}</p>
+                            <p style="font-size:.85rem;color:var(--muted);margin:0;">Réponse de: {{ reponse.utilisateur }} le {{ reponse.date_creation }}</p>
+                            <p style="font-size:.85rem;color:var(--muted);margin:0;">
+                                <span id="votes-reponse-{{ reponse.id }}" data-up="{{ reponse.upvotes|default:"0" }}" data-down="{{ reponse.downvotes|default:"0" }}">
+                                    Votes: {{ reponse.upvotes|default:"0" }} - {{ reponse.downvotes|default:"0" }}
+                                </span>
+                            </p>
+                            <script>
+                                (function(){
+                                    var el = document.getElementById('votes-reponse-{{ reponse.id }}');
+                                    if(!el) return;
+                                    var up = parseInt(el.dataset.up, 10) || 0;
+                                    var down = parseInt(el.dataset.down, 10) || 0;
+                                    el.textContent = 'Votes: ' + (up - down);
+                                })();
+                            </script>
+                            {% if user.is_authenticated and reponse.utilisateur == user %}
+                                <!-- Edit response button opens modal -->
+                                <button type="button" aria-ghost="true" style="margin-top:.5rem;" onclick="document.getElementById('editReponseModal-{{ reponse.id }}').style.display='flex'">Modifier</button>
+
+                                <!-- Delete as a proper POST form -->
+                                {# CSS-only modal trigger + modal for deleting a response #}
+                                <input id="forum-delete-reponse-{{ reponse.id }}" class="forum-modal-toggle" type="checkbox" />
+                                <label for="forum-delete-reponse-{{ reponse.id }}" class="btn" style="margin-top:.5rem;color:red;background:transparent;border:1px solid rgba(255,0,0,0.08);">Supprimer</label>
+                                <div class="forum-modal" aria-hidden="true">
+                                    <div class="modal-box">
+                                        <h4>Confirmer la suppression</h4>
+                                        <p>Êtes-vous sûr de vouloir supprimer cette réponse ? Cette action est irréversible.</p>
+                                        <form method="post" action="{% url 'delete_reponse' reponse.id %}">
+                                            {% csrf_token %}
+                                            <div class="modal-actions">
+                                                <label for="forum-delete-reponse-{{ reponse.id }}" class="btn close-label">Annuler</label>
+                                                <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Response Modal -->
+                                <div id="editReponseModal-{{ reponse.id }}" class="modal" aria-hidden="true">
+                                    <div class="card">
+                                        <button type="button" class="close" onclick="document.getElementById('editReponseModal-{{ reponse.id }}').style.display='none'">✖</button>
+                                        <h4>Modifier la réponse</h4>
+                                        <form method="post" action="{% url 'update_reponse' reponse.id %}" class="forum-validate">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="question" value="{{ reponse.question.id }}" />
+                                            <div>
+                                                <label for="id_edit_reponse_{{ reponse.id }}">Texte de la réponse</label><br>
+                                                <textarea id="id_edit_reponse_{{ reponse.id }}" name="texte" rows="3" required maxlength="1000">{{ reponse.texte }}</textarea>
+                                            </div>
+                                            <br>
+                                            <button type="submit">Enregistrer</button>
+                                            <button type="button" onclick="document.getElementById('editReponseModal-{{ reponse.id }}').style.display='none'">Annuler</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem;">
+                    <button type="button" aria-ghost="true" onclick="(function(){var el=document.getElementById('responses-{{ question.id }}'); if(el){ el.style.display='none'; var prev=el.previousElementSibling; if(prev){ var keep=prev.querySelector('.keep-reading a'); if(keep){ keep.style.display='inline-block'; } } } })();">Cacher les réponses</button>
+                    {% if user.is_authenticated %}
+                    <button type="button" onclick="document.getElementById('addResponseModal-{{ question.id }}').style.display='flex'">Ajouter une réponse</button>
+                    {% endif %}
+                </div>
+
+                <div id="addResponseModal-{{ question.id }}" class="modal" aria-hidden="true">
+                    <div class="card">
+                        <button type="button" class="close" onclick="document.getElementById('addResponseModal-{{ question.id }}').style.display='none'">✖</button>
+                        <h4>Ajouter une réponse</h4>
+                        <form method="post" action="{% url 'add_reponse' %}" class="forum-validate">
+                            {% csrf_token %}
+                            {% if reponse_form %}
+                                {{ reponse_form.non_field_errors }}
+                                <div style="display:none;">{{ reponse_form.question }}</div>
+                                <div>
+                                    <label for="id_reponse_texte_{{ question.id }}">Texte de la réponse</label><br>
+                                    {{ reponse_form.texte }}
+                                </div>
+                                <br>
+                                <button type="submit">Envoyer</button>
+                                <button type="button" onclick="document.getElementById('addResponseModal-{{ question.id }}').style.display='none'">Annuler</button>
+                            {% else %}
+                                <input type="hidden" name="question" value="{{ question.id }}" />
+                                <input type="hidden" name="sujet" value="{{ sujet.id }}" />
+                                <label for="id_reponse_texte_{{ question.id }}">Texte de la réponse</label><br>
+                                <textarea id="id_reponse_texte_{{ question.id }}" name="texte" rows="3" required maxlength="1000"></textarea><br><br>
+                                <button type="submit">Envoyer</button>
+                                <button type="button" onclick="document.getElementById('addResponseModal-{{ question.id }}').style.display='none'">Annuler</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Edit Question Modal -->
+                            <div id="editQuestionModal-{{ question.id }}" class="modal" aria-hidden="true">
+                                <div class="card">
+                                    <button type="button" class="close" onclick="document.getElementById('editQuestionModal-{{ question.id }}').style.display='none'">✖</button>
+                                    <h4>Modifier la question</h4>
+                                    <form method="post" action="{% url 'update_question' sujet.id question.id %}" class="forum-validate">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="sujet" value="{{ sujet.id }}" />
+                                        <div>
+                                            <label for="id_edit_texte_{{ question.id }}">Texte de la question</label><br>
+                                            <textarea id="id_edit_texte_{{ question.id }}" name="texte" rows="4" required maxlength="1000">{{ question.texte }}</textarea>
+                                        </div>
+                                        <br>
+                                        <button type="submit">Enregistrer</button>
+                                        <button type="button" onclick="document.getElementById('editQuestionModal-{{ question.id }}').style.display='none'">Annuler</button>
+                                    </form>
+                                </div>
+                            </div>
+{% endfor %}
+{% if user.is_authenticated %}
+<button type="button" style="background-color: #5347f0ff; color: white;" onclick="document.getElementById('addQuestionModal').style.display='flex'">Ajouter une question</button>
+{% endif %}
+<div id="addQuestionModal" class="modal" aria-hidden="true">
+    <div class="card">
+        <button type="button" class="close" onclick="document.getElementById('addQuestionModal').style.display='none'">✖</button>
+        <h3>Ajouter une question</h3>
+        <form method="post" action="{% url 'add_question' %}" class="forum-validate">
+            {% csrf_token %}
+            {% if form %}
+                {{ form.non_field_errors }}
+                <div style="display:none;">{{ form.sujet }}</div>
+                <div>
+                    <label for="id_texte">Texte de la question</label><br>
+                    {{ form.texte }}
+                </div>
+                <br>
+                <button type="submit">Envoyer</button>
+                <button type="button" onclick="document.getElementById('addQuestionModal').style.display='none'">Annuler</button>
+            {% else %}
+                <input type="hidden" name="sujet" value="{{ sujet.id }}" />
+                <label for="id_texte">Texte de la question</label><br>
+                <textarea id="id_texte" name="texte" rows="4" required maxlength="1000"></textarea><br><br>
+                <button type="submit">Envoyer</button>
+                <button type="button" onclick="document.getElementById('addQuestionModal').style.display='none'">Annuler</button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<a href="{% url 'list_sujets' %}"><button type="button" aria-ghost="true">Retour</button></a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Open a WebSocket per question to receive live responses.
+(function(){
+    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    var ws_scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    var host = window.location.host;
+    var questionIds = [
+        {% for q in questions %}{{ q.id }}{% if not forloop.last %},{% endif %}{% endfor %}
+    ];
+
+    questionIds.forEach(function(qid){
+        try{
+            var socket = new WebSocket(ws_scheme + '://' + host + '/ws/chat/question_' + qid + '/');
+            socket.onopen = function(){ console.debug('WS open for question', qid); };
+            socket.onmessage = function(e){
+                try{
+                    var data = JSON.parse(e.data);
+                    if(data.type !== 'new_response') return;
+                    var p = data.payload;
+                    if(!p || p.question_id != qid) return;
+                    var container = document.getElementById('responses-' + qid);
+                    if(!container) return;
+                    var html = ''+
+                        '<div style="background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,250,250,0.6)); padding:.6rem; border-radius:8px; margin-bottom:.6rem;">'+
+                        '<p style="margin:0 0 .35rem;">'+ escapeHtml(p.texte) +'</p>'+
+                        '<p style="font-size:.85rem;color:var(--muted);margin:0;">Réponse de: '+ escapeHtml(p.utilisateur) +' le '+ new Date(p.date_creation).toLocaleString() + '</p>'+
+                        '</div>';
+                    // insert at the top
+                    container.insertAdjacentHTML('afterbegin', html);
+                }catch(_){}
+            };
+            socket.onclose = function(){ console.debug('WS closed for question', qid); };
+            socket.onerror = function(err){ console.warn('WS error', err); };
+        }catch(err){ console.warn('WS init failed for', qid, err); }
+    });
+})();
+</script>
+{% endblock %}

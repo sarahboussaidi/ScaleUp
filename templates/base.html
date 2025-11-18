@@ -107,7 +107,7 @@
                     <div class="header-nav">
                         <nav class="nav-main-menu d-none d-xl-block" aria-label="Main navigation">
                             <ul class="main-menu">
-                                <li class="has-children">
+                                <li class="">
                                     <a class="active" href="{% url 'register' %}">Home</a>
                                 </li>
                                 <li class="has-children">
@@ -122,22 +122,19 @@
                                         <li><a href="job-single-3.html">Job Single 03</a></li>
                                     </ul>
                                 </li>
-                                <li class="has-children">
+                                <li class="">
                                     <a href="{% url 'entreprise_list' %}">Employers</a>
                                     
                                 </li>
-                                <li class="has-children">
+                                <li class="">
                                     <a href="{% url 'candidats_listing' %}">Candidates</a>
                                 </li>
                                 <li class="has-children">
                                     <a href="#">Forum</a>
                                     <ul class="sub-menu">
-                                        <li><a href="forum-grid.html">Forum Grid</a></li>
-                                        <li><a href="forum-grid-2.html">Forum Grid Sidebar</a></li>
-                                        <li><a href="forum-list.html">Forum List</a></li>
+                                        <li><a href="{% url 'list_sujets' %}">Liste des Sujets</a></li>
                                         <li class="hr"><span></span></li>
-                                        <li><a href="forum-single.html">Forum Single 01</a></li>
-                                        <li><a href="forum-single-2.html">Forum Single 02</a></li>
+                                        <li><a href="{% url 'user_sujets' %}">Mes Sujets</a></li>
                                     </ul>
                                 </li>
                                 <li class="has-children">

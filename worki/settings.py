@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from re import L
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,10 @@ SECRET_KEY = 'django-insecure-$_yuh8=wxtejq&2^=t+wk6&79hqj9by6%38ql!*%*7t16c9j$&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+# During local development allow localhost and 127.0.0.1 so runserver + websocket
+# handshakes succeed. In production set this to your real hostnames.
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 
 # Application definition
@@ -44,6 +48,7 @@ INSTALLED_APPS = [
     'participationapp',
     'stageapp',
     'userapp',
+    "channels"
 ]
 
 MIDDLEWARE = [
@@ -134,3 +139,22 @@ MEDIA_ROOT = BASE_DIR / 'photos'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'userapp.Utilisateur'
 
+
+
+ASGI_APPLICATION = "worki.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        # Use the in-memory channel layer for local development/tests.
+        # Switch to channels_redis + a running Redis server for production/multi-process.
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "CONFIG": {},
+    }
+}
+# When testing locally on port 8000, include the origin in trusted origins so
+# any CSRF/origin checks (if enabled) won't block local requests. Adjust if
+# you run the dev server on a different port.
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+]
