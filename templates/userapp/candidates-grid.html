@@ -1,0 +1,427 @@
+﻿{% extends "base.html" %}
+{% load static %}
+
+
+{% block content %}
+<main class="main">
+    <section class="section-box-2">
+        <div class="box-head-single none-bg">
+            <div class="container">
+                <h4>There Are {{ candidates|length }} Candidates<br />Here For You!</h4>
+                <div class="row mt-15 mb-40">
+                    <div class="col-lg-7 col-md-9">
+                        <span class="text-muted">Discover your next career move, freelance gig, or internship</span>
+                    </div>
+                    <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                        <ul class="breadcrumbs mt-sm-15">
+                            <li><a href="{% url 'home' %}">Home</a></li>
+                            <li>Candidates listing</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="box-shadow-bdrd-15 box-filters">
+    <form method="GET">
+        <div class="row">
+            <!-- LEFT SIDE -->
+            <div class="col-lg-5">
+                <div class="box-search-job">
+                    <input type="text"
+                           name="search"
+                           class="input-search-job"
+                           placeholder="Search skills or name"
+                           value="{{ request.GET.search }}">
+                </div>
+
+                <!-- Active Tags -->
+                <div class="list-tags-job">
+                    {% if request.GET.search %}
+                        <a class="text-normal job-tag">{{ request.GET.search }} <span class="remove-tags-job"></span></a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE -->
+            <div class="col-lg-7">
+                <div class="d-flex job-fillter">
+                    <div class="d-block d-lg-flex">
+
+                        <!-- Domain Filter -->
+                        <div class="dropdown job-type">
+                            <button class="btn dropdown-toggle" type="button"
+                                    id="domainDropdown" data-bs-toggle="dropdown">
+                                <i class="fi-rr-briefcase"></i>
+                                <span>
+                                    {% if request.GET.domain %}
+                                        {% if selected_domain %}
+                                            {{ selected_domain.name }}
+                                        {% else %}
+                                            Domain
+                                        {% endif %}
+
+                                    {% else %}
+                                        Domain
+                                    {% endif %}
+                                </span>
+                                <i class="fi-rr-angle-small-down"></i>
+                            </button>
+
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?">All Domains</a></li>
+                                {% for domain in domains %}
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="?domain={{ domain.id }}">{{ domain.name }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <!-- Skill Filter -->
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle" type="button"
+                                    id="skillDropdown" data-bs-toggle="dropdown">
+                                <i class="fi-rr-marker"></i>
+                                <span>
+                                    {% if selected_skill %}
+                                        {{ selected_skill.name }}
+                                    {% else %}
+                                        Skill
+                                    {% endif %}
+
+                                </span>
+                                <i class="fi-rr-angle-small-down"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?">All Skills</a></li>
+                                {% for skill in skills %}
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="?skill={{ skill.id }}">{{ skill.name }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <!-- Education Level Filter -->
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle" type="button"
+                                    id="educationDropdown" data-bs-toggle="dropdown">
+                                <i class="fi-rr-dollar"></i>
+                                <span>{{ request.GET.education|default:"Education" }}</span>
+                                <i class="fi-rr-angle-small-down"></i>
+                            </button>
+
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?">All Levels</a></li>
+                                <li><a class="dropdown-item" href="?education=High School">High School</a></li>
+                                <li><a class="dropdown-item" href="?education=Bachelor">Bachelor</a></li>
+                                <li><a class="dropdown-item" href="?education=Master">Master</a></li>
+                                <li><a class="dropdown-item" href="?education=PhD">PhD</a></li>
+                                <li><a class="dropdown-item" href="?education=Other">Other</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Years Experience Filter -->
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle" type="button"
+                                    id="experienceDropdown" data-bs-toggle="dropdown">
+                                <i class="fi-rr-timer"></i>
+                                <span>
+                                    {% if request.GET.experience %}
+                                        {{ request.GET.experience }}+ years
+                                    {% else %}
+                                        Experience
+                                    {% endif %}
+                                </span>
+                                <i class="fi-rr-angle-small-down"></i>
+                            </button>
+
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?">Any Experience</a></li>
+                                <li><a class="dropdown-item" href="?experience=1">1+ years</a></li>
+                                <li><a class="dropdown-item" href="?experience=2">2+ years</a></li>
+                                <li><a class="dropdown-item" href="?experience=3">3+ years</a></li>
+                                <li><a class="dropdown-item" href="?experience=5">5+ years</a></li>
+                                <li><a class="dropdown-item" href="?experience=10">10+ years</a></li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <div class="box-button-find">
+                        <button type="submit" class="btn btn-default float-right">Find Now</button>
+>>>>>>> origin/user
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="section-box mt-80">
+        <div class="container">
+            <div class="row flex-row-reverse">
+                <div class="col-lg-9 col-md-12 col-sm-12 col-12 float-right">
+                    <div class="content-page">
+                        <div class="box-filters-job mt-15 mb-10">
+                            <div class="row">
+                                <div class="col-lg-7">
+                                    <span class="text-small">Showing <strong>1-{{ candidates|length }}</strong> of <strong>{{ candidates|length }}</strong> Candidates</span>
+                                </div>
+                                <div class="col-lg-5 text-lg-end mt-sm-15">
+                                    <!-- Sorting and view options -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            {% for candidate in candidates %}
+                            <div class="col-lg-4 col-md-6 mb-4 d-flex">
+                                <div class="card-grid-2 hover-up d-flex flex-column w-100">
+                                    <div class="card-grid-2-link">
+                                        <a href="#"><i class="fi-rr-shield-check"></i></a>
+                                        <a href="#"><i class="fi-rr-bookmark"></i></a>
+                                    </div>
+                                    <div class="text-center card-grid-2-image-rd online">
+                                        <a href="{% url 'candidat_detail' candidate.id %}">
+                                            {% if candidate.user.photo %}
+                                            <figure><img alt="{{ candidate.user.get_full_name }}" src="{{ candidate.user.photo.url }}" /></figure>
+                                            {% else %}
+                                            <figure><img alt="{{ candidate.user.get_full_name }}" src="{% static 'imgs/avatar/avatar.png' %}" /></figure>
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                    <div class="card-block-info d-flex flex-column flex-grow-1">
+                                    <div class="card-profile mb-3">
+                                        <a href="{% url 'candidat_detail' candidate.id %}">
+                                            <strong>{{ candidate.user.first_name }} {{ candidate.user.last_name }}</strong>
+                                        </a>
+                                        <span class="text-sm">{{ candidate.profession|default:"Not specified" }}</span>
+                                        <div class="rate-reviews-small">
+                                            {% for i in "12345" %}
+                                            <span><img src="{% static 'imgs/theme/icons/star.svg' %}" alt="jobhub" /></span>
+                                            {% endfor %}
+                                            <span class="ml-10 text-muted text-small">({{ candidate.rating|default:"5.0" }})</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="employers-info d-flex align-items-center justify-content-center mt-15 mb-3">
+                                        <span class="d-flex align-items-center">
+                                            <i class="fi-rr-marker mr-5 ml-0"></i> {{ candidate.user.adresse|default:"Not specified" }}
+                                        </span>
+                                        <span class="d-flex align-items-center ml-25">
+                                            <i class="fi-rr-briefcase mr-5"></i>{{ candidate.education_level|default:"Not specified" }}
+                                        </span>
+                                    </div>
+
+                                    <div class="card-2-bottom card-2-bottom-candidate mt-auto">
+                                        <div class="text-center mb-3">
+                                            {% for skill in candidate.skills.all %}
+                                            <a href="#" class="btn btn-tags-sm mb-2 mr-2">{{ skill.name }}</a>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <a href="{% url 'candidat_detail' candidate.id %}" class="btn btn-border btn-brand-hover">View profile</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p>No candidates found.</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="paginations">
+                            <!-- Add pagination logic here if needed -->
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-12 col-sm-12 col-12">
+                    <div class="sidebar-shadow none-shadow mb-30">
+
+                            <div class="sidebar-filters">
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-15">Location</h5>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control form-icons" placeholder="Location">
+                                        <i class="fi-rr-marker"></i>
+                                    </div>
+                                </div>
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-15">Categoy</h5>
+                                    <div class="form-group select-style select-style-icon">
+                                        <select class="form-control form-icons select-active select2-hidden-accessible" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                                            <option data-select2-id="3">Ui/UX design</option>
+                                            <option>Ui/UX design 1</option>
+                                            <option>Ui/UX design 2</option>
+                                            <option>Ui/UX design 3</option>
+                                        </select>
+                                        <i class="fi-rr-briefcase"></i>
+                                    </div>
+                                </div>
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-15">Job type</h5>
+                                    <div class="form-group">
+                                        <ul class="list-checkbox">
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Full Time
+                                                        Jobs</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">235</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox" checked="checked"> <span class="text-small">Part Time
+                                                        Jobs</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">28</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox" checked="checked"> <span class="text-small">Remote
+                                                        Jobs</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">67</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Freelance</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">92</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Temporary</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">14</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="filter-block mb-30">
+                                    <h5 class="medium-heading mb-10">Experience Level</h5>
+                                    <div class="form-group">
+                                        <ul class="list-checkbox">
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Expert</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">76</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Senior</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">89</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox" checked="checked"> <span class="text-small">Junior</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">54</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox" checked="checked"> <span class="text-small">Regular</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">23</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Internship</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">22</span>
+                                            </li>
+                                            <li>
+                                                <label class="cb-container">
+                                                    <input type="checkbox"> <span class="text-small">Associate</span>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                                <span class="number-item">14</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="filter-block mb-40">
+                                    <h5 class="medium-heading mb-25">Salary Range</h5>
+                                    <div class="">
+                                        <div class="row mb-20">
+                                            <div class="col-sm-12">
+                                                <div id="slider-range" class="noUi-target noUi-ltr noUi-horizontal noUi-background"><div class="noUi-base"><div class="noUi-origin noUi-connect" style="left: 1.5%;"><div class="noUi-handle noUi-handle-lower"></div></div><div class="noUi-origin noUi-background" style="left: 60%;"><div class="noUi-handle noUi-handle-upper"></div></div></div></div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <label class="lb-slider">From</label>
+                                                <div class="form-group minus-input">
+                                                    <input type="text" name="min-value-money" class="input-disabled form-control min-value-money" disabled="disabled" value="">
+                                                    <input type="hidden" name="min-value" class="form-control min-value" value="1500">
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label class="lb-slider">To</label>
+                                                <div class="form-group">
+                                                    <input type="text" name="max-value-money" class="input-disabled form-control max-value-money" disabled="disabled" value="">
+                                                    <input type="hidden" name="max-value" class="form-control max-value" value="60000">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="buttons-filter">
+                                    <button class="btn btn-default">Apply filter</button>
+                                    <button class="btn">Reset filter</button>
+                                </div>
+                            </div>
+                        </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-box">
+        <!-- Partners logos -->
+    </div>
+
+    <section class="section-box mt-50 mb-60">
+        <!-- Newsletter subscription -->
+    </section>
+</main>
+
+<style>
+/* Ensure all cards in a row are the same height */
+.card-grid-2 {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.card-block-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.card-2-bottom {
+    margin-top: auto; /* push bottom buttons to bottom */
+}
+</style>
+{% endblock %}

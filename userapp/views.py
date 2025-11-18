@@ -40,9 +40,9 @@ def profile_view(request):
     }
 
     if candidat:
-        return render(request, "candidates-single.html", context)
+        return render(request, "userapp/candidates-single.html", context)
     elif entreprise:
-        return render(request, "employers-single.html", context)
+        return render(request, "userapp/employers-single.html", context)
     else:
         return redirect("/admin/")
 
@@ -237,7 +237,7 @@ def update_profile(request):
         "selected_skills": [str(s) for s in selected_skills],  # convert to string for template
     }
 
-    template = "employers-single.html" if entreprise else "candidates-single.html"
+    template = "userapp/employers-single.html" if entreprise else "userapp/candidates-single.html"
     return render(request, template, context)
 # ---------------------------
 # Delete Account
@@ -266,16 +266,15 @@ def register_view(request):
 
         if password != repassword:
             messages.error(request, "Passwords do not match.")
-            return render(request, "page-register.html")
+            return render(request, "userapp/page-register.html")
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")
-            return render(request, "page-register.html")
+            return render(request, "userapp/page-register.html")
 
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already in use.")
-            return render(request, "page-register.html")
-
+            return render(request, "userapp/page-register.html")
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -294,7 +293,7 @@ def register_view(request):
         messages.success(request, "Account created successfully! Please sign in.")
         return redirect('signin')
 
-    return render(request, "page-register.html")
+    return render(request, "userapp/page-register.html")
 
 
 # ---------------------------
@@ -317,7 +316,7 @@ def signin_view(request):
             messages.error(request, "Invalid email or password")
             return redirect('signin')
 
-    return render(request, "page-signin.html")
+    return render(request, "userapp/page-signin.html")
 
 
 
@@ -392,13 +391,12 @@ def candidats_listing(request):
         "selected_skill": selected_skill,
     }
 
-    
-    return render(request, 'candidates-grid.html', context)
+    return render(request, 'userapp/candidates-grid.html', context)
 
 @login_required
 def candidat_detail(request, candidat_id):
     candidat = get_object_or_404(Candidat, id=candidat_id)
-    return render(request, 'candidates-single-2.html', {'candidat': candidat})
+    return render(request, 'userapp/candidates-single-2.html', {'candidat': candidat})
 
 
 @login_required
@@ -413,9 +411,9 @@ def entreprise_list(request):
     else:
         entreprises = Entreprise.objects.all()
     context = {'entreprises': entreprises}
-    return render(request, 'employers-list.html', context)
+    return render(request, 'userapp/employers-list.html', context)
 
 def entreprise_detail(request, id):
     entreprise = get_object_or_404(Entreprise, id=id)
     context = {'entreprise': entreprise}
-    return render(request, 'employers-single-2.html', context)
+    return render(request, 'userapp/employers-single-2.html', context)
