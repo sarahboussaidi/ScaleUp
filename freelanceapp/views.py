@@ -41,7 +41,7 @@ def list_freelances(request):
         'freelances': page_obj,  # on utilisera page_obj dans le template
     }
    
-    return render(request, 'freelance-list.html', context)
+    return render(request, 'freelanceapp/freelance-list.html', context)
 
 def freelance_grid_2(request):
     # Récupérer la valeur du filtre GET
@@ -60,7 +60,7 @@ def freelance_grid_2(request):
         'selected_domaine': selected_domaine,
     }
     
-    return render(request, 'freelance-grid-2.html', context)
+    return render(request, 'freelanceapp/freelance-grid-2.html', context)
 
 
 @login_required(login_url='login')
@@ -73,7 +73,7 @@ def add_freelance(request):
             freelance.id_user = request.user
             freelance.save()
             # ✅ PAS messages.success ici, mais success=True dans context
-            return render(request, 'freelance-form.html', {
+            return render(request, 'freelanceapp/freelance-form.html', {
                 'form': FreelanceForm(),  # form vide pour le reset
                 'success': True,
                 'update': False,
@@ -83,7 +83,7 @@ def add_freelance(request):
     else:
         form = FreelanceForm()
 
-    return render(request, 'freelance-form.html', {'form': form})
+    return render(request, 'freelanceapp/freelance-form.html', {'form': form})
 def update_freelance(request, id):
     freelance = get_object_or_404(Freelance, id_freelance=id)
 
@@ -96,7 +96,7 @@ def update_freelance(request, id):
         form = FreelanceForm(request.POST, instance=freelance)
         if form.is_valid():
             form.save()
-            return render(request, 'freelance-form.html', {
+            return render(request, 'freelanceapp/freelance-form.html', {
         'form': FreelanceForm(instance=freelance),
         'success': True,
         'update': True,
@@ -106,7 +106,7 @@ def update_freelance(request, id):
     else:
         form = FreelanceForm(instance=freelance)
 
-    return render(request, 'freelance-form.html', {
+    return render(request, 'freelanceapp/freelance-form.html', {
         'form': form,
         'freelance': freelance,
         'update': True,  # pour afficher "Modifier la mission" dans le template
