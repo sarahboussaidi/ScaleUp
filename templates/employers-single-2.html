@@ -1,6 +1,7 @@
-﻿<!DOCTYPE html>
-<html class="no-js" lang="en">
+﻿{% extends "base.html" %}
+{% load static %}
 
+<<<<<<< HEAD
 <head>
     <meta charset="utf-8" />
     <title>Jobhub - Job Board HTML Website Template</title>
@@ -238,20 +239,20 @@
                     <div class="site-copyright">Copyright 2022 © JobHub. <br />Designed by AliThemes.</div>
                 </div>
             </div>
+=======
+{% block content %}
+<main class="main">
+    <div class="breacrumb-cover">
+        <div class="container">
+            <ul class="breadcrumbs">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li>{{ entreprise.nom_entreprise }}</li>
+            </ul>
+>>>>>>> origin/user
         </div>
     </div>
-    <!--End header-->
-    <!-- Content -->
-    <main class="main">
-        <div class="breacrumb-cover">
-            <div class="container">
-                <ul class="breadcrumbs">
-                    <li><a href="#">Home</a></li>
-                    <li>Employers Details</li>
-                </ul>
-            </div>
-        </div>
 
+<<<<<<< HEAD
         <section class="section-box mt-50">
             <div class="container">
                 <div class="row">
@@ -285,10 +286,46 @@
                                     <div class="col-lg-6 text-lg-end">
                                         <a href="#" class="btn btn-default">Apply For Job</a>
                                     </div>
+=======
+    <section class="section-box mt-50">
+        <div class="container">
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-8 col-md-12 col-sm-12 col-12">
+                    <div class="employers-header-2">
+                        <div class="heading-image-rd online">
+    <a href="#">
+        {% if entreprise.logo %}
+            <figure><img alt="{{ entreprise.nom_entreprise }}" src="{{ entreprise.logo.url }}"></figure>
+        {% else %}
+            <figure><img alt="entreprise" src="{% static 'imgs/avatar/avatar.png' %}"></figure>
+        {% endif %}
+    </a>
+</div>
+
+                        <div class="heading-main-info">
+                            <h4>{{ entreprise.nom_entreprise }}</h4>
+                            <div class="head-info-profile">
+                                {% if entreprise.adresse %}
+                                    <span class="text-small mr-20"><i class="fi-rr-marker text-mutted"></i> {{ entreprise.adresse }}</span>
+                                {% endif %}
+                                {% if entreprise.domaine %}
+                                    <span class="text-small mr-20"><i class="fi-rr-briefcase text-mutted"></i> {{ entreprise.domaine }}</span>
+                                {% endif %}
+                                {% if entreprise.date_creation %}
+                                    <span class="text-small"><i class="fi-rr-clock text-mutted"></i> Since {{ entreprise.date_creation|date:"Y" }}</span>
+                                {% endif %}
+                                <!-- Example static rating -->
+                                <div class="rate-reviews-small">
+                                    {% for i in "12345" %}
+                                        <span><img src="{% static 'imgs/theme/icons/star.svg' %}" alt="star" /></span>
+                                    {% endfor %}
+                                    <span class="ml-10 text-muted text-small">(5.0)</span>
+>>>>>>> origin/user
                                 </div>
                             </div>
-                        </div>
 
+<<<<<<< HEAD
                         <div class="content-single">
                             <h4 class="mb-20">About Company</h4>
                             <p>
@@ -350,13 +387,14 @@
                             <div class="divider"></div>
                             <h4 class="mt-30 mb-30">Vacancies</h4>
                             <div class="row">
+=======
+                            <div class="row align-items-end mt-15">
+>>>>>>> origin/user
                                 <div class="col-lg-6">
-                                    <ul>
-                                        <li>Digital Designer - 03 person </li>
-                                        <li>Digital Marketing - 04 persons</li>
-                                        <li>Project Manager - 02 persons</li>
-                                    </ul>
+                                    <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ entreprise.open_jobs_count }} open jobs</a>
+                                    <a href="#" class="btn btn-tags-sm mb-10 mr-5">{{ entreprise.completed_jobs_count }} completed jobs</a>
                                 </div>
+<<<<<<< HEAD
                                 <div class="col-lg-6">
                                     <p class="text-muted lh-32">
                                         Lorem ipsum dolor sit amet, consectetur adipisicing elit. Debitis illum fuga eveniet. Deleniti asperiores, commodi quae ipsum quas est itaque
@@ -604,62 +642,96 @@
                                 </div>
                                 <div class="mb-20">
                                     <a href="job-grid.html" class="btn btn-default">Explore more</a>
+=======
+                                <div class="col-lg-6 text-lg-end">
+                                    <a href="#" class="btn btn-default">Apply For Job</a>
+>>>>>>> origin/user
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-12 col-sm-12 col-12 pl-40 pl-lg-15 mt-lg-30">
-                        <div class="sidebar-shadow">
-                            <h5 class="font-bold">Overview</h5>
-                            <div class="sidebar-list-job mt-10">
-                                <ul>
+
+                    <div class="content-single">
+                        <h4 class="mb-20">About Company</h4>
+                        <p>{{ entreprise.description }}</p>
+
+                        {% if entreprise.site_web %}
+                            <div class="divider"></div>
+                            <h4 class="mt-30 mb-30">Our website</h4>
+                            <a href="{{ entreprise.site_web }}" class="text-primary">{{ entreprise.site_web }}</a>
+                        {% else %}
+                            <div class="divider"></div>
+                            <h4 class="mt-30 mb-30">Our website</h4>
+                            <p>No website provided.</p>
+                        {% endif %}
+
+                        {% if entreprise.telephone %}
+                            <div class="divider"></div>
+                            <h4 class="mt-30 mb-30">telephone</h4>
+                            <p>{{ entreprise.telephone }}</p>
+                        {% endif %}
+
+
+                    </div>
+                    <div class="divider"></div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4 col-md-12 col-sm-12 col-12 pl-40 pl-lg-15 mt-lg-30">
+                    <div class="sidebar-shadow">
+                        <h5 class="font-bold">Overview</h5>
+                        <div class="sidebar-list-job mt-10">
+                            <ul>
+                                {% if entreprise.domaine %}
                                     <li>
                                         <div class="sidebar-icon-item"><i class="fi-rr-briefcase"></i></div>
                                         <div class="sidebar-text-info">
                                             <span class="text-description">Company field</span>
-                                            <strong class="small-heading">Accounting / Finance</strong>
+                                            <strong class="small-heading">{{ entreprise.domaine }}</strong>
                                         </div>
                                     </li>
+                                {% endif %}
+                                {% if entreprise.adresse %}
                                     <li>
                                         <div class="sidebar-icon-item"><i class="fi-rr-marker"></i></div>
                                         <div class="sidebar-text-info">
                                             <span class="text-description">Location</span>
-                                            <strong class="small-heading">Dallas, Texas<br />Remote Friendly</strong>
+                                            <strong class="small-heading">{{ entreprise.adresse }}</strong>
                                         </div>
                                     </li>
+                                {% endif %}
+                                {% if entreprise.salary_range %}
                                     <li>
                                         <div class="sidebar-icon-item"><i class="fi-rr-dollar"></i></div>
                                         <div class="sidebar-text-info">
                                             <span class="text-description">Salary</span>
-                                            <strong class="small-heading">$35k - $45k</strong>
+                                            <strong class="small-heading">{{ entreprise.salary_range }}</strong>
                                         </div>
                                     </li>
+                                {% endif %}
+                                {% if entreprise.date_creation %}
                                     <li>
                                         <div class="sidebar-icon-item"><i class="fi-rr-clock"></i></div>
                                         <div class="sidebar-text-info">
                                             <span class="text-description">Member since</span>
-                                            <strong class="small-heading">Jul 2012</strong>
+                                            <strong class="small-heading">{{ entreprise.date_creation|date:"M Y" }}</strong>
                                         </div>
                                     </li>
-                                    <li>
-                                        <div class="sidebar-icon-item"><i class="fi-rr-time-fast"></i></div>
-                                        <div class="sidebar-text-info">
-                                            <span class="text-description">Last Jobs Posted</span>
-                                            <strong class="small-heading">4 days</strong>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
+                                {% endif %}
+                            </ul>
+                        </div>
 
-                            <div class="sidebar-list-job mt-10">
-                                <a href="#" class="btn btn-default mr-10">Contact Us</a>
-                                <a href="#" class="btn btn-border">Send message</a>
-                            </div>
+                        <div class="sidebar-list-job mt-10">
+                            <a href="#" class="btn btn-default mr-10">Contact Us</a>
+                            <a href="#" class="btn btn-border">Send message</a>
+                        </div>
 
+                        {% if entreprise.followers.exists %}
                             <div class="sidebar-team-member none-bd pt-10">
                                 <h6 class="small-heading">Follower</h6>
                                 <div class="sidebar-list-member sidebar-list-follower">
                                     <ul>
+<<<<<<< HEAD
                                         <li>
                                             <a href="#">
                                                 <figure><img alt="jobhub" src="/static/imgs/page/job-single/avatar1.png" /></figure>
@@ -818,10 +890,24 @@
                             <a href="#" class="icon-socials icon-instagram"></a>
                             <a href="#" class="icon-socials icon-linkedin"></a>
                         </div>
+=======
+                                        {% for follower in entreprise.followers.all %}
+                                            <li>
+                                                <a href="#">
+                                                    <figure><img src="{{ follower.avatar.url }}" alt="{{ follower.username }}"></figure>
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endif %}
+>>>>>>> origin/user
                     </div>
                 </div>
             </div>
         </div>
+<<<<<<< HEAD
     </footer>
     <!-- End Footer -->
     <!-- Vendor JS-->
@@ -842,3 +928,8 @@
 </body>
 
 </html>
+=======
+    </section>
+</main>
+{% endblock %}
+>>>>>>> origin/user

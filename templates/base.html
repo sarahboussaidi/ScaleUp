@@ -9,6 +9,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="/static/imgs/theme/worki-icon.png" />
 
     {% block head %}{% endblock %}
+<<<<<<< HEAD
     <style>
         /* light default container so pages don't jump too wide */
         :root{ --navbar-height: 88px; }
@@ -16,6 +17,94 @@
         .page-container{ max-width: 980px; margin: 1.5rem auto; padding: calc(1rem + var(--navbar-height)) 1rem 1rem 1rem; }
         /* Make sure header stays above content when sticky */
     </style>
+=======
+   <style>
+    /* Toast container: fixed, top-right, non-blocking clicks */
+    .toast-container {
+        position: fixed;
+        top: 80px; /* below sticky header */
+        right: 1rem;
+        z-index: 2000;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+
+    /* Toast card */
+    .toast {
+        pointer-events: auto; 
+        max-width: 360px;
+        margin-bottom: 0;
+        border-radius: 12px;
+        box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        font-size: 15px;
+        padding: 0;
+        overflow: hidden;
+        position: relative;
+        animation: slideIn 0.4s ease-out;
+        cursor: pointer;
+        display: flex;
+    }
+
+    /* Slide-in animation */
+    @keyframes slideIn {
+        from { transform: translateX(50px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Toast icon circle */
+    .toast-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    /* Toast message */
+    .toast-message {
+        font-weight: 600;
+        line-height: 1.4;
+        padding: 0.75rem 1rem;
+        flex: 1;
+    }
+
+    /* Variants */
+    .toast-success   { background: linear-gradient(145deg, #28a745, #53d07c); }
+    .toast-error     { background: linear-gradient(145deg, #dc3545, #ff6b81); }
+    .toast-warning   { background: linear-gradient(145deg, #ffc107, #ffd760); color: black; }
+    .toast-info      { background: linear-gradient(145deg, #17a2b8, #63d3e0); }
+
+    /* Left color bar */
+    .toast-color-bar {
+        width: 6px;
+        border-radius: 12px 0 0 12px;
+    }
+
+    /* Progress bar */
+    .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        background-color: rgba(255,255,255,0.7);
+        animation: progressBar linear forwards;
+    }
+
+    @keyframes progressBar {
+        from { width: 100%; }
+        to { width: 0%; }
+    }
+
+    </style>
+
+
+>>>>>>> origin/user
 </head>
 <body>
     <header class="header sticky-bar">
@@ -29,12 +118,16 @@
                         <nav class="nav-main-menu d-none d-xl-block" aria-label="Main navigation">
                             <ul class="main-menu">
                                 <li class="has-children">
+<<<<<<< HEAD
                                     <a class="active" href="index.html">Home</a>
                                     <ul class="sub-menu">
                                         <li><a href="index.html">Home 1</a></li>
                                         <li><a href="index-2.html">Home 2</a></li>
                                         <li><a href="index-3.html">Home 3</a></li>
                                     </ul>
+=======
+                                    <a class="active" href="{% url 'register' %}">Home</a>
+>>>>>>> origin/user
                                 </li>
                                 <li class="has-children">
                                     <a href="job-grid.html">Browse Jobs</a>
@@ -49,6 +142,7 @@
                                     </ul>
                                 </li>
                                 <li class="has-children">
+<<<<<<< HEAD
                                     <a href="employers-grid.html">Employers</a>
                                     <ul class="sub-menu">
                                         <li><a href="employers-grid.html">Employers Grid</a></li>
@@ -69,6 +163,13 @@
                                         <li><a href="candidates-single.html">Candidates Single 01</a></li>
                                         <li><a href="candidates-single-2.html">Candidates Single 02</a></li>
                                     </ul>
+=======
+                                    <a href="{% url 'entreprise_list' %}">Employers</a>
+                                    
+                                </li>
+                                <li class="has-children">
+                                    <a href="{% url 'candidats_listing' %}">Candidates</a>
+>>>>>>> origin/user
                                 </li>
                                 <li class="has-children">
                                     <a href="#">Forum</a>
@@ -107,7 +208,11 @@
                     </div>
                     {% else %}
                     <div class="block-signin">
+<<<<<<< HEAD
                         <a href="{% url 'login' %}" class="btn btn-default btn-shadow ml-40 hover-up">Sign in</a>
+=======
+                        <a href="{% url 'signin' %}" class="btn btn-default btn-shadow ml-40 hover-up">Sign in</a>
+>>>>>>> origin/user
                         <a href="{% url 'register' %}" class="btn btn-default btn-shadow ml-40 hover-up">Register</a>
 
                     </div>
@@ -121,9 +226,19 @@
         <div class="mobile-header-wrapper-inner">
             <div class="mobile-header-top">
                 <div class="user-account">
+<<<<<<< HEAD
                     <img src="{{ user.photo.url }}" alt="jobhub" />
                     <div class="content">
                         <h6 class="user-name"> {{ user.first_name }}, <span class="text-brand">AliThemes</span></h6>
+=======
+                    {% if user.photo %}
+                        <img src="{{ user.photo.url }}" alt="Profile photo">
+                    {% else %}
+                        <img src="/static/imgs/avatar/avatar.png" alt="Default">
+                    {% endif %}
+                    <div class="content">
+                        <h6 class="user-name"> {{ user.username }}</h6>
+>>>>>>> origin/user
                         <p class="font-xs text-muted">You have 2 new messages</p>
                     </div>
                 </div>
@@ -146,12 +261,16 @@
                         <nav aria-label="Mobile navigation">
                             <ul class="mobile-menu font-heading">
                                 <li class="has-children">
+<<<<<<< HEAD
                                     <a class="active" href="index.html">Home</a>
                                     <ul class="sub-menu">
                                         <li><a href="index.html">Home 1</a></li>
                                         <li><a href="index-2.html">Home 2</a></li>
                                         <li><a href="index-3.html">Home 3</a></li>
                                     </ul>
+=======
+                                    <a class="active" href="{% url 'home' %}">Home</a>
+>>>>>>> origin/user
                                 </li>
                                 <li class="has-children">
                                     <a href="job-grid.html">Browse Jobs</a>
@@ -212,6 +331,7 @@
                         </nav>
                         <!-- mobile menu end -->
                     </div>
+<<<<<<< HEAD
                 
                     <div class="mobile-account">
                         <h6 class="mb-10">Your Account</h6>
@@ -225,6 +345,25 @@
                             <form method="post" style="display:inline;">
                             {% csrf_token %}
                             <li><button type="submit" action="{% url 'logout' %}">Sign Out</button></li>
+=======
+                    <div class="mobile-account">
+                        <h6 class="mb-10">Your Account</h6>
+                        <ul class="mobile-menu font-heading">
+                            {% if user.is_authenticated %}
+                                <li><a href="{% url 'profile' %}">Profile</a></li>
+                                <li><a href="{% url 'logout' %}">Log Out</a></li>
+                                <li><a href="#">Work Preferences</a></li>
+                                <li><a href="#">My Boosted Shots</a></li>
+                                <li><a href="#">My Collections</a></li>
+                                <li><a href="#">Account Settings</a></li>
+                                <li><a href="#">Go Pro</a></li>
+                            {% else %}
+                                <li><a href="{% url 'signin' %}">Sign In</a></li>
+                                <li><a href="{% url 'register' %}">Register</a></li>
+                            {% endif %}
+                            
+                            
+>>>>>>> origin/user
                             </form>
                         </ul>
                     </div>
@@ -245,6 +384,7 @@
     <div class="page-container">
         {% block content %}{% endblock %}
     </div>
+<<<<<<< HEAD
     <div class="paginations wow animate__animated animate__fadeIn">
                     <ul class="pager">
                         <li><a href="#" class="pager-prev"></a></li>
@@ -258,6 +398,9 @@
                         <li><a href="#" class="pager-next"></a></li>
                     </ul>
                 </div>
+=======
+    
+>>>>>>> origin/user
     <div class="box-newsletter">
                     <h5 class="text-md-newsletter">Sign up to get</h5>
                     <h6 class="text-lg-newsletter">the latest jobs</h6>
@@ -342,6 +485,99 @@
     <script src="/static/js/plugins/counterup.js"></script>
     <!-- Template  JS -->
     <script src="/static/js/main.js?v=1.0"></script>
+<<<<<<< HEAD
+=======
+
+    <div class="toast-container">
+        <div id="messageToast" class="toast border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div id="toastColorBar" class="toast-color-bar"></div>
+                <div class="toast-body d-flex align-items-center gap-3">
+                    <div id="toastIcon" class="toast-icon">!</div>
+                    <div id="messageToastBody" class="toast-message"></div>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-progress"></div>
+        </div>
+    </div>
+
+
+    {% if messages %}
+    <div id="django-messages"
+        data-messages='[{% for message in messages %}{"text":"{{ message|escapejs }}","level":"{{ message.tags }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+    </div>
+    {% endif %}
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        function showToast(type, message) {
+            const container = document.querySelector('.toast-container');
+            const template = document.getElementById('messageToast');
+            const toastEl = template.cloneNode(true);
+            toastEl.id = "";
+
+            const toastIcon = toastEl.querySelector("#toastIcon");
+            const toastMessage = toastEl.querySelector("#messageToastBody");
+            const colorBar = toastEl.querySelector("#toastColorBar");
+            const progress = toastEl.querySelector(".toast-progress");
+
+            toastMessage.innerHTML = message;
+
+            let icon = "ℹ️", classes = "toast-info", barColor = "#0dcaf0";
+
+            if (type === "success") { icon = "✔️"; classes = "toast-success"; barColor = "#28a745"; }
+            else if (type === "error" || type === "danger") { icon = "❌"; classes = "toast-error"; barColor = "#dc3545"; }
+            else if (type === "warning") { icon = "⚠️"; classes = "toast-warning"; barColor = "#ffc107"; }
+
+            toastIcon.textContent = icon;
+            colorBar.style.backgroundColor = barColor;
+            toastEl.className = "toast " + classes;
+
+            container.appendChild(toastEl);
+
+            const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+            toast.show();
+
+            // Animate progress bar
+            progress.style.animationDuration = "5000ms";
+
+            // Pause on hover
+            toastEl.addEventListener("mouseenter", () => progress.style.animationPlayState = "paused");
+            toastEl.addEventListener("mouseleave", () => progress.style.animationPlayState = "running");
+
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
+
+
+        // Handle Django messages
+        const containerMsg = document.getElementById("django-messages");
+        if (containerMsg) {
+            const messages = JSON.parse(containerMsg.getAttribute("data-messages"));
+            messages.forEach(msg => showToast(msg.level, msg.text));
+        }
+
+        // Client-side validation
+        document.querySelectorAll("form").forEach(form => {
+            form.addEventListener("submit", function(e) {
+                const requiredFields = form.querySelectorAll("input[required], textarea[required], select[required]");
+                for (let field of requiredFields) {
+                    if (!field.value.trim()) {
+                        e.preventDefault();
+                        field.classList.add("is-invalid");
+                        showToast("error", "Please fill out: " + (field.name || "this field"));
+                        field.focus();
+                        return false;
+                    }
+                }
+            });
+        });
+
+    });
+    </script>
+
+>>>>>>> origin/user
 </body>
  
 </html>

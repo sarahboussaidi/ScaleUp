@@ -1,67 +1,73 @@
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import Utilisateur, Admin, Entreprise, Candidat
+from django.contrib import admin # type: ignore
+from django.contrib.auth.admin import UserAdmin # type: ignore
+from .models import Utilisateur, Candidat, Entreprise, Admin, Domain, Skill
 
+# ---------------------------
+# Domain & Skill Admins
+# ---------------------------
+@admin.register(Domain)
+class DomainAdmin(admin.ModelAdmin):
+    list_display = ["name"]
 
-# ===============================
-# CONFIGURATION DE BASE : UTILISATEUR
-# ===============================
+@admin.register(Skill)
+class SkillAdmin(admin.ModelAdmin):
+    list_display = ["name", "domain"]
+    list_filter = ["domain"]
+
+# ---------------------------
+# Role-specific Inlines
+# ---------------------------
+class CandidatInline(admin.StackedInline):
+    model = Candidat
+    filter_horizontal = ['skills']
+
+class EntrepriseInline(admin.StackedInline):
+    model = Entreprise
+
+class AdminInline(admin.StackedInline):
+    model = Admin
+
+# ---------------------------
+# Main Utilisateur Admin
+# ---------------------------
 @admin.register(Utilisateur)
 class UtilisateurAdmin(UserAdmin):
-    list_display = ('username', 'email', 'role', 'is_active', 'date_joined')
+    list_display = ('email', 'username', 'role', 'is_active', 'is_staff')
+    search_fields = ('email', 'username', 'first_name', 'last_name')
     list_filter = ('role', 'is_active', 'is_staff')
-    search_fields = ('username', 'email')
-    ordering = ('date_joined',)
+
     fieldsets = (
-        ("Informations de connexion", {
-            "fields": ("username", "email", "password")
-        }),
-        ("Informations personnelles", {
-            "fields": ("first_name", "last_name", "telephone", "adresse", "photo")
-        }),
-        ("Rôle et permissions", {
-            "fields": ("role", "is_active", "is_staff", "is_superuser", "groups", "user_permissions")
-        }),
-        ("Dates importantes", {
-            "fields": ("last_login", "date_joined")
-        }),
+        ('Login Info', {'fields': ('email', 'password')}),
+        ('Personal Info', {'fields': ('username', 'first_name', 'last_name', 'telephone', 'adresse', 'photo')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
     )
+
     add_fieldsets = (
         (None, {
-            "classes": ("wide",),
-            "fields": ("username", "email", "password1", "password2", "role", "is_active", "is_staff"),
+            'classes': ('wide',),
+            'fields': ('email', 'username', 'password1', 'password2', 'is_active', 'is_staff', 'role')
         }),
     )
 
+    def get_inline_instances(self, request, obj=None):
+        """
+        Return only the inline corresponding to the user's role
+        """
+        if not obj:
+            return []
 
-# ===============================
-# ADMIN : ENTREPRISE
-# ===============================
-@admin.register(Entreprise)
-class EntrepriseAdmin(admin.ModelAdmin):
-    list_display = ('nom_entreprise', 'email', 'domaine', 'site_web', 'is_active')
-    search_fields = ('nom_entreprise', 'email', 'domaine')
-    list_filter = ('domaine', 'is_active')
-    ordering = ('nom_entreprise',)
+        if obj.role == 'candidat':
+            return [CandidatInline(self.model, self.admin_site)]
+        elif obj.role == 'entreprise':
+            return [EntrepriseInline(self.model, self.admin_site)]
+        elif obj.role == 'admin':
+            return [AdminInline(self.model, self.admin_site)]
+        return []
 
-
-# ===============================
-# ADMIN : CANDIDAT
-# ===============================
-@admin.register(Candidat)
-class CandidatAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'age', 'telephone', 'is_active')
-    search_fields = ('username', 'email')
-    list_filter = ('is_active',)
-    ordering = ('username',)
-
-
-# ===============================
-# ADMIN : ADMIN (RÔLE)
-# ===============================
-@admin.register(Admin)
-class AdminAppAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'niveau_acces', 'is_staff', 'is_superuser')
-    list_filter = ('niveau_acces', 'is_superuser', 'is_staff')
-    search_fields = ('username', 'email')
-    ordering = ('username',)
+    def save_model(self, request, obj, form, change):
+        """
+        Ensure role is set when creating a new user
+        """
+        if not change and not obj.role:
+            obj.role = 'candidat'
+        super().save_model(request, obj, form, change)

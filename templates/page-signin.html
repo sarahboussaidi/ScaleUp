@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <!--End header-->
+    <main class="main">
+      <section class="pt-100 login-register">
+        <div class="container"> 
+          <div class="row login-register-cover">
+            <div class="col-lg-4 col-md-6 col-sm-12 mx-auto">
+              <div class="text-center">
+                <p class="font-sm text-brand-2">Welcome back! </p>
+                <h2 class="mt-10 mb-5 text-brand-1">Member Login</h2>
+              </div>
+            <form class="login-register text-start mt-20 needs-validation" novalidate action="{% url 'signin' %}" method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label" for="input-email">Email address *</label>
+                    <input class="form-control" id="input-email" type="email" name="email" required placeholder="your@email.com">
+                    <div class="invalid-feedback">Email is required</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="input-pass">Password *</label>
+                    <input class="form-control" id="input-pass" type="password" name="password" required placeholder="********">
+                    <div class="invalid-feedback">Password is required</div>
+                </div>
+                <div class="login_footer form-group d-flex justify-content-between">
+                  <label class="cb-container">
+                    <input type="checkbox"><span class="text-small">Remenber me</span><span class="checkmark"></span>
+                  </label><a class="text-muted" href="page-contact.html">Forgot Password</a>
+                </div>
+                <div class="form-group">
+                  <button class="btn btn-default btn-shadow ml-40 hover-up" style="width: 75%;" type="submit" name="login">Login</button>
+                </div>
+                <div class="text-muted text-center">Don't have an Account? <a href="{% url 'register' %}">Sign up</a></div>
+              </form>
+            </div>
+            <div class="img-1 d-none d-lg-block"><img class="shape-1" src="/static/imgs/page/login-register/img-4.svg" alt="JobBox"></div>
+            <div class="img-2"><img src="/static/imgs/page/login-register/img-3.svg" alt="JobBox"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <!-- Footer -->
+    {% endblock %}
