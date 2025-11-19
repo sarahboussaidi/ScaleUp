@@ -155,25 +155,55 @@
             transform: translateY(1px);
         }
 
+        /* Ensure body and main fill the viewport so vertical centering works reliably */
+        html, body { height: 100%; min-height: 100%; }
+        .main { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 0; }
         /* Optional: center helper line for overall page */
         .main .page-container .forum-validate{ margin:0 auto; }
+
+        /* Center the page content vertically and horizontally */
+        .page-wrapper{
+            /* use exact viewport-based height so centering works regardless of other styles */
+            height: calc(100vh - 120px);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding: 2rem 1rem;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        }
+        .form-title{
+            font-size:1.4rem;
+            font-weight:700;
+            margin:0 0 0.75rem 0;
+            color:#0f172a;
+        }
     </style>
     {% include 'Forumapp/_forum_validation.html' %}
 {% endblock %}
 
 {% block content %}
-    <main class="main">
+    <main class="main" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem 0;">
     {% if user.is_authenticated %}
-    <h1>Ajouter un Nouveau Sujet</h1>
-    <form method="post" class="forum-validate">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="hidden" name="author" value="{{ user.pk }}">
-        <button type="submit">Soumettre</button>
-        <button type="button" onclick="window.history.back();">Annuler</button>
-    </form>
+    <div class="page-wrapper">
+        <div class="page-container" style="width:100%; max-width:820px;">
+            <div class="forum-validate">
+                <h2 class="form-title">Ajouter un Nouveau Sujet</h2>
+                <form method="post" class="">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        {{ form.as_p }}
+                    </div>
+                    <input type="hidden" name="author" value="{{ user.pk }}">
+                    <div class="actions" style="justify-content:flex-end;">
+                        <button type="button" onclick="window.history.back();">Annuler</button>
+                        <button type="submit">Soumettre</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     {% else %}
-        <p>Vous devez être connecté pour ajouter un nouveau sujet.</p>
+        <p class="text-center" style="padding:3rem 1rem;">Vous devez être connecté pour ajouter un nouveau sujet.</p>
     {% endif %}
     </main>
 {% endblock %}
