@@ -4,8 +4,25 @@
 
 {% block content %}
 <!-- Content -->
-<h1>Liste des formations</h1>
 <main class="main">
+    <section class="section-box-2">
+        <div class="box-head-single none-bg">
+            <div class="container">
+                <h4>Liste des formations</h4>
+                <div class="row mt-15 mb-40">
+                    <div class="col-lg-7 col-md-9">
+                        <span class="text-mutted">Découvrez et gérez toutes vos formations en un seul endroit</span>
+                    </div>
+                    <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                        <ul class="breadcrumbs mt-sm-15">
+                            <li><a href="#">Accueil</a></li>
+                            <li>Formations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
     <section class="section-box mt-80">
         <div class="container">
             <div class="row">
@@ -38,8 +55,12 @@
                                     <div class="card-job-bottom mt-25">
                                         <div class="row">
                                             <div class="col-lg-9 col-sm-8 col-12">
-                                                <a href="{% url 'formation_update' Formation.id_formation %}" class="btn btn-small background-12 mr-5">Update</a>
-                                                <button type="button" class="btn btn-small background-blue-light mr-5" data-bs-toggle="modal" data-bs-target="#deleteModal{{ Formation.id_formation }}">Delete</button>
+                                                <a href="{% url 'formation_update' Formation.id_formation %}" class="btn btn-small background-12 mr-5">Modifier</a>
+                                                <button type="button" class="btn btn-small background-blue-light mr-5" data-bs-toggle="modal" data-bs-target="#deleteModal{{ Formation.id_formation }}">supprimer</button>
+
+                                                <a href="{% url 'lesson_create' Formation.id_formation %}" class="btn btn-small background-12 mr-5">Ajouter leçon</a>
+                                                <a href="{% url 'formation_detail_admin' Formation.id_formation %}" class="btn btn-small background-blue-light mr-5">voir les leçons</a>
+                                                
                                             </div>
                                         </div>
                                     </div>

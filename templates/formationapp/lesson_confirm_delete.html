@@ -1,0 +1,51 @@
+
+{% extends "base.html" %}
+
+{% block title %}Confirmer la suppression - {{ object.titre }} {% endblock %}
+
+{% block content %}
+<main class="main">
+    <section class="section-box mt-80">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card" style="border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); padding: 50px 40px; text-align: center;">
+                        <div class="mb-30">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="#ff6b6b" stroke-width="2"/>
+                                <path d="M12 8V12" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round"/>
+                                <circle cx="12" cy="16" r="1" fill="#ff6b6b"/>
+                            </svg>
+                        </div>
+                        <h4 class="mb-20">Confirmer la suppression</h4>
+                        <p class="text-body-text mb-10">Êtes-vous sûr de vouloir supprimer la leçon</p>
+                        <p class="font-bold text-brand-1 mb-20">"{{ object.titre }}"?</p>
+                        <p style="color: #a0a0a0; font-size: 14px; margin-bottom: 30px;">Cette action ne peut pas être annulée.</p>
+                        
+                        <div style="margin-top: 30px;">
+                            <a href="{% url 'formation_detail_admin' object.formation.id_formation %}" class="btn btn-default btn-shadow mr-10" style="display: inline-block; margin-right: 10px;">Non, retour</a>
+                            
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-default background-urgent btn-shadow font-heading" style="background-color: #ff6b6b; color: white; border: none;">Oui, supprimer</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<style>
+.background-urgent {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.background-urgent:hover {
+    background-color: #ff5252;
+    color: white;
+}
+</style>
+{% endblock %}

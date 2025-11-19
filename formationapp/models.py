@@ -34,4 +34,13 @@ class Formation(models.Model):
 
     def __str__(self):
         return self.titre
+class lesson(models.Model):
+    id_lesson = models.AutoField(primary_key=True)
+    titre = models.CharField()
+    contenu = models.TextField()
+    file = models.FileField(upload_to='lessons/' , blank=True, null=True)
+    formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name="lessons")
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.titre

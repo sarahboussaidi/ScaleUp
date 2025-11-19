@@ -1,5 +1,5 @@
 from django import forms
-from .models import Formation
+from .models import Formation, lesson
 
 class FormationForm(forms.ModelForm):
     class Meta:
@@ -26,3 +26,17 @@ class FormationForm(forms.ModelForm):
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
 
         }
+class LessonForm(forms.ModelForm):
+        class Meta:
+            model = lesson
+            fields = ['titre', 'contenu', 'file']  
+            labels = {
+                'titre': 'Titre de la leçon',
+                'contenu': 'Contenu',
+                'file': 'Fichier joint',
+            }
+            widgets = {
+                'titre': forms.TextInput(attrs={'class': 'input-style mb-20'}),
+                'contenu': forms.Textarea(attrs={'class': 'input-style mb-20', 'rows': 6}),
+                'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            }
