@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}{{ formation.titre }} - Détails de la Formation {% endblock %}
+
+{% block content %}
+<!-- Content -->
+<main class="main">
+    <section class="section-box-2">
+        <div class="box-head-single none-bg">
+            <div class="container">
+                <h4>{{ formation.titre }}</h4>
+                <div class="row mt-15 mb-40">
+                    <div class="col-lg-7 col-md-9">
+                        <span class="text-mutted">{{ formation.description }}</span>
+                    </div>
+                    <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                        <ul class="breadcrumbs mt-sm-15">
+                            <li><a href="#">Accueil</a></li>
+                            <li><a href="{% url 'formation_admin' %}">Formations</a></li>
+                            <li>{{ formation.titre }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="section-box mt-80">
+        <div class="container">
+            <div class="row">
+                <!-- SIDEBAR COLUMN (Left side) -->
+                <div class="col-lg-3 col-md-12 col-sm-12 col-12">
+                    <!-- Formation Stats -->
+                    <div class="sidebar-border mt-30">
+                        <div class="sidebar-heading">
+                            <h6 class="text-md-bold">Statistiques</h6>
+                        </div>
+                        <div class="sidebar-list-job">
+                            <ul>
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-book-alt"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Leçons</span>
+                                        <strong class="small-heading">{{ lessons.count }}</strong>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    {%if user == formation.author or user.role == "admin" %}
+                    <a href="{% url 'lesson_create' formation.id_formation  %}" class="btn btn-small background-12 mr-5">Ajouter leçon</a>
+                    {% endif %}
+                </div>
+
+                <!-- MAIN CONTENT COLUMN (Right side) -->
+                <div class="col-lg-9 col-md-12 col-sm-12 col-12">
+                    <div class="content-page">
+                        <div class="box-filters-job mb-30">
+                            <div class="row">
+                                <div class="col-lg-7">
+                                    <span class="text-small">Affichage <strong>{{ lessons.count }}</strong> leçon(s)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="job-list-list mb-15">
+                            <div class="list-recent-jobs">
+                                {% if lessons %}
+                                    {% for lesson in lessons %}
+                                    <div class="card-job hover-up wow animate__animated animate__fadeIn">
+                                        <div class="card-job-top">
+                                            <div class="card-job-top--image">
+                                                <figure>
+                                                    <div class="lesson-icon-wrapper">
+                                                        <i class="fi-rr-video-camera-alt lesson-icon"></i>
+                                                    </div>
+                                                </figure>
+                                            </div>
+                                            <div class="card-job-top--info">
+                                                <h6 class="card-job-top--info-heading">
+                                                    <a href="#">{{ lesson.titre }}</a>
+                                                </h6>
+                                                <div class="row">
+                                                    <div class="col-lg-7">
+                                                        <span class="card-job-top--company text-sm">
+                                                            <i class="fi-rr-clock"></i> Ajoutée le {{ lesson.created_at|date:"d M Y" }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card-job-bottom mt-25">
+                                            <div class="row">
+                                                <div class="col-lg-9 col-sm-8 col-12">
+                                                    <a href="{% url 'lesson_update' id_formation=formation.id_formation id_lesson=lesson.id_lesson %}" class="btn btn-small background-12 mr-5">Modifier</a>
+                                                    
+                                                    <a href="{% url 'lesson_delete' id_formation=formation.id_formation id_lesson=lesson.id_lesson %}" class="btn btn-small background-blue-light mr-5">Supprimer</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Delete Lesson Confirmation Modal -->
+                                    <div class="modal fade" id="deleteLessonModal{{ lesson.id_lesson }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-body text-center pt-50 pb-50">
+                                                    <div class="mb-30">
+                                                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <circle cx="12" cy="12" r="10" stroke="#ff6b6b" stroke-width="2"/>
+                                                            <path d="M12 8V12" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round"/>
+                                                            <circle cx="12" cy="16" r="1" fill="#ff6b6b"/>
+                                                        </svg>
+                                                    </div>
+                                                    <h4 class="mb-20">Confirmer la suppression</h4>
+                                                    <p class="text-body-text mb-10">Êtes-vous sûr de vouloir supprimer la leçon</p>
+                                                    <p class="font-bold text-brand-1 mb-20">"{{ lesson.titre }}"?</p>
+                                                    <p class="text-muted-2 mb-30">Cette action ne peut pas être annulée.</p>
+                                                    
+                                                    <div class="mt-30">
+                                                        <button type="button" class="btn btn-default btn-shadow mr-10" data-bs-dismiss="modal">Non, retour</button>
+                                                        <form method="post" action="{% url 'lesson_delete' id_formation=formation.id_formation id_lesson=lesson.id_lesson %}" style="display: inline;">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-default background-urgent btn-shadow font-heading">Oui, supprimer</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center pt-50 pb-50">
+                                        <h5 class="mt-30 mb-15">Aucune leçon disponible</h5>
+                                        <p class="text-body-text">Cette formation ne contient pas encore de leçons.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<style>
+.modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.modal-body {
+    padding: 50px 40px;
+}
+
+.text-muted-2 {
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.background-urgent {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.background-urgent:hover {
+    background-color: #ff5252;
+    color: white;
+}
+</style>
+
+<!-- End Content -->
+{% endblock %}
+
+<!-- Vendor JS-->
+<script src="../../static/js/vendor/modernizr-3.6.0.min.js"></script>
+<script src="../../static/js/vendor/jquery-3.6.0.min.js"></script>
+<script src="../../static/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+<script src="../../static/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="../../static/js/plugins/waypoints.js"></script>
+<script src="../../static/js/plugins/wow.js"></script>
+<script src="../../static/js/plugins/magnific-popup.js"></script>
+<script src="../../static/js/plugins/perfect-scrollbar.min.js"></script>
+<script src="../../static/js/plugins/select2.min.js"></script>
+<script src="../../static/js/plugins/isotope.js"></script>
+<script src="../../static/js/plugins/scrollup.js"></script>
+<script src="../../static/js/plugins/swiper-bundle.min.js"></script>
+<script src="../../static/js/noUISlider.js"></script>
+<script src="../../static/js/slider.js"></script>
+<!-- Template  JS -->
+<script src="../../static/js/main.js?v=1.0"></script>

@@ -1,5 +1,8 @@
+from django.contrib import auth
 from django.db import models
 from userapp.models import Utilisateur
+from django.core.validators import MinLengthValidator
+
 
 class Formation(models.Model):
     NIVEAUX = [
@@ -21,13 +24,25 @@ class Formation(models.Model):
 
     id_formation = models.AutoField(primary_key=True)
     titre = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(validators=[MinLengthValidator(10)])
     niveau = models.CharField(max_length=30, choices=NIVEAUX, default='DEBUTANT')
     categorie = models.CharField(max_length=50, choices=CATEGORIES, default='IT')
-    duree = models.IntegerField(help_text="Durée en heures")
+    duree = models.PositiveBigIntegerField()
     certif = models.BooleanField(default=False)
+    image = models.ImageField(upload_to='formation/', blank=True, null=True)
     id_user = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name="formations")
+    author = models.ForeignKey(auth.get_user_model(), on_delete=models.CASCADE, related_name="formations_authored", null=True, default=None)
+    
 
     def __str__(self):
         return self.titre
+class lesson(models.Model):
+    id_lesson = models.AutoField(primary_key=True)
+    titre = models.CharField()
+    contenu = models.TextField()
+    file = models.FileField(upload_to='lessons/' , blank=True, null=True)
+    formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name="lessons")
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.titre

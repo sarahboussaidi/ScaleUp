@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if is_update %}
+        Modifier la leçon - {{ formation.titre }}
+    {% else %}
+        Ajouter une leçon - {{ formation.titre }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Content -->
+<main class="main">
+    <section class="section-box-2">
+        <div class="box-head-single none-bg">
+            <div class="container">
+                <h4>{% if is_update %}Modifier la leçon {{ lesson.titre }}{% else %}Ajouter une leçon{% endif %}</h4>
+                <div class="row mt-15 mb-40">
+                    <div class="col-lg-7 col-md-9">
+                        <span class="text-mutted">
+                            {% if is_update %}
+                                Modifiez la leçon {{ lesson.titre }} pour la formation <strong>{{ formation.titre }}</strong>
+                            {% else %}
+                                Créez une nouvelle leçon pour la formation <strong>{{ formation.titre }}</strong>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                        <ul class="breadcrumbs mt-sm-15">
+                            <li><a href="#">Accueil</a></li>
+                            <li><a href="{% url 'formation_admin' %}">Formations</a></li>
+                            <li><a href="{% url 'formation_detail_admin' formation.id_formation %}">{{ formation.titre }}</a></li>
+                            <li>{% if is_update %}Modifier la leçon{% else %}Ajouter une leçon{% endif %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-box mt-80 mb-80">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 offset-lg-2">
+                    <div class="card" style="border-radius: 12px; border: 1px solid #e0e0e0; padding: 40px;">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="form-group mb-30">
+                                <label class="form-label font-heading mb-10">{{ form.titre.label }}</label>
+                                {{ form.titre }}
+                                {% if form.titre.errors %}
+                                    <div class="alert alert-danger mt-10">{{ form.titre.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group mb-30">
+                                <label class="form-label font-heading mb-10">{{ form.contenu.label }}</label>
+                                {{ form.contenu }}
+                                {% if form.contenu.errors %}
+                                    <div class="alert alert-danger mt-10">{{ form.contenu.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group mb-30">
+                                <label class="form-label font-heading mb-10">{{ form.file.label }}</label>
+                                
+                                {% if is_update and object.file %}
+                                    <div class="alert alert-info mb-10" style="padding: 10px; border-radius: 6px;">
+                                        <strong>Fichier actuel:</strong> 
+                                        <a href="{{ object.file.url }}" target="_blank">{{ object.file.name|slice:"7:" }}</a>
+                                    </div>
+                                {% endif %}
+                                
+                                {{ form.file }}
+                                
+                                <small class="text-muted d-block mt-10">
+                                    Formats acceptés: PDF, DOC, DOCX, XLS, XLSX, PPT, etc.
+                                    {% if is_update %}
+                                        <br><strong>Note:</strong> Laissez ce champ vide pour conserver le fichier actuel.
+                                    {% endif %}
+                                </small>
+                                
+                                {% if form.file.errors %}
+                                    <div class="alert alert-danger mt-10">{{ form.file.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group mt-40">
+                                <button type="submit" class="btn btn-default background-12 mr-10">
+                                    {% if is_update %}
+                                        Modifier la leçon
+                                    {% else %}
+                                        Créer la leçon
+                                    {% endif %}
+                                </button>
+                                <a href="{% url 'formation_detail_admin' formation.id_formation %}" class="btn btn-outline">
+                                     Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

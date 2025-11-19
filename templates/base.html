@@ -118,6 +118,12 @@
                                     <a href="{% url 'freelance_list' %}">Freelance</a>
                                 </li>
                                 <li class="">
+                                    <a {%if user.role == "entreprise" or user.role == "admin"%}
+                                    href="{% url 'formation_admin' %}"
+                                    {% else %} href="{% url 'view_formation' %}" {% endif %}
+                                    >Formation</a>
+                                </li>
+                                <li class="">
                                     <a href="{% url 'entreprise_list' %}">Employers</a>
                                     
                                 </li>

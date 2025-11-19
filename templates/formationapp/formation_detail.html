@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}{{ formation.titre }} - Détails de la Formation {% endblock %}
+
+{% block content %}
+<!-- Content -->
+<main class="main">
+    <section class="section-box-2">
+        <div class="box-head-single none-bg">
+            <div class="container">
+                <h4>{{ formation.titre }}</h4>
+                <div class="row mt-15 mb-40">
+                    <div class="col-lg-7 col-md-9">
+                        <span class="text-mutted">{{ formation.description }}</span>
+                    </div>
+                    <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                        <ul class="breadcrumbs mt-sm-15">
+                            <li><a href="#">Accueil</a></li>
+                            <li><a href="{% url 'view_formation' %}">Formations</a></li>
+                            <li>{{ formation.titre }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="section-box mt-80">
+        <div class="container">
+            <div class="row">
+                <!-- SIDEBAR COLUMN (Left side) -->
+                <div class="col-lg-3 col-md-12 col-sm-12 col-12">
+                    <div class="sidebar-with-bg background-primary bg-sidebar pb-80 mt-30">
+                        <h5 class="medium-heading text-white mb-20 mt-20">Évaluer la Formation</h5>
+                        <p class="text-body-999 text-white mb-30">Quelle note donneriez-vous à cette formation? Votre avis aide les autres apprenants.</p>
+                        
+                        <!-- Star Rating -->
+                        <div class="rating-container text-center mb-20">
+                            <div class="star-rating">
+                                <span class="star" data-rating="1">★</span>
+                                <span class="star" data-rating="2">★</span>
+                                <span class="star" data-rating="3">★</span>
+                                <span class="star" data-rating="4">★</span>
+                                <span class="star" data-rating="5">★</span>
+                            </div>
+                            <p class="text-white mt-15 rating-text">Cliquez pour noter</p>
+                        </div>
+                        
+                        <button type="button" class="btn btn-border icon-chevron-right btn-white-sm" id="submitRating">Soumettre l'évaluation</button>
+                    </div>
+                    
+                    <!-- Formation Stats -->
+                    <div class="sidebar-border mt-30">
+                        <div class="sidebar-heading">
+                            <h6 class="text-md-bold">Statistiques</h6>
+                        </div>
+                        <div class="sidebar-list-job">
+                            <ul>
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-book-alt"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Leçons</span>
+                                        <strong class="small-heading">{{ lessons.count }}</strong>
+                                    </div>
+                                </li>
+                              
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAIN CONTENT COLUMN (Right side) -->
+                <div class="col-lg-9 col-md-12 col-sm-12 col-12">
+                    <div class="content-page">
+                        <div class="box-filters-job mb-30">
+                            <div class="row">
+                                <div class="col-lg-7">
+                                    <span class="text-small">Affichage <strong>{{ lessons.count }}</strong> leçon(s)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="job-list-list mb-15">
+                            <div class="list-recent-jobs">
+                                {% if lessons %}
+                                    {% for lesson in lessons reversed %}
+                                    <div class="card-job hover-up wow animate__animated animate__fadeIn">
+                                        <div class="card-job-top">
+                                            <div class="card-job-top--image">
+                                                <figure>
+                                                    <div class="lesson-icon-wrapper">
+                                                        <i class="fi-rr-video-camera-alt lesson-icon"></i>
+                                                    </div>
+                                                </figure>
+                                            </div>
+                                            <div class="card-job-top--info">
+                                                <h6 class="card-job-top--info-heading">
+                                                    <a href="#">{{ lesson.titre }}</a>
+                                                </h6>
+                                                <div class="row">
+                                                    <div class="col-lg-7">
+                                                        <span class="card-job-top--company text-sm">
+                                                            <i class="fi-rr-clock"></i> Ajoutée le {{ lesson.created_at|date:"d M Y" }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card-job-description mt-20">
+                                            {{ lesson.contenu }}
+                                        </div>
+                                        
+                                        <div class="card-job-bottom mt-25">
+                                            <div class="row">
+                                                <div class="col-lg-9 col-sm-8 col-12">
+                                                    {% if lesson.file %}
+                                                    <a href="{{ lesson.file.url }}" class="btn btn-small background-urgent mr-5" download>
+                                                        <i class="fi-rr-download"></i> Télécharger
+                                                    </a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Lesson Detail Modal -->
+                                    <div class="modal fade" id="lessonModal{{ lesson.id_lesson }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">{{ lesson.titre }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body pt-30 pb-30">
+                                                    <div class="lesson-content">
+                                                        <div class="mb-20">
+                                                            <span class="badge bg-info text-white">
+                                                                <i class="fi-rr-clock"></i> {{ lesson.created_at|date:"d M Y à H:i" }}
+                                                            </span>
+                                                        </div>
+                                                        
+                                                        <div class="lesson-text mb-30">
+                                                            {{ lesson.contenu|linebreaks }}
+                                                        </div>
+                                                        
+                                                        {% if lesson.file %}
+                                                        <div class="lesson-attachment">
+                                                            <div class="alert alert-light" role="alert">
+                                                                <i class="fi-rr-document"></i>
+                                                                <strong>Fichier joint:</strong>
+                                                                <a href="{{ lesson.file.url }}" class="text-brand-1 ml-10" download>
+                                                                    {{ lesson.file.name|slice:"8:" }}
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">Fermer</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center pt-50 pb-50">
+                                     
+                                        <h5 class="mt-30 mb-15">Aucune leçon disponible</h5>
+                                        <p class="text-body-text">Cette formation ne contient pas encore de leçons.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.star');
+    const ratingText = document.querySelector('.rating-text');
+    const submitBtn = document.getElementById('submitRating');
+    let selectedRating = 0;
+    
+    stars.forEach((star, index) => {
+        // Click event - make stars yellow permanently
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.getAttribute('data-rating'));
+            
+            // Update all stars based on selection
+            stars.forEach((s, i) => {
+                if (i < selectedRating) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+            
+            updateRatingText(selectedRating);
+        });
+    });
+    
+    function updateRatingText(rating) {
+        const texts = {
+            1: 'Très insatisfait',
+            2: 'Insatisfait',
+            3: 'Moyen',
+            4: 'Satisfait',
+            5: 'Excellent'
+        };
+        ratingText.textContent = texts[rating] || 'Cliquez pour noter';
+    }
+    
+    submitBtn.addEventListener('click', function() {
+        if (selectedRating === 0) {
+            alert('Veuillez sélectionner une note');
+            return;
+        }
+          
+        alert(`Merci pour votre évaluation de ${selectedRating} étoile(s)!`);
+    });
+});
+</script>
+
+<!-- End Content -->
+{% endblock %}

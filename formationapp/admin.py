@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Formation
-
+from .models import Formation, lesson
 
 @admin.register(Formation)
 class FormationAdmin(admin.ModelAdmin):
@@ -37,3 +36,24 @@ class FormationAdmin(admin.ModelAdmin):
     def get_formateur(self, obj):
         return f"{obj.id_user.username} ({obj.id_user.email})"
     get_formateur.short_description = 'Formateur'
+
+@admin.register(lesson)
+class LessonAdmin(admin.ModelAdmin):
+    list_display = (
+        'titre',
+        'formation',
+    )
+    search_fields = ('titre', 'formation__titre')
+    ordering = ('formation', 'titre')
+    list_per_page = 15
+
+    fieldsets = (
+        ("Informations de la leçon", {
+            "fields": (
+                'titre',
+                'contenu',
+                'file',
+                'formation',
+            )
+        }),
+    )

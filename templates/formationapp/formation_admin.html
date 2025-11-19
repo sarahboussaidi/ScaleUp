@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Worki | Formations{% endblock %}
+
+{% block content %}
+<!-- Content -->
+<main class="main">
+    <section class="section-box-2">
+        <div class="box-head-single none-bg">
+            <div class="container">
+                <h4>Liste des formations</h4>
+                <div class="row mt-15 mb-40">
+                    <div class="col-lg-7 col-md-9">
+                        <span class="text-mutted">Découvrez et gérez toutes vos formations en un seul endroit</span>
+                    </div>
+                    <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                        <ul class="breadcrumbs mt-sm-15">
+                            <li><a href="#">Accueil</a></li>
+                            <li>Formations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="section-box mt-80">
+        <div class="container">
+            <div class="row">
+                <!-- SIDEBAR COLUMN (Left side) -->
+                <div class="col-lg-3 col-md-12 col-sm-12 col-12">
+                    <div class="sidebar-with-bg background-primary bg-sidebar pb-80 mt-30">
+                        <h5 class="medium-heading text-white mb-20 mt-20">Apprentissage</h5>
+                        <p class="text-body-999 text-white mb-30">Faites connaître vos cours à des milliers d'apprenants et développez votre audience.</p>
+                        <a href="{% url 'formation_create' %}" class="btn btn-border icon-chevron-right btn-white-sm">Ajouter une formation</a>
+                    </div>
+                </div>
+
+                <!-- MAIN CONTENT COLUMN (Right side) -->
+                <div class="col-lg-9 col-md-12 col-sm-12 col-12">
+                    <div class="content-page">
+                        <div class="job-list-list mb-15">
+                            <div class="list-recent-jobs">
+                                {% for Formation in formations %}
+                                <div class="card-job hover-up wow animate__animated animate__fadeIn">
+                                    <div class="card-job-top">
+                                        <h6 class="card-job-top--info-heading">
+                                            <a href="job-single.html">{{ Formation.titre }}</a>
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="card-job-description mt-20">
+                                        {{ Formation.description }}
+                                    </div>
+                                    
+                                    <div class="card-job-bottom mt-25">
+                                        <div class="row">
+                                            <div class="col-lg-9 col-sm-8 col-12">
+                                                {%if user == Formation.author or user.role == "admin"%}
+                                                <a href="{% url 'formation_update' Formation.id_formation %}" class="btn btn-small background-12 mr-5">Modifier</a>
+                                                <button type="button" class="btn btn-small background-blue-light mr-5" data-bs-toggle="modal" data-bs-target="#deleteModal{{ Formation.id_formation }}">supprimer</button>
+
+                                                {%endif %}
+                                                <a href="{% url 'formation_detail_admin' Formation.id_formation %}" class="btn btn-small background-12 mr-5">voir les leçons</a>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteModal{{ Formation.id_formation }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-body text-center pt-50 pb-50">
+                                                <div class="mb-30">
+                                                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="12" cy="12" r="10" stroke="#ff6b6b" stroke-width="2"/>
+                                                        <path d="M12 8V12" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round"/>
+                                                        <circle cx="12" cy="16" r="1" fill="#ff6b6b"/>
+                                                    </svg>
+                                                </div>
+                                                <h4 class="mb-20">Confirmer la suppression</h4>
+                                                <p class="text-body-text mb-10">Êtes-vous sûr de vouloir supprimer la formation</p>
+                                                <p class="font-bold text-brand-1 mb-20">"{{ Formation.titre }}"?</p>
+                                                <p class="text-muted-2 mb-30">Cette action ne peut pas être annulée.</p>
+                                                
+                                                <div class="mt-30">
+                                                    <button type="button" class="btn btn-default btn-shadow mr-10" data-bs-dismiss="modal">Non, retour</button>
+                                                    <form method="post" action="{% url 'formation_delete' Formation.id_formation %}" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-default background-urgent btn-shadow font-heading">Oui, supprimer</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<style>
+.modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.modal-body {
+    padding: 50px 40px;
+}
+
+.text-muted-2 {
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.background-urgent {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.background-urgent:hover {
+    background-color: #ff5252;
+    color: white;
+}
+</style>
+
+<!-- End Content -->
+{% endblock %}
+
+<!-- Vendor JS-->
+<script src="../../static/js/vendor/modernizr-3.6.0.min.js"></script>
+<script src="../../static/js/vendor/jquery-3.6.0.min.js"></script>
+<script src="../../static/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+<script src="../../static/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="../../static/js/plugins/waypoints.js"></script>
+<script src="../../static/js/plugins/wow.js"></script>
+<script src="../../static/js/plugins/magnific-popup.js"></script>
+<script src="../../static/js/plugins/perfect-scrollbar.min.js"></script>
+<script src="../../static/js/plugins/select2.min.js"></script>
+<script src="../../static/js/plugins/isotope.js"></script>
+<script src="../../static/js/plugins/scrollup.js"></script>
+<script src="../../static/js/plugins/swiper-bundle.min.js"></script>
+<script src="../../static/js/noUISlider.js"></script>
+<script src="../../static/js/slider.js"></script>
+<!-- Template  JS -->
+<script src="../../static/js/main.js?v=1.0"></script>

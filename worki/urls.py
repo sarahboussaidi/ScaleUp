@@ -28,6 +28,7 @@ urlpatterns = [
     path('forum/', include('forumapp.urls')),
     path('stage/', include('stageapp.urls')),
     path('freelance/', include('freelanceapp.urls')),
+    path('formation/', include('formationapp.urls'))
 
 ]
 

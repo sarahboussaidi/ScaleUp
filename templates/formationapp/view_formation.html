@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+    {% block title %}Jobhub - Job Board HTML Website Template {% endblock %}
+
+    {% block content %}
+    <!-- Content -->
+     
+    <main class="main">
+        <section class="section-box-2">
+            <div class="box-head-single none-bg">
+                <div class="container">
+                    <h4>Il y a {{ formations|length }} formations<br />Disponibles pour vous!</h4>
+                    <div class="row mt-15 mb-40">
+                        <div class="col-lg-7 col-md-9">
+                            <span class="text-mutted">Découvrez votre prochaine opportunité d'apprentissage et développez vos compétences</span>
+                        </div>
+                        <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                            <ul class="breadcrumbs mt-sm-15">
+                                <li><a href="#">Accueil</a></li>
+                                <li>Liste des formations</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section-box mt-80">
+            <div class="container">
+                <div class="row flex-row-reverse">
+                    <div class="col-lg-9 col-md-12 col-sm-12 col-12 float-right">
+                        <div class="content-page">
+                            <div class="box-filters-job mt-15 mb-10">
+                                <div class="row">
+                                    <div class="col-lg-7">
+                                        <span class="text-small">Affichage de <strong>{{ formations|length }}</strong> formation(s)</span>
+                                    </div>
+                                    <div class="col-lg-5 text-lg-end mt-sm-15">
+                                        <div class="display-flex2">
+                                            <span class="text-sortby">Trier par:</span>
+                                            <div class="dropdown dropdown-sort">
+                                                <button class="btn dropdown-toggle" type="button" id="dropdownSort" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="../../static"><span>Plus récent</span> <i class="fi-rr-angle-small-down"></i></button>
+                                                <ul class="dropdown-menu dropdown-menu-light" aria-labelledby="dropdownSort">
+                                                    <li><a class="dropdown-item active" href="#">Plus récent</a></li>
+                                                    <li><a class="dropdown-item" href="#">Plus ancien</a></li>
+                                                    <li><a class="dropdown-item" href="#">Alphabétique</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row job-listing-grid-2">
+                                {% for Formation in formations %}
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="card-grid-2 hover-up wow animate__animated animate__fadeIn" data-wow-delay=".s">
+                                        <div class="card-block-info">
+                                            <div class="row">
+                                                <div class="col-lg-12 col-12">
+                                                    <a href="{% url 'formation_detail' Formation.id_formation %}" class="card-2-img-text card-grid-2-img-medium">
+                                                        <span class="card-grid-2-img-small"><img alt="jobhub" src="../../static/imgs/page/job/ui-ux.svg" /></span> <span>{{ Formation.titre }}</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-15">
+                                                <span class="text-sm text-mutted-2 mr-20"> 
+                                                {% if Formation.niveau == 'DEBUTANT' %}
+                                                <i class="fi-rr-leaf"></i>
+                                                Debutant
+                                                {% elif Formation.niveau == 'INTERMEDIAIRE' %}
+                                                <i class="fi-rr-rocket"></i>
+                                                Intermediare
+                                                {% else %}
+                                                <i class="fi-rr-trophy"></i>
+                                                Avance
+                                                {% endif %}
+                                                </span><br>
+                                                <span class="text-sm text-mutted-2">
+                                                {% if Formation.certif %}
+                                                <i class="fi-rr-check"></i>
+                                                Certified
+                                                {% else %}
+                                                <i class="fi-rr-cross"></i>
+                                                Not Certified
+                                                {% endif %}
+                                                </span>
+                                            </div>
+
+                                            <div class="text-small mt-15">
+                                                {{ Formation.description }}
+                                            </div>
+
+                                            <div class="card-2-bottom mt-30">
+                                                <div class="row">
+                                                    <div class="col-lg-6 col-8">
+                                                        <a href="employers-single-2.html">
+                                                            <span class="text-brand-10 text-icon-first">
+                                                                {% if Formation.id_user.role == "entreprise" %}
+                                                                    {{ Formation.id_user.entreprise.nom_entreprise }}
+                                                                    
+
+                                                                {% elif Formation.id_user.role == "candidat" %}
+                                                                    {{ Formation.id_user.first_name }} {{ Formation.id_user.last_name }}
+                                                                    
+
+                                                                {% elif Formation.id_user.role == "admin" %}
+                                                                    {{ Formation.id_user.username }}
+                                                                    
+
+                                                                {% else %}
+                                                                    {{ Formation.id_user.username }}
+                                                                    
+                                                                {% endif %}
+                                                            </span></a>
+                                                    </div>
+                                                    <div class="col-lg-6 col-4 text-end">
+                                                        <span class="card-text-price"> {{ Formation.duree }}<span> Hours</span> </span>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-20">
+                                                    <div class="col-lg-8 col-8">
+                                                        <p class="btn btn-grey-small">{{ Formation.categorie }}</p>
+                                                    </div><br><br>
+                                                    <div class="col-lg-8 col-8">
+                                                        <a href="" class="btn btn-default btn-md">Participer</a>
+                                                    </div>
+                                                   
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                <!-- Repeat similar job cards as needed -->
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-12 col-sm-12 col-12">
+                        <div class="sidebar-with-bg">
+                            <h5 class="font-semibold mb-10">Configurer un rappel de formations</h5>
+                            <p class="text-body-999">Entrez votre adresse e-mail et recevez des notifications des formations</p>
+                            <div class="box-email-reminder">
+                                <form>
+                                    <div class="form-group mt-15">
+                                        <input type="text" class="form-control input-bg-white form-icons" placeholder="Entrer addresse e-mail" />
+                                        <i class="fi-rr-envelope"></i>
+                                    </div>
+                                    <div class="form-group mt-25 mb-5">
+                                        <button class="btn btn-default btn-md">Soumettre</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- i can add partner pictures  -->
+    </main>
+    <!-- End Content -->
+     {% endblock %}
+
+    <!-- Vendor JS-->
+    <script src="../../static/js/vendor/modernizr-3.6.0.min.js"></script>
+    <script src="../../static/js/vendor/jquery-3.6.0.min.js"></script>
+    <script src="../../static/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+    <script src="../../static/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="../../static/js/plugins/waypoints.js"></script>
+    <script src="../../static/js/plugins/wow.js"></script>
+    <script src="../../static/js/plugins/magnific-popup.js"></script>
+    <script src="../../static/js/plugins/perfect-scrollbar.min.js"></script>
+    <script src="../../static/js/plugins/select2.min.js"></script>
+    <script src="../../static/js/plugins/isotope.js"></script>
+    <script src="../../static/js/plugins/scrollup.js"></script>
+    <script src="../../static/js/plugins/swiper-bundle.min.js"></script>
+
+    <script src="../../static/js/noUISlider.js"></script>
+    <script src="../../static/js/slider.js"></script>
+    <!-- Template  JS -->
+    <script src="../../static/js/main.js?v=1.0"></script>
