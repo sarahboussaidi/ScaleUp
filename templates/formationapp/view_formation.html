@@ -94,7 +94,25 @@
                                             <div class="card-2-bottom mt-30">
                                                 <div class="row">
                                                     <div class="col-lg-6 col-8">
-                                                        <a href="employers-single-2.html"><span class="text-brand-10 text-icon-first">{{ Formation.id_user }}</span></a>
+                                                        <a href="employers-single-2.html">
+                                                            <span class="text-brand-10 text-icon-first">
+                                                                {% if Formation.id_user.role == "entreprise" %}
+                                                                    {{ Formation.id_user.entreprise.nom_entreprise }}
+                                                                    
+
+                                                                {% elif Formation.id_user.role == "candidat" %}
+                                                                    {{ Formation.id_user.first_name }} {{ Formation.id_user.last_name }}
+                                                                    
+
+                                                                {% elif Formation.id_user.role == "admin" %}
+                                                                    {{ Formation.id_user.username }}
+                                                                    
+
+                                                                {% else %}
+                                                                    {{ Formation.id_user.username }}
+                                                                    
+                                                                {% endif %}
+                                                            </span></a>
                                                     </div>
                                                     <div class="col-lg-6 col-4 text-end">
                                                         <span class="card-text-price"> {{ Formation.duree }}<span> Hours</span> </span>
@@ -103,6 +121,9 @@
                                                 <div class="row mt-20">
                                                     <div class="col-lg-8 col-8">
                                                         <p class="btn btn-grey-small">{{ Formation.categorie }}</p>
+                                                    </div><br><br>
+                                                    <div class="col-lg-8 col-8">
+                                                        <a href="" class="btn btn-default btn-md">Participer</a>
                                                     </div>
                                                    
                                                 </div>
