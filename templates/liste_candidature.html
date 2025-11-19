@@ -5,12 +5,11 @@
 
 {% block content %}
 
-<!-- SECTION HEADER (copié du template freelance_list) -->
+<!-- SECTION HEADER -->
 <section class="section-box-2">
     <div class="box-head-single none-bg">
         <div class="container">
             <h4>Vos candidatures<br>Centralisées ici !</h4>
-
             <div class="row mt-15 mb-40">
                 <div class="col-lg-7 col-md-9">
                     <span class="text-mutted">Suivez l’évolution de vos candidatures pour stages, formations et missions freelance.</span>
@@ -23,7 +22,7 @@
                 </div>
             </div>
 
-            <!-- FILTRES HAUT (structure identique à freelance_list) -->
+            <!-- FILTRES HAUT -->
             <div class="box-shadow-bdrd-15 box-filters">
                 <div class="row">
                     <div class="col-lg-5">
@@ -35,7 +34,6 @@
                             </form>
                         </div>
                     </div>
-
                     <div class="col-lg-7">
                         <div class="d-flex job-fillter">
                             <div class="d-block d-lg-flex">
@@ -104,7 +102,7 @@
     </div>
 </section>
 
-<!-- SECTION LIST + SIDEBAR (structure freelance_list) -->
+<!-- SECTION LIST + SIDEBAR -->
 <section class="section-box mt-80">
     <div class="container">
         <div class="row flex-row-reverse">
@@ -131,29 +129,21 @@
 
                                 {% for c in candidatures %}
                                 <div class="card-job hover-up wow animate__animated animate__fadeIn">
-                                    
                                     <!-- HEADER CARD -->
                                     <div class="card-job-top">
-                                        
-                                        <!-- IMAGE -->
                                         <div class="card-job-top--image">
                                             <figure>
                                                 <img alt="candidature" src="{% static 'imgs/page/job/ui-ux3.svg' %}">
                                             </figure>
                                         </div>
-
-                                        <!-- INFOS -->
                                         <div class="card-job-top--info">
                                             <h6 class="card-job-top--info-heading">
                                                 <a href="{% url 'form_candidature' c.id_candidature %}">
                                                     {{ c.id_candidat.first_name }} {{ c.id_candidat.last_name }}
                                                 </a>
                                             </h6>
-
                                             <div class="row">
                                                 <div class="col-lg-7">
-
-                                                    <!-- Type -->
                                                     <span class="card-job-top--company">
                                                         {% if c.id_stage %}
                                                             Stage : {{ c.id_stage.titre }}
@@ -165,31 +155,23 @@
                                                             Candidature libre
                                                         {% endif %}
                                                     </span>
-
-                                                    <!-- Date -->
                                                     <span class="card-job-top--location text-sm">
                                                         <i class="fi-rr-calendar"></i>
                                                         {{ c.date_candidature|date:"d/m/Y" }}
                                                     </span>
-
                                                 </div>
-
-                                                <!-- STATUT -->
                                                 <div class="col-lg-5 text-lg-end">
                                                     <span class="badge
                                                         {% if c.statut == 'ACCEPTEE' %} bg-success
                                                         {% elif c.statut == 'REFUSEE' %} bg-danger
                                                         {% elif c.statut == 'ENTRETIEN' %} bg-warning
                                                         {% elif c.statut == 'VUE' %} bg-info
-                                                        {% else %} bg-secondary {% endif %}
-                                                        text-sm p-2">
+                                                        {% else %} bg-secondary {% endif %} text-sm p-2">
                                                         {{ c.get_statut_display }}
                                                     </span>
                                                 </div>
                                             </div>
-
                                         </div>
-
                                     </div>
 
                                     <!-- DESCRIPTION -->
@@ -204,9 +186,7 @@
                                     <!-- BOTTOM BUTTONS -->
                                     <div class="card-job-bottom mt-25">
                                         <div class="row">
-
                                             <div class="col-lg-9 col-sm-8 col-12">
-
                                                 {% if c.cv_joint %}
                                                     <a href="{{ c.cv_joint.url }}" target="_blank" class="btn btn-small btn-border mr-5">
                                                         <i class="fi-rr-file"></i> Voir le CV
@@ -215,25 +195,18 @@
                                                     <span class="text-muted">Aucun CV joint</span>
                                                 {% endif %}
                                             </div>
-
                                             <div class="col-lg-3 col-sm-4 col-12 d-flex justify-content-end" style="gap:10px;">
-                                                
-                                                <!-- MODIFIER -->
                                                 <a href="{% url 'form_candidature' c.id_candidature %}" 
                                                    class="btn px-3 py-2 rounded-pill shadow-sm"
                                                    style="background-color:#7badff;color:white;">
                                                     Modifier
                                                 </a>
-
-                                                <!-- SUPPRIMER -->
                                                 <a href="#" onclick="deleteCand({{ c.id_candidature }})"
                                                    class="btn px-3 py-2 rounded-pill shadow-sm"
                                                    style="background-color:#e0e0e0;color:#333;">
                                                     Supprimer
                                                 </a>
-
                                             </div>
-
                                         </div>
                                     </div>
 
@@ -251,7 +224,6 @@
 
             <!-- SIDEBAR -->
             <div class="col-lg-3 col-md-12 col-sm-12 col-12">
-
                 <div class="sidebar-with-bg background-primary bg-sidebar pb-80">
                     <h5 class="medium-heading text-white mb-20 mt-20">Ajouter une candidature</h5>
                     <p class="text-body-999 text-white mb-30">
@@ -268,7 +240,7 @@
     </div>
 </section>
 
-<!-- DELETE POPUP -->
+<!-- DELETE & AJOUT POPUP -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function deleteCand(id) {
@@ -287,6 +259,20 @@ function deleteCand(id) {
     });
 }
 
+// POPUP AJOUT
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            Swal.fire({
+                icon: 'success',
+                title: 'Candidature ajoutée !',
+                text: '{{ message }}',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        {% endif %}
+    {% endfor %}
+{% endif %}
 </script>
 
 {% endblock %}

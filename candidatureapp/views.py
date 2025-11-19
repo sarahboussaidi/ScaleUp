@@ -18,7 +18,6 @@ def liste_candidatures(request):
 # Ajouter ou modifier une candidature
 # ------------------------------
 @login_required(login_url='login')
-
 def form_candidature(request, id=None):
     update = id is not None
     if update:
@@ -31,8 +30,8 @@ def form_candidature(request, id=None):
     freelances = Freelance.objects.all()
     formations = Formation.objects.all()
 
-    # Pour pré-remplissage avec POST en cas d'erreur
     post_data = request.POST if request.method == "POST" else None
+    files_data = request.FILES if request.method == "POST" else None
 
     if request.method == "POST":
         # Récupération des valeurs du formulaire
@@ -42,22 +41,32 @@ def form_candidature(request, id=None):
         cv = request.FILES.get("cv_joint")
         statut = request.POST.get("statut") if update else None
 
-        # Validation simple
+        # Validation
+        error = False
+
         if not id_candidat:
             messages.error(request, "Veuillez choisir un candidat.")
-        elif not type_cand:
+            error = True
+        if not type_cand:
             messages.error(request, "Veuillez choisir le type.")
-        elif not lettre or lettre.strip() == "":
+            error = True
+        if not lettre or lettre.strip() == "":
             messages.error(request, "Veuillez rédiger une lettre de motivation.")
-        else:
+            error = True
+        if not update and not cv:
+            # CV obligatoire uniquement à l'ajout
+            messages.error(request, "Le CV est obligatoire pour une nouvelle candidature.")
+            error = True
+
+        if not error:
             # Affectation des valeurs
             candidature.id_candidat_id = id_candidat
             candidature.lettre_motivation = lettre
 
             if cv:
-                candidature.cv_joint = cv  # Mise à jour seulement si un nouveau fichier est fourni
+                candidature.cv_joint = cv  # mise à jour seulement si fourni
 
-            # Réinitialisation des types pour éviter conflits
+            # Réinitialiser les types
             candidature.id_stage = None
             candidature.id_freelance = None
             candidature.id_formation = None
@@ -76,7 +85,7 @@ def form_candidature(request, id=None):
             messages.success(request, f"Candidature {'mise à jour' if update else 'ajoutée'} avec succès !")
             return redirect('liste_candidatures')
 
-    # Pré-remplissage des champs pour le formulaire
+    # Pré-remplissage des champs
     type_initial = None
     if post_data:
         type_initial = post_data.get("type")
@@ -96,9 +105,9 @@ def form_candidature(request, id=None):
         "freelances": freelances,
         "formations": formations,
         "type_initial": type_initial,
-        "post_data": post_data,  # <-- envoyé au template
+        "post_data": post_data,
+        "files_data": files_data,
     })
-
 
 
 # ------------------------------
@@ -108,14 +117,16 @@ def form_candidature(request, id=None):
 def supprimer_candidature(request, id):
     candidature = get_object_or_404(Candidature, pk=id)
 
-    # Vérification si l'utilisateur peut supprimer
-    if not request.user.is_superuser:  # ou autre logique selon ton projet
+    # Vérification permission
+    if not request.user.is_superuser:  # ou autre logique
         messages.error(request, "⚠️ Vous n'avez pas la permission de supprimer cette candidature.")
         return redirect('liste_candidatures')
 
     candidature.delete()
     messages.success(request, "Candidature supprimée !")
     return redirect('liste_candidatures')
+
+
 # ------------------------------
 # Authentification
 # ------------------------------

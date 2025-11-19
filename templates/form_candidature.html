@@ -19,7 +19,6 @@
         <h2 class="text-center mb-4">
             {% if update %}Modifier la candidature{% else %}Nouvelle candidature{% endif %}
         </h2>
-
         <p class="text-muted w-75 mx-auto">
             Remplissez le formulaire suivant pour gérer votre candidature.
         </p>
@@ -31,7 +30,6 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8 col-md-10">
-
                 <div class="card-job p-5 shadow-lg rounded-4"
                      style="background:white; max-width:750px; margin:auto;">
 
@@ -46,24 +44,6 @@
                         {% endfor %}
                     </div>
 
-                    <!-- SUCCÈS AVEC REDIRECTION -->
-                    {% if success %}
-                    <div id="success-msg" class="alert-success text-center p-3 mb-3">
-                        Candidature {% if update %}mise à jour{% else %}ajoutée{% endif %} avec succès !
-                    </div>
-
-                    <script>
-                    window.addEventListener('DOMContentLoaded', () => {
-                        setTimeout(() => {
-                            window.location.href = "{% url 'liste_candidatures' %}";
-                        }, 3000);
-                    });
-                    </script>
-                    {% endif %}
-
-                    <!-- ======================================
-                         FORMULAIRE CANDIDATURE
-                    ====================================== -->
                     <form method="POST" enctype="multipart/form-data" class="mt-4">
                         {% csrf_token %}
 
@@ -73,10 +53,14 @@
                             <div class="col-md-12">
                                 <label class="form-label">Candidat</label>
                                 <select name="id_candidat" class="form-control p-3">
-                                    <option value="" disabled selected>Choisir un candidat</option>
+                                    <option value="" disabled {% if not post_data %}selected{% endif %}>Choisir un candidat</option>
                                     {% for u in utilisateurs %}
                                         <option value="{{ u.id }}"
-                                            {% if candidature.id_candidat.id == u.id %}selected{% endif %}>
+                                            {% if post_data %}
+                                                {% if post_data.id_candidat == u.id|stringformat:"s" %}selected{% endif %}
+                                            {% else %}
+                                                {% if candidature.id_candidat and candidature.id_candidat.id == u.id %}selected{% endif %}
+                                            {% endif %}>
                                             {{ u.first_name }} {{ u.last_name }}
                                         </option>
                                     {% endfor %}
@@ -87,10 +71,10 @@
                             <div class="col-md-12">
                                 <label class="form-label">Type</label>
                                 <select name="type" class="form-control p-3" id="type-selector">
-                                    <option value="" disabled selected>Choisir le type</option>
-                                    <option value="stage" {% if candidature.id_stage %}selected{% endif %}>Stage</option>
-                                    <option value="freelance" {% if candidature.id_freelance %}selected{% endif %}>Freelance</option>
-                                    <option value="formation" {% if candidature.id_formation %}selected{% endif %}>Formation</option>
+                                    <option value="" disabled {% if not post_data %}selected{% endif %}>Choisir le type</option>
+                                    <option value="stage" {% if post_data and post_data.type == 'stage' %}selected{% elif candidature.id_stage %}selected{% endif %}>Stage</option>
+                                    <option value="freelance" {% if post_data and post_data.type == 'freelance' %}selected{% elif candidature.id_freelance %}selected{% endif %}>Freelance</option>
+                                    <option value="formation" {% if post_data and post_data.type == 'formation' %}selected{% elif candidature.id_formation %}selected{% endif %}>Formation</option>
                                 </select>
                             </div>
 
@@ -101,7 +85,11 @@
                                     <option value="">Choisir un stage</option>
                                     {% for s in stages %}
                                         <option value="{{ s.id }}"
-                                            {% if candidature.id_stage.id == s.id %}selected{% endif %}>
+                                            {% if post_data and post_data.id_stage == s.id|stringformat:"s" %}
+                                                selected
+                                            {% elif candidature.id_stage and candidature.id_stage.id == s.id %}
+                                                selected
+                                            {% endif %}>
                                             {{ s.titre }}
                                         </option>
                                     {% endfor %}
@@ -115,7 +103,11 @@
                                     <option value="">Choisir une mission</option>
                                     {% for f in freelances %}
                                         <option value="{{ f.id }}"
-                                            {% if candidature.id_freelance.id == f.id %}selected{% endif %}>
+                                            {% if post_data and post_data.id_freelance == f.id|stringformat:"s" %}
+                                                selected
+                                            {% elif candidature.id_freelance and candidature.id_freelance.id == f.id %}
+                                                selected
+                                            {% endif %}>
                                             {{ f.titre_mission }}
                                         </option>
                                     {% endfor %}
@@ -129,7 +121,11 @@
                                     <option value="">Choisir une formation</option>
                                     {% for f in formations %}
                                         <option value="{{ f.id }}"
-                                            {% if candidature.id_formation.id == f.id %}selected{% endif %}>
+                                            {% if post_data and post_data.id_formation == f.id|stringformat:"s" %}
+                                                selected
+                                            {% elif candidature.id_formation and candidature.id_formation.id == f.id %}
+                                                selected
+                                            {% endif %}>
                                             {{ f.titre }}
                                         </option>
                                     {% endfor %}
@@ -140,7 +136,7 @@
                             <div class="col-md-12">
                                 <label class="form-label">Lettre de motivation</label>
                                 <textarea name="lettre_motivation" rows="5"
-                                          class="form-control p-3">{{ candidature.lettre_motivation }}</textarea>
+                                          class="form-control p-3">{% if post_data %}{{ post_data.lettre_motivation }}{% else %}{{ candidature.lettre_motivation }}{% endif %}</textarea>
                             </div>
 
                             <!-- CV -->
@@ -153,6 +149,7 @@
                                         📄 CV actuel :
                                         <a href="{{ candidature.cv_joint.url }}" target="_blank">Voir</a>
                                     </p>
+                                    <small class="text-muted">Vous pouvez laisser vide si vous ne souhaitez pas le modifier.</small>
                                 {% endif %}
                             </div>
 
@@ -163,7 +160,11 @@
                                 <select name="statut" class="form-control p-3">
                                     {% for value,label in candidature.STATUTS %}
                                         <option value="{{ value }}"
-                                            {% if candidature.statut == value %}selected{% endif %}>
+                                            {% if post_data and post_data.statut == value %}
+                                                selected
+                                            {% elif candidature.statut == value %}
+                                                selected
+                                            {% endif %}>
                                             {{ label }}
                                         </option>
                                     {% endfor %}
@@ -183,7 +184,6 @@
                             </a>
                         </div>
                     </form>
-
                 </div>
             </div>
         </div>
@@ -201,11 +201,13 @@ function updateVisibility(){
     freelanceBox.style.display = "none";
     formationBox.style.display = "none";
 
-    if(typeSelect.value === "stage") stageBox.style.display = "block";
-    if(typeSelect.value === "freelance") freelanceBox.style.display = "block";
-    if(typeSelect.value === "formation") formationBox.style.display = "block";
+    const selectedType = typeSelect.value;
+    if(selectedType === "stage") stageBox.style.display = "block";
+    if(selectedType === "freelance") freelanceBox.style.display = "block";
+    if(selectedType === "formation") formationBox.style.display = "block";
 }
 
+// Mise à jour de l'affichage au changement ou au chargement
 typeSelect.addEventListener("change", updateVisibility);
 document.addEventListener("DOMContentLoaded", updateVisibility);
 </script>
