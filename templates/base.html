@@ -130,6 +130,11 @@
                                 <li class="">
                                     <a href="{% url 'candidats_listing' %}">Candidates</a>
                                 </li>
+                                {% if user.role == "candidat" %}
+                                <li class="">
+                                    <a href="{% url 'liste_candidatures' %}">Candidatures</a>
+                                </li>
+                                {% endif %}
                                 <li class="has-children">
                                     <a href="#">Forum</a>
                                     <ul class="sub-menu">

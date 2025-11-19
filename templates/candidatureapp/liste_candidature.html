@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liste des Candidatures{% endblock %}
+
+{% block content %}
+<main class="main">
+<!-- SECTION HEADER -->
+<section class="section-box-2">
+    <div class="box-head-single none-bg">
+        <div class="container">
+            <h4>Vos candidatures<br>Centralisées ici !</h4>
+            <div class="row mt-15 mb-40">
+                <div class="col-lg-7 col-md-9">
+                    <span class="text-mutted">Suivez l’évolution de vos candidatures pour stages, formations et missions freelance.</span>
+                </div>
+                <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                    <ul class="breadcrumbs mt-sm-15">
+                        <li><a href="/home/">Accueil</a></li>
+                        <li>Mes Candidatures</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- FILTRES HAUT -->
+            <div class="box-shadow-bdrd-15 box-filters">
+                <div class="row">
+                    <div class="col-lg-5">
+                        <div class="box-search-job">
+                            <form method="GET" class="form-search-job">
+                                <input type="text" name="search" class="input-search-job"
+                                       placeholder="Rechercher une candidature..."
+                                       value="{{ request.GET.search|default:'' }}">
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="d-flex job-fillter">
+                            <div class="d-block d-lg-flex">
+
+                                <!-- Filtre type -->
+                                <div class="dropdown job-type">
+                                    <button class="btn dropdown-toggle" type="button"
+                                            id="dropdownJobType" data-bs-toggle="dropdown">
+                                        <i class="fi-rr-briefcase"></i>
+                                        <span>
+                                            {% if request.GET.type %}
+                                                {{ request.GET.type|capfirst }}
+                                            {% else %}
+                                                Tous les types
+                                            {% endif %}
+                                        </span>
+                                        <i class="fi-rr-angle-small-down"></i>
+                                    </button>
+
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownJobType">
+                                        <li><a href="?type=" class="dropdown-item">Tous les types</a></li>
+                                        <li><a href="?type=stage" class="dropdown-item">Stage</a></li>
+                                        <li><a href="?type=formation" class="dropdown-item">Formation</a></li>
+                                        <li><a href="?type=freelance" class="dropdown-item">Freelance</a></li>
+                                    </ul>
+                                </div>
+
+                                <!-- Filtre statut -->
+                                <div class="dropdown">
+                                    <button class="btn dropdown-toggle" type="button"
+                                            id="dropdownStatut" data-bs-toggle="dropdown">
+                                        <i class="fi-rr-document-signed"></i>
+                                        <span>
+                                            {% if request.GET.statut %}
+                                                {{ request.GET.statut|capfirst }}
+                                            {% else %}
+                                                Tous les statuts
+                                            {% endif %}
+                                        </span>
+                                        <i class="fi-rr-angle-small-down"></i>
+                                    </button>
+
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownStatut">
+                                        <li><a href="?statut=" class="dropdown-item">Tous</a></li>
+                                        <li><a href="?statut=EN_ATTENTE" class="dropdown-item">En attente</a></li>
+                                        <li><a href="?statut=VUE" class="dropdown-item">Vue</a></li>
+                                        <li><a href="?statut=ENTRETIEN" class="dropdown-item">Entretien</a></li>
+                                        <li><a href="?statut=ACCEPTEE" class="dropdown-item">Acceptée</a></li>
+                                        <li><a href="?statut=REFUSEE" class="dropdown-item">Refusée</a></li>
+                                    </ul>
+                                </div>
+
+                            </div>
+
+                            <div class="box-button-find">
+                                <button class="btn btn-default float-right">Filtrer</button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- SECTION LIST + SIDEBAR -->
+<section class="section-box mt-80">
+    <div class="container">
+        <div class="row flex-row-reverse">
+
+            <!-- LISTE DES CANDIDATURES -->
+            <div class="col-lg-9 col-md-12 col-sm-12 col-12 float-right">
+                <div class="content-page">
+
+                    <!-- TOP LIST INFO -->
+                    <div class="box-filters-job mt-15 mb-10">
+                        <div class="row">
+                            <div class="col-lg-7">
+                                <span class="text-small">
+                                    Affichage de <strong>{{ candidatures|length }}</strong> candidatures
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENU LISTE -->
+                    <div class="job-list-list mb-15">
+                        <div class="list-recent-jobs">
+                            <div class="container mt-5">
+
+                                {% for c in candidatures %}
+                                <div class="card-job hover-up wow animate__animated animate__fadeIn">
+                                    <!-- HEADER CARD -->
+                                    <div class="card-job-top">
+                                        <div class="card-job-top--image">
+                                            <figure>
+                                                <img alt="candidature" src="{% static 'imgs/page/job/ui-ux3.svg' %}">
+                                            </figure>
+                                        </div>
+                                        <div class="card-job-top--info">
+                                            <h6 class="card-job-top--info-heading">
+                                                <a href="{% url 'form_candidature' c.id_candidature %}">
+                                                    {{ c.id_candidat.first_name }} {{ c.id_candidat.last_name }}
+                                                </a>
+                                            </h6>
+                                            <div class="row">
+                                                <div class="col-lg-7">
+                                                    <span class="card-job-top--company">
+                                                        {% if c.id_stage_id %}
+                                                            Stage : {{ c.id_stage.titre }}
+                                                        {% elif c.id_formation_id %}
+                                                            Formation : {{ c.id_formation.titre }}
+                                                        {% elif c.id_freelance_id %}
+                                                            Freelance : {{ c.id_freelance.titre_mission }}
+                                                        {% else %}
+                                                            Candidature libre
+                                                        {% endif %}
+                                                    </span>
+                                                    <span class="card-job-top--location text-sm">
+                                                        <i class="fi-rr-calendar"></i>
+                                                        {{ c.date_candidature|date:"d/m/Y" }}
+                                                    </span>
+                                                </div>
+                                                <div class="col-lg-5 text-lg-end">
+                                                    <span class="badge
+                                                        {% if c.statut == 'ACCEPTEE' %} bg-success
+                                                        {% elif c.statut == 'REFUSEE' %} bg-danger
+                                                        {% elif c.statut == 'ENTRETIEN' %} bg-warning
+                                                        {% elif c.statut == 'VUE' %} bg-info
+                                                        {% else %} bg-secondary {% endif %} text-sm p-2">
+                                                        {{ c.get_statut_display }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- DESCRIPTION -->
+                                    <div class="card-job-description mt-20">
+                                        {% if c.lettre_motivation %}
+                                            {{ c.lettre_motivation|truncatewords:25 }}
+                                        {% else %}
+                                            <em class="text-muted">Aucune lettre de motivation jointe.</em>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- BOTTOM BUTTONS -->
+                                    <div class="card-job-bottom mt-25">
+                                        <div class="row">
+                                            <div class="col-lg-9 col-sm-8 col-12">
+                                                {% if c.cv_joint %}
+                                                    <a href="{{ c.cv_joint.url }}" target="_blank" class="btn btn-small btn-border mr-5">
+                                                        <i class="fi-rr-file"></i> Voir le CV
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted">Aucun CV joint</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-lg-3 col-sm-4 col-12 d-flex justify-content-end" style="gap:10px;">
+                                                <a href="{% url 'form_candidature' c.id_candidature %}" 
+                                                   class="btn px-3 py-2 rounded-pill shadow-sm"
+                                                   style="background-color:#7badff;color:white;">
+                                                    Modifier
+                                                </a>
+                                                <a href="#" onclick="deleteCand({{ c.id_candidature }})"
+                                                   class="btn px-3 py-2 rounded-pill shadow-sm"
+                                                   style="background-color:#e0e0e0;color:#333;">
+                                                    Supprimer
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                {% empty %}
+                                    <p class="text-center text-muted">Aucune candidature trouvée.</p>
+                                {% endfor %}
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SIDEBAR -->
+            <div class="col-lg-3 col-md-12 col-sm-12 col-12">
+                <div class="sidebar-with-bg background-primary bg-sidebar pb-80">
+                    <h5 class="medium-heading text-white mb-20 mt-20">Ajouter une candidature</h5>
+                    <p class="text-body-999 text-white mb-30">
+                        Créez une nouvelle candidature pour une opportunité.
+                    </p>
+                    <a href="{% url 'ajouter_candidature'%}"
+                       class="btn btn-border icon-chevron-right btn-white-sm">
+                        Ajouter
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- DELETE & AJOUT POPUP -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function deleteCand(id) {
+    Swal.fire({
+        title: 'Supprimer ?',
+        text: "Cette candidature sera supprimée définitivement.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Supprimer',
+        cancelButtonText: 'Annuler'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "{% url 'supprimer_candidature' 0 %}".replace("/0/", "/" + id + "/");
+        }
+    });
+}
+
+// POPUP AJOUT
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            Swal.fire({
+                icon: 'success',
+                title: 'Candidature ajoutée !',
+                text: '{{ message }}',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        {% endif %}
+    {% endfor %}
+{% endif %}
+</script>
+</main>
+{% endblock %}

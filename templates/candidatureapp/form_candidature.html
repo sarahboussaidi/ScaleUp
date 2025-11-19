@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Formulaire Candidature{% endblock %}
+
+{% block content %}
+
+<div class="breacrumb-cover">
+    <div class="container">
+        <ul class="breadcrumbs">
+            <li><a href="/home/">Home</a></li>
+            <li>Candidature</li>
+        </ul>
+    </div>
+</div>
+
+<div class="archive-header pt-50 pb-30 text-center">
+    <div class="container">
+        <h2 class="text-center mb-4">
+            {% if update %}Modifier la candidature{% else %}Nouvelle candidature{% endif %}
+        </h2>
+        <p class="text-muted w-75 mx-auto">
+            Remplissez le formulaire suivant pour gérer votre candidature.
+        </p>
+        <hr style="width: 60px; height: 3px; background: #00b074; border: none; margin: 20px auto;">
+    </div>
+</div>
+
+<section class="section-box mt-30 mb-80">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="card-job p-5 shadow-lg rounded-4"
+                     style="background:white; max-width:750px; margin:auto;">
+
+                    <!-- MESSAGES -->
+                    <div id="messages-container">
+                        {% for message in messages %}
+                            <div class="alert 
+                                {% if message.tags == 'success' %}alert-success{% endif %}
+                                {% if message.tags == 'error' %}alert-error{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data" class="mt-4">
+                        {% csrf_token %}
+
+                        <div class="row gy-4 gx-4">
+
+                            <!-- CANDIDAT -->
+                            <div class="col-md-12">
+                                <label class="form-label">Candidat</label>
+
+                                {% if user.is_authenticated %}
+                                    <!-- Visible read-only select showing the authenticated user -->
+                                    <select class="form-control p-3" disabled>
+                                        <option value="{{ user.id }}" selected>{{ user.first_name }} {{ user.last_name }}</option>
+                                    </select>
+
+                                    <!-- Hidden input so the user id is submitted with the form -->
+                                    <input type="hidden" name="id_candidat"
+                                           value="{% if post_data %}{{ post_data.id_candidat }}{% elif candidature.id_candidat %}{{ candidature.id_candidat.id }}{% else %}{{ user.id }}{% endif %}">
+                                {% else %}
+                                    <!-- Fallback for anonymous users: selectable list -->
+                                    <select name="id_candidat" class="form-control p-3">
+                                        <option value="" disabled {% if not post_data %}selected{% endif %}>Choisir un candidat</option>
+                                        {% for u in utilisateurs %}
+                                            <option value="{{ u.id }}"
+                                                {% if post_data %}
+                                                    {% if post_data.id_candidat == u.id|stringformat:"s" %}selected{% endif %}
+                                                {% else %}
+                                                    {% if candidature.id_candidat and candidature.id_candidat.id == u.id %}selected{% endif %}
+                                                {% endif %}>
+                                                {{ u.first_name }} {{ u.last_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                            </div>
+
+                            <!-- TYPE -->
+                            <div class="col-md-12">
+                                <label class="form-label">Type</label>
+                                <select name="type" class="form-control p-3" id="type-selector">
+                                    <option value="" disabled {% if not post_data %}selected{% endif %}>Choisir le type</option>
+                                    <option value="stage" {% if post_data and post_data.type == 'stage' %}selected{% elif candidature.id_stage %}selected{% endif %}>Stage</option>
+                                    <option value="freelance" {% if post_data and post_data.type == 'freelance' %}selected{% elif candidature.id_freelance %}selected{% endif %}>Freelance</option>
+                                    <option value="formation" {% if post_data and post_data.type == 'formation' %}selected{% elif candidature.id_formation %}selected{% endif %}>Formation</option>
+                                </select>
+                            </div>
+
+                            <!-- STAGE -->
+                            <div id="stage-box" class="col-md-12" style="display:none;">
+                                <label class="form-label">Stage</label>
+                                <select name="id_stage" class="form-control p-3">
+                                    <option value="">Choisir un stage</option>
+                                    {% for s in stages %}
+                                        <option value="{{ s.id_stage }}"
+                                            {% if post_data and post_data.id_stage == s.id_stage|stringformat:"s" %}
+                                                selected
+                                            {% elif candidature.id_stage and candidature.id_stage.id_stage == s.id_stage %}
+                                                selected
+                                            {% endif %}>
+                                            {{ s.titre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- FREELANCE -->
+                            <div id="freelance-box" class="col-md-12" style="display:none;">
+                                <label class="form-label">Freelance</label>
+                                <select name="id_freelance" class="form-control p-3">
+                                    <option value="">Choisir une mission</option>
+                                    {% for f in freelances %}
+                                        <option value="{{ f.id_freelance }}"
+                                            {% if post_data and post_data.id_freelance == f.id_freelance|stringformat:"s" %}
+                                                selected
+                                            {% elif candidature.id_freelance and candidature.id_freelance.id_freelance == f.id_freelance %}
+                                                selected
+                                            {% endif %}>
+                                            {{ f.titre_mission }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- FORMATION -->
+                            <div id="formation-box" class="col-md-12" style="display:none;">
+                                <label class="form-label">Formation</label>
+                                <select name="id_formation" class="form-control p-3">
+                                    <option value="">Choisir une formation</option>
+                                    {% for f in formations %}
+                                        <option value="{{ f.id_formation }}"
+                                            {% if post_data and post_data.id_formation == f.id_formation|stringformat:"s" %}
+                                                selected
+                                            {% elif candidature.id_formation and candidature.id_formation.id_formation == f.id_formation %}
+                                                selected
+                                            {% endif %}>
+                                            {{ f.titre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- LETTRE -->
+                            <div class="col-md-12">
+                                <label class="form-label">Lettre de motivation</label>
+                                <textarea name="lettre_motivation" rows="5"
+                                          class="form-control p-3">{% if post_data %}{{ post_data.lettre_motivation }}{% else %}{{ candidature.lettre_motivation }}{% endif %}</textarea>
+                            </div>
+
+                            <!-- CV -->
+                            <div class="col-md-12">
+                                <label class="form-label">CV (PDF/DOC)</label>
+                                <input type="file" name="cv_joint" class="form-control p-3">
+
+                                {% if candidature.cv_joint %}
+                                    <p class="mt-2">
+                                        📄 CV actuel :
+                                        <a href="{{ candidature.cv_joint.url }}" target="_blank">Voir</a>
+                                    </p>
+                                    <small class="text-muted">Vous pouvez laisser vide si vous ne souhaitez pas le modifier.</small>
+                                {% endif %}
+                            </div>
+
+                            <!-- STATUT (MODE UPDATE SEULEMENT) -->
+                            {% if update %}
+                            <div class="col-md-12">
+                                <label class="form-label">Statut</label>
+                                <select name="statut" class="form-control p-3">
+                                    {% for value,label in candidature.STATUTS %}
+                                        <option value="{{ value }}"
+                                            {% if post_data and post_data.statut == value %}
+                                                selected
+                                            {% elif candidature.statut == value %}
+                                                selected
+                                            {% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="mt-5 text-center d-flex justify-content-center gap-4">
+                            <button class="btn btn-success px-5 py-2 rounded-pill">
+                                {% if update %}Mettre à jour{% else %}Créer{% endif %}
+                            </button>
+
+                            <a href="{% url 'liste_candidatures' %}" class="btn btn-outline-secondary px-5 py-2 rounded-pill">
+                                Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+const typeSelect = document.getElementById("type-selector");
+const stageBox = document.getElementById("stage-box");
+const freelanceBox = document.getElementById("freelance-box");
+const formationBox = document.getElementById("formation-box");
+
+function updateVisibility(){
+    stageBox.style.display = "none";
+    freelanceBox.style.display = "none";
+    formationBox.style.display = "none";
+
+    const selectedType = typeSelect.value;
+    if(selectedType === "stage") stageBox.style.display = "block";
+    if(selectedType === "freelance") freelanceBox.style.display = "block";
+    if(selectedType === "formation") formationBox.style.display = "block";
+}
+
+// Mise à jour de l'affichage au changement ou au chargement
+typeSelect.addEventListener("change", updateVisibility);
+document.addEventListener("DOMContentLoaded", updateVisibility);
+</script>
+
+<style>
+.alert-error{
+    background:#ffe5e5; color:#842029; padding:12px; border-radius:6px;
+}
+.alert-success{
+    background:#e6ffed; color:#067d32; padding:12px; border-radius:6px;
+}
+</style>
+
+{% endblock %}

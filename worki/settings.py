@@ -128,17 +128,17 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
- 
+
 # Instead of MEDIA, we’re using a custom 'photos' directory for user uploads
 MEDIA_URL = '/photos/'
 MEDIA_ROOT = BASE_DIR / 'photos'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'userapp.Utilisateur'
-
 
 
 ASGI_APPLICATION = "worki.asgi.application"
@@ -158,3 +158,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
 ]
+
+import os
+
+CVS_URL = '/cvs/'
+CVS_ROOT = os.path.join(BASE_DIR, 'cvs')
