@@ -41,13 +41,13 @@ def stage_list(request):
     if request.user.is_authenticated and request.user.role == 'entreprise':
         stages = sorted(stages, key=lambda s: s.entreprise.id != request.user.id)
 
-    return render(request, 'stage_list.html', {'stages': stages})
+    return render(request, 'stageapp/stage_list.html', {'stages': stages})
 
 
 @login_required
 def stage_detail(request, id_stage):
     stage = get_object_or_404(Stage, id_stage=id_stage)
-    return render(request, 'stage_detail.html', {'stage': stage})
+    return render(request, 'stageapp/stage_detail.html', {'stage': stage})
 
 @login_required
 def stage_create(request):
@@ -70,7 +70,7 @@ def stage_create(request):
     else:
         form = StageForm()
     
-    return render(request, 'stage_form.html', {'form': form})
+    return render(request, 'stageapp/stage_form.html', {'form': form})
 
 @login_required
 def stage_update(request, id_stage):
@@ -88,7 +88,7 @@ def stage_update(request, id_stage):
     else:
         form = StageForm(instance=stage)
     
-    return render(request, 'stage_form.html', {'form': form})
+    return render(request, 'stageapp/stage_form.html', {'form': form})
 
 @login_required
 def stage_delete(request, id_stage):
@@ -102,4 +102,4 @@ def stage_delete(request, id_stage):
         stage.delete()
         return redirect('stage_list')
     
-    return render(request, 'stage_confirm_delete.html', {'stage': stage})
+    return render(request, 'stageapp/stage_confirm_delete.html', {'stage': stage})
