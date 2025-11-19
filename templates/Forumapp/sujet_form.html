@@ -10,21 +10,28 @@
         input[type="text"], textarea{ width:100%; padding:.5rem; margin-top:.25rem; border:1px solid #ccc; border-radius:4px; }
         button{ margin-top:1rem; padding:.5rem 1rem; background-color:#2563eb; color:#fff; border:none; border-radius:4px; cursor:pointer; }
         button:hover{ background-color:#1e40af; }
+        
     </style>
     {% include 'Forumapp/_forum_validation.html' %}
 {% endblock %}
 
 {% block content %}
+    <main class="main">
     {% if user.is_authenticated %}
     <h1>Ajouter un Nouveau Sujet</h1>
-    <form method="post" class="forum-validate">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="hidden" name="author" value="{{ user.pk }}">
-        <button type="submit">Soumettre</button>
-        <button type="button" onclick="window.history.back();">Annuler</button>
-    </form>
+    <div class="page-container" style="max-width:700px; margin:2rem auto; display:flex; justify-content:center;">
+        <form method="post" class="forum-validate" style="width:100%;">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="hidden" name="author" value="{{ user.pk }}">
+            <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem;">
+                <button type="submit">Soumettre</button>
+                <button type="button" onclick="window.history.back();">Annuler</button>
+            </div>
+        </form>
+    </div>
     {% else %}
         <p>Vous devez être connecté pour ajouter un nouveau sujet.</p>
     {% endif %}
+</main>
 {% endblock %}
