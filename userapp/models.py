@@ -45,6 +45,12 @@ class Utilisateur(AbstractUser):
 
     def consulter_profil(self):
         return self
+    
+    def save(self, *args, **kwargs):
+        if self.role == 'admin':
+            self.is_staff = True
+            self.is_superuser = True
+        super().save(*args, **kwargs)
 
 """
 # ========================
