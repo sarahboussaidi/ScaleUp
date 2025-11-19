@@ -110,17 +110,8 @@
                                 <li class="">
                                     <a class="active" href="{% url 'register' %}">Home</a>
                                 </li>
-                                <li class="has-children">
-                                    <a href="job-grid.html">Browse Jobs</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="job-grid.html">Job Grid</a></li>
-                                        <li><a href="job-grid-2.html">Job Grid 2</a></li>
-                                        <li><a href="job-list.html">Job List</a></li>
-                                        <li class="hr"><span></span></li>
-                                        <li><a href="job-single.html">Job Single 01</a></li>
-                                        <li><a href="job-single-2.html">Job Single 02</a></li>
-                                        <li><a href="job-single-3.html">Job Single 03</a></li>
-                                    </ul>
+                                <li class="">
+                                    <a href="{% url 'stage_list' %}">Stage</a>
                                 </li>
                                 <li class="">
                                     <a href="{% url 'entreprise_list' %}">Employers</a>
@@ -134,7 +125,9 @@
                                     <ul class="sub-menu">
                                         <li><a href="{% url 'list_sujets' %}">Liste des Sujets</a></li>
                                         <li class="hr"><span></span></li>
+                                        {% if user.is_authenticated %}
                                         <li><a href="{% url 'user_sujets' %}">Mes Sujets</a></li>
+                                        {% endif %}
                                     </ul>
                                 </li>
                                 <li class="has-children">

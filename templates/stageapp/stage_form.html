@@ -1,0 +1,89 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %} Stage{% endblock %}
+
+{% block content %}
+<main class="main">
+    <section class="section-box-2">
+    <div class="box-head-single none-bg">
+        <div class="container">
+
+            <h4>{% if form.instance.pk %}Modifier votre{% else %}Ajouter un{% endif %} Stage</h4>
+
+            <div class="info-box mt-3 mb-3 p-3 rounded-3 shadow-sm" 
+                 style="background:#f9fafc;border-left:4px solid #4A86F7;">
+                <p class="mb-0 text-muted" style="font-size: 14px;">
+                    ✨ Provide accurate information to help companies better evaluate your internship offer.
+                </p>
+            </div>
+
+            <div class="row mt-15 mb-40">
+                <div class="col-lg-7 col-md-9">
+                    <span class="text-muted">Fill this form</span>
+                </div>
+                <div class="col-lg-5 col-md-3 text-lg-end text-start">
+                    <ul class="breadcrumbs mt-sm-15">
+                        <li><a href="#">Stages</a></li>
+                        <li>{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %} Stage</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-9 col-md-12">
+
+            <div class="card shadow-sm p-4 rounded-3">
+                <form method="post" class="contact-form-style">
+                    {% csrf_token %}
+
+                    <!-- Form Fields -->
+                    <div class="form-group mb-4">
+                        {{ form.as_p }}
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'stage_list' %}" class="btn btn-outline-secondary">
+                            ⬅️ Annuler
+                        </a>
+
+                        <button class="btn btn-primary" type="submit">
+                            {% if form.instance.pk %}Mettre à jour{% else %}Créer{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</div>
+
+    
+</main>
+{% endblock %}

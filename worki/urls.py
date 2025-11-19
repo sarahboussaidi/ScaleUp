@@ -26,6 +26,7 @@ urlpatterns = [
     path('', RedirectView.as_view(pattern_name='home', permanent=False)),  # redirect root to /home/
     path('', include('userapp.urls')),
     path('forum/', include('forumapp.urls')),
+    path('stage/', include('stageapp.urls')),
 
 ]
 

@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Détails du Stage{% endblock %}
+
+{% block content %}
+
+
+
+
+<main class="main">
+    <section class="section-box">
+        <div class="box-head-single">
+            <div class="container">
+                <h3>{{ stage.titre }}</h3>
+                <ul class="breadcrumbs">
+                    <li><a href="{% url 'stage_list' %}">Home</a></li>
+                    <li>Détails du stage</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+    
+    <section class="section-box mt-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-md-12 col-sm-12 col-12">
+                    
+                    
+                    <div class="content-single">
+                        <h5>{{ stage.entreprise.nom_entreprise }}</h5>
+                        <p><strong>📍 Localisation:</strong> {{ stage.localisation }}</p>
+                        <p><strong>⏱️ Durée:</strong> {{ stage.duree }} semaines</p>
+                        <p><strong>📝 Type:</strong> {{ stage.type }}</p>
+                        <p><strong>📅 Date de publication:</strong> {{ stage.date_publication }}</p>
+                        
+                        <h5>Description du Stage</h5>
+                        <p>{{ stage.description|linebreaks }}</p>
+                        
+                        {% if stage.competences_requises %}
+                        <h5>Compétences Requises</h5>
+                        <p>{{ stage.competences_requises|linebreaks }}</p>
+                        {% endif %}
+                        
+                        {% if stage.informations_supplementaires %}
+                        <h5>Informations Supplémentaires</h5>
+                        <p>{{ stage.informations_supplementaires|linebreaks }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="author-single">
+                        <span>{{ stage.entreprise.nom_entreprise }}</span>
+                    </div>
+                    
+                    <div class="single-apply-jobs">
+                        <div class="row align-items-center">
+                            <div class="col-md-5">
+                                {% if user.is_authenticated and user.role == 'candidat' %}
+                                <a href="#" class="btn btn-default mr-15">Postuler maintenant</a>
+                                {% endif %}
+                                
+                                {% if user.is_authenticated and user.role == 'entreprise' and stage.entreprise.id == user.id %}
+                                <a href="{% url 'stage_edit' stage.id_stage %}" class="btn btn-default mr-15">Modifier</a>
+                                <a href="{% url 'stage_delete' stage.id_stage %}" class="btn btn-border">Supprimer</a>
+                                {% else %}
+                                <a href="#" class="btn btn-border">Sauvegarder</a>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-7 text-lg-end social-share">
+                                <a href="#" class="btn btn-border btn-sm mr-10">
+                                    <img alt="jobhub" src="/static/imgs/theme/icons/share-fb.svg" /> Partager
+                                </a>
+                                <a href="#" class="btn btn-border btn-sm mr-10">
+                                    <img alt="jobhub" src="/static/imgs/theme/icons/share-tw.svg" /> Tweeter
+                                </a>
+                                <a href="#" class="btn btn-border btn-sm">
+                                    <img alt="jobhub" src="/static/imgs/theme/icons/share-pinterest.svg" /> Épingler
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="single-recent-jobs">
+                        <h4 class="heading-border"><span>Stages récents</span></h4>
+                        <div class="list-recent-jobs">
+                            {% for recent_stage in recent_stages %}
+                            <div class="card-job hover-up wow animate__animated animate__fadeInUp">
+                                <div class="card-job-top">
+                                    <div class="card-job-top--image">
+                                        <figure>
+                                            <img alt="jobhub" src="/static/imgs/page/job/ui-ux.svg" />
+                                        </figure>
+                                    </div>
+                                    <div class="card-job-top--info">
+                                        <h6 class="card-job-top--info-heading">
+                                            <a href="{% url 'stage_detail' recent_stage.id_stage %}">{{ recent_stage.titre }}</a>
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-lg-7">
+                                                <a href="#">
+                                                    <span class="card-job-top--company">{{ recent_stage.entreprise.nom_entreprise }}</span>
+                                                </a>
+                                                <span class="card-job-top--location text-sm">
+                                                    <i class="fi-rr-marker"></i> {{ recent_stage.localisation }}
+                                                </span>
+                                                <span class="card-job-top--type-job text-sm">
+                                                    <i class="fi-rr-clock"></i> {{ recent_stage.duree }} semaines
+                                                </span>
+                                                <span class="card-job-top--post-time text-sm">
+                                                    <i class="fi-rr-clock"></i> {{ recent_stage.date_publication|timesince }}
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-5 text-lg-end">
+                                                <span class="card-job-top--price">Stage</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-job-description mt-20">
+                                    {{ recent_stage.description|truncatewords:30 }}
+                                </div>
+                                <div class="card-job-bottom mt-25">
+                                    <div class="row">
+                                        <div class="col-lg-9 col-sm-8 col-12">
+                                            <a href="{% url 'stage_detail' recent_stage.id_stage %}" class="btn btn-small background-6 disc-btn">Détails</a>
+                                        </div>
+                                        <div class="col-lg-3 col-sm-4 col-12 text-end">
+                                            <span><img src="/static/imgs/theme/icons/shield-check.svg" alt="jobhub" /></span>
+                                            <span class="ml-5"><img src="/static/imgs/theme/icons/bookmark.svg" alt="jobhub" /></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-20">
+                            <a href="{% url 'stage_list' %}" class="btn btn-default">Explorer plus de stages</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-12 col-sm-12 col-12 pl-40 pl-lg-15 mt-lg-30">
+                    <div class="sidebar-shadow">
+                        <div class="sidebar-heading">
+                            <div class="avatar-sidebar">
+                                <figure>
+                                    <img alt="jobhub" src="/static/imgs/page/job-single/avatar-job.png" />
+                                </figure>
+                                <div class="sidebar-info">
+                                    <span class="sidebar-company">{{ stage.entreprise.nom_entreprise }}</span>
+                                    <span class="sidebar-website-text">{{ stage.entreprise.domaine }}</span>
+                                    <div class="dropdowm">
+                                        <button class="btn btn-dots btn-dots-abs-right dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                        <ul class="dropdown-menu dropdown-menu-light">
+                                            <li><a class="dropdown-item" href="#">Contact</a></li>
+                                            <li><a class="dropdown-item" href="#">Sauvegarder</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-description mt-15">
+                            Offre de stage proposée par {{ stage.entreprise.nom_entreprise }}
+                        </div>
+                        
+                        <div class="text-start mt-20">
+                            {% if user.is_authenticated and user.role == 'candidat' %}
+                            <a href="#" class="btn btn-default mr-10">Postuler maintenant</a>
+                            {% endif %}
+                            <a href="#" class="btn btn-border">Sauvegarder</a>
+                        </div>
+                        
+                        <div class="sidebar-list-job">
+                            <ul>
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-briefcase"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Type de stage</span>
+                                        <strong class="small-heading">{{ stage.type }}</strong>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-marker"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Localisation</span>
+                                        <strong class="small-heading">{{ stage.localisation }}</strong>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-clock"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Durée</span>
+                                        <strong class="small-heading">{{ stage.duree }} semaines</strong>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-calendar"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Date de publication</span>
+                                        <strong class="small-heading">{{ stage.date_publication }}</strong>
+                                    </div>
+                                </li>
+                                {% if stage.date_limite %}
+                                <li>
+                                    <div class="sidebar-icon-item"><i class="fi-rr-time-fast"></i></div>
+                                    <div class="sidebar-text-info">
+                                        <span class="text-description">Date limite</span>
+                                        <strong class="small-heading">{{ stage.date_limite }}</strong>
+                                    </div>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        
+                        {% if stage.entreprise.description %}
+                        <div class="sidebar-team-member pt-40">
+                            <h6 class="small-heading">À propos de l'entreprise</h6>
+                            <div class="text-description">
+                                {{ stage.entreprise.description|truncatewords:50 }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if stage.entreprise.contact_email or stage.entreprise.telephone %}
+                        <div class="sidebar-team-member pt-40">
+                            <h6 class="small-heading">Contact</h6>
+                            <div class="info-address">
+                                {% if stage.entreprise.adresse %}
+                                <span><i class="fi-rr-marker"></i> <span>{{ stage.entreprise.adresse }}</span></span>
+                                {% endif %}
+                                {% if stage.entreprise.telephone %}
+                                <span><i class="fi-rr-headset"></i> <span>{{ stage.entreprise.telephone }}</span></span>
+                                {% endif %}
+                                {% if stage.entreprise.contact_email %}
+                                <span><i class="fi-rr-paper-plane"></i> <span>{{ stage.entreprise.contact_email }}</span></span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="sidebar-normal">
+                        <div>
+                            <h6 class="small-heading">Actions</h6>
+                            <ul class="ul-lists">
+                                <li><a href="{% url 'stage_list' %}">← Retour à la liste</a></li>
+                                {% if user.is_authenticated and user.role == 'entreprise' and stage.entreprise.id == user.id %}
+                                <li><a href="{% url 'stage_edit' stage.id_stage %}">✏️ Modifier ce stage</a></li>
+                                <li><a href="{% url 'stage_delete' stage.id_stage %}">🗑️ Supprimer ce stage</a></li>
+                                {% endif %}
+                                {% if user.is_authenticated and user.role == 'entreprise' %}
+                                <li><a href="{% url 'stage_form' %}">➕ Ajouter un stage</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Vendor JS-->
+<script src="/static/js/vendor/modernizr-3.6.0.min.js"></script>
+<script src="/static/js/vendor/jquery-3.6.0.min.js"></script>
+<script src="/static/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+<script src="/static/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="/static/js/plugins/waypoints.js"></script>
+<script src="/static/js/plugins/wow.js"></script>
+<script src="/static/js/plugins/magnific-popup.js"></script>
+<script src="/static/js/plugins/perfect-scrollbar.min.js"></script>
+<script src="/static/js/plugins/select2.min.js"></script>
+<script src="/static/js/plugins/isotope.js"></script>
+<script src="/static/js/plugins/scrollup.js"></script>
+<script src="/static/js/plugins/swiper-bundle.min.js"></script>
+<!-- Template JS -->
+<script src="/static/js/main.js?v=1.0"></script>
+{% endblock %}
