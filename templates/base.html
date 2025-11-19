@@ -102,7 +102,7 @@
             <div class="main-header">
                 <div class="header-left">
                     <div class="header-logo">
-                        <a href="index.html" class="d-flex"><img alt="jobhub" src="/static/imgs/theme/worki-logo.svg" width="150px" /></a>
+                        <a href="index.html" class="d-flex"><img alt="jobhub" src="/static/imgs/theme/worki-logo.svg" width="120px" /></a>
                     </div>
                     <div class="header-nav">
                         <nav class="nav-main-menu d-none d-xl-block" aria-label="Main navigation">
@@ -112,6 +112,9 @@
                                 </li>
                                 <li class="">
                                     <a href="{% url 'stage_list' %}">Stage</a>
+                                </li>
+                                <li class="">
+                                    <a href="{% url 'freelance_list' %}">Freelance</a>
                                 </li>
                                 <li class="">
                                     <a href="{% url 'entreprise_list' %}">Employers</a>
@@ -130,18 +133,11 @@
                                         {% endif %}
                                     </ul>
                                 </li>
-                                <li class="has-children">
-                                    <a href="#">Pages</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="page-about.html">About Us</a></li>
-                                        <li><a href="page-service.html">Our Services</a></li>
-                                        <li><a href="page-pricing.html">Pricing Plan</a></li>
-                                        <li><a href="pages-faqs.html">FAQs</a></li>
-                                        <li><a href="page-contact.html">Contact Us</a></li>
-                                    </ul>
-                                </li>
+                                
                             </ul>
+                            
                         </nav>
+                        
                         <div class="burger-icon burger-icon-white">
                             <span class="burger-icon-top"></span>
                             <span class="burger-icon-mid"></span>
@@ -150,17 +146,18 @@
                     </div>
                 </div>
                 <div class="header-right">
-                    {% if user.is_authenticated %}
+                    
                     <div class="block-signin">
+                        {% if user.is_authenticated %}
                         <a href="#" class="text-link-bd-btom hover-up">Apply Now</a>
-                    </div>
+                    
                     {% else %}
-                    <div class="block-signin">
+                    
                         <a href="{% url 'signin' %}" class="btn btn-default btn-shadow ml-40 hover-up">Sign in</a>
                         <a href="{% url 'register' %}" class="btn btn-default btn-shadow ml-40 hover-up">Register</a>
-
-                    </div>
                     {% endif %}
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -246,16 +243,7 @@
                                         <li><a href="blog-single-2.html">Blog Single 02</a></li>
                                     </ul>
                                 </li>
-                                <li class="has-children">
-                                    <a href="#">Pages</a>
-                                    <ul class="sub-menu">
-                                        <li><a href="page-about.html">About Us</a></li>
-                                        <li><a href="page-service.html">Our Services</a></li>
-                                        <li><a href="page-pricing.html">Pricing Plan</a></li>
-                                        <li><a href="pages-faqs.html">FAQs</a></li>
-                                        <li><a href="page-contact.html">Contact Us</a></li>
-                                    </ul>
-                                </li>
+                               
                             </ul>
                         </nav>
                         <!-- mobile menu end -->
