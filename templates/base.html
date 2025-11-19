@@ -107,6 +107,7 @@
                     <div class="header-nav">
                         <nav class="nav-main-menu d-none d-xl-block" aria-label="Main navigation">
                             <ul class="main-menu">
+                                {% if user.is_authenticated%}
                                 <li class="">
                                     <a class="active" href="{% url 'register' %}">Home</a>
                                 </li>
@@ -133,7 +134,7 @@
                                         {% endif %}
                                     </ul>
                                 </li>
-                                
+                                {% endif %}
                             </ul>
                             
                         </nav>
