@@ -1,23 +1,26 @@
 from django.urls import path
 from . import views
 from django.conf.urls.static import static
-import os
 from django.conf import settings
 
 urlpatterns = [
+    path('list/', views.liste_candidatures, name='liste_candidatures'),
+
+    # Création d'une nouvelle candidature (pas d'ID)
+    path('form/', views.form_candidature, name='ajouter_candidature'),
+
+    # Modification d'une candidature existante (avec ID)
+    path('form/<int:id>/', views.form_candidature, name='form_candidature'),
+
+    # Suppression
+    path('delete/<int:id>/', views.supprimer_candidature, name='supprimer_candidature'),
+
+    # Authentification
     path('login/', views.login_view, name='login'),
-    path('consulter/', views.consulter_candidatures, name='consulter_candidatures'),
-    path('ajouter/', views.ajouter_candidature, name='ajouter_candidature'),
-    path('liste/', views.liste_candidatures, name='liste_candidatures'),
-    path('details/<int:id>/', views.details_candidature, name='details_candidature'),
-    path('modifier/<int:id>/', views.modifier_candidature, name='modifier_candidature'),
-    path('supprimer/<int:id>/', views.supprimer_candidature, name='supprimer_candidature'),
+    path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
-    
-    path('logout/', views.login_view, name='logout'),
-   
-    
 ]
 
+# Gestion des CV en mode DEBUG
 if settings.DEBUG:
     urlpatterns += static(settings.CVS_URL, document_root=settings.CVS_ROOT)
