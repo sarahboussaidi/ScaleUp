@@ -55,7 +55,7 @@
                                     <div class="card-job-bottom mt-25">
                                         <div class="row">
                                             <div class="col-lg-9 col-sm-8 col-12">
-                                                {%if user == Formation.author or user.role == "admin"%}
+                                                {% if user == Formation.author or user.role == "admin" %}
                                                 <a href="{% url 'formation_update' Formation.id_formation %}" class="btn btn-small background-12 mr-5">Modifier</a>
                                                 <button type="button" class="btn btn-small background-blue-light mr-5" data-bs-toggle="modal" data-bs-target="#deleteModal{{ Formation.id_formation }}">supprimer</button>
 

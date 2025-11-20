@@ -47,7 +47,7 @@
                             </ul>
                         </div>
                     </div>
-                    {%if user == formation.author or user.role == "admin" %}
+                    {% if user == formation.id_user or user.role == "admin" %}
                     <a href="{% url 'lesson_create' formation.id_formation  %}" class="btn btn-small background-12 mr-5">Ajouter leçon</a>
                     {% endif %}
                 </div>

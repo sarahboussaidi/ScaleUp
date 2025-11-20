@@ -168,21 +168,37 @@
 
                             <!-- STATUT (MODE UPDATE SEULEMENT) -->
                             {% if update %}
-                            <div class="col-md-12">
-                                <label class="form-label">Statut</label>
-                                <select name="statut" class="form-control p-3">
-                                    {% for value,label in candidature.STATUTS %}
-                                        <option value="{{ value }}"
-                                            {% if post_data and post_data.statut == value %}
-                                                selected
-                                            {% elif candidature.statut == value %}
-                                                selected
-                                            {% endif %}>
-                                            {{ label }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                                {% if user.role == 'admin' %}
+                                    <div class="col-md-12">
+                                        <label class="form-label">Statut</label>
+                                        <select name="statut" class="form-control p-3">
+                                            {% for value,label in candidature.STATUTS %}
+                                                <option value="{{ value }}"
+                                                    {% if post_data and post_data.statut == value %}
+                                                        selected
+                                                    {% elif candidature.statut == value %}
+                                                        selected
+                                                    {% endif %}>
+                                                    {{ label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% else %}
+                                    <div class="col-md-12">
+                                        <label class="form-label">Statut</label>
+                                        <div>
+                                            <span class="badge
+                                                {% if candidature.statut == 'ACCEPTEE' %} bg-success
+                                                {% elif candidature.statut == 'REFUSEE' %} bg-danger
+                                                {% elif candidature.statut == 'ENTRETIEN' %} bg-warning
+                                                {% elif candidature.statut == 'VUE' %} bg-info
+                                                {% else %} bg-secondary {% endif %} text-sm p-2">
+                                                {{ candidature.get_statut_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endif %}
                             {% endif %}
 
                         </div>

@@ -245,14 +245,13 @@
                                     </ul>
                                 </li>
                                 <li class="has-children">
-                                    <a href="#">Blog</a>
+                                    <a href="#">Forum</a>
                                     <ul class="sub-menu">
-                                        <li><a href="blog-grid.html">Blog Grid</a></li>
-                                        <li><a href="blog-grid-2.html">Blog Grid Sidebar</a></li>
-                                        <li><a href="blog-list.html">Blog List</a></li>
+                                        <li><a href="{% url 'list_sujets' %}">Liste des Sujets</a></li>
                                         <li class="hr"><span></span></li>
-                                        <li><a href="blog-single.html">Blog Single 01</a></li>
-                                        <li><a href="blog-single-2.html">Blog Single 02</a></li>
+                                        {% if user.is_authenticated %}
+                                        <li><a href="{% url 'user_sujets' %}">Mes Sujets</a></li>
+                                        {% endif %}
                                     </ul>
                                 </li>
                                

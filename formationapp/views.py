@@ -21,6 +21,11 @@ class FormationCreateView(CreateView):
     #fields = "__all__"
     form_class = FormationForm
     success_url=reverse_lazy('formation_admin')
+    def form_valid(self, form):
+        # set the author to the currently authenticated user by default
+        if hasattr(self.request, 'user') and self.request.user.is_authenticated:
+            form.instance.author = self.request.user
+        return super().form_valid(form)
 
 class FormationDeleteView(DeleteView):
     model = Formation
