@@ -1,0 +1,124 @@
+{
+  "source": "raw_text",
+  "image_path": null,
+  "image_composition": null,
+  "raw_text_full": "Fusion CXO + Suivre 309 102 abonnes Promu Fusion CX is Hiring! Open Role: Customer Support Executives What We're Looking For: Excellent communication skills strong willingness to learn and grow Follow our page to stay updated on the latest pportunities_ Afficher Ia traduction FUSION Ai-First CX IMMEDIATE HIRYNG AcRoss MULTIPLE ROLES Follow Us On Linkedln 6381 799 commentaires 130 republications",
+  "raw_text_preview": "Fusion CXO + Suivre 309 102 abonnes Promu Fusion CX is Hiring! Open Role: Customer Support Executives What We're Looking For: Excellent communication skills strong willingness to learn and grow Follow our page to stay updated on the latest pportunities_ Afficher Ia traduction FUSION Ai-First CX IMMEDIATE HIRYNG AcRoss MULTIPLE ROLES Follow Us On Linkedln 6381 799 commentaires 130 republications",
+  "text_length": 397,
+  "platform": "linkedin",
+  "overall_score": 5.33,
+  "penalized_overall_score": 4.33,
+  "universal_score": 6.34,
+  "penalty_applied": 1.0,
+  "overall_label": "unknown",
+  "dimension_scores": {
+    "sentiment": 7.3,
+    "structure": 8.5,
+    "hashtags": 0.0,
+    "target_match": 5.5
+  },
+  "dimension_contribution": {
+    "sentiment": {
+      "score": 7.3,
+      "weight": 0.25,
+      "contribution": 1.825,
+      "percent_of_total": 34.27230046948357
+    },
+    "structure": {
+      "score": 8.5,
+      "weight": 0.25,
+      "contribution": 2.125,
+      "percent_of_total": 39.906103286384976
+    },
+    "hashtags": {
+      "score": 0.0,
+      "weight": 0.25,
+      "contribution": 0.0,
+      "percent_of_total": 0.0
+    },
+    "target_match": {
+      "score": 5.5,
+      "weight": 0.25,
+      "contribution": 1.375,
+      "percent_of_total": 25.821596244131456
+    }
+  },
+  "ranked_dimensions": [
+    {
+      "dimension": "structure",
+      "score": 8.5,
+      "contribution_percent": 39.906103286384976
+    },
+    {
+      "dimension": "sentiment",
+      "score": 7.3,
+      "contribution_percent": 34.27230046948357
+    },
+    {
+      "dimension": "target_match",
+      "score": 5.5,
+      "contribution_percent": 25.821596244131456
+    },
+    {
+      "dimension": "hashtags",
+      "score": 0.0,
+      "contribution_percent": 0.0
+    }
+  ],
+  "feature_metrics": {
+    "raw_text": "Fusion CXO + Suivre 309 102 abonnes Promu Fusion CX is Hiring! Open Role: Customer Support Executives What We're Looking For: Excellent communication skills strong willingness to learn and grow Follow our page to stay updated on the latest pportunities_ Afficher Ia traduction FUSION Ai-First CX IMMEDIATE HIRYNG AcRoss MULTIPLE ROLES Follow Us On Linkedln 6381 799 commentaires 130 republications",
+    "word_count": 61,
+    "char_count": 397,
+    "hashtag_count": 0,
+    "mention_count": 0,
+    "exclaim_count": 1,
+    "question_count": 0,
+    "emoji_count": 0,
+    "has_cta": 1,
+    "has_url": 0,
+    "readability_flesch": 28.867663934426247,
+    "avg_word_length": 5.442622950819672,
+    "sentence_count": 2,
+    "caps_ratio": 0.10714285714285714,
+    "unique_hashtag_ratio": 0.0
+  },
+  "top_features": {
+    "word_count": {
+      "value": 61.0,
+      "impact": "Word count (optimal: 10-150 words)",
+      "importance": 0.15
+    },
+    "char_count": {
+      "value": 397.0,
+      "impact": "Character count (optimal: 100-2200)",
+      "importance": 0.15
+    },
+    "hashtag_count": {
+      "value": 0.0,
+      "impact": "Hashtag count (optimal: 3-7 for Instagram)",
+      "importance": 0.15
+    },
+    "has_cta": {
+      "value": 1.0,
+      "impact": "Call-to-action present (binary: buy, click, link, etc.)",
+      "importance": 0.1
+    },
+    "sentiment_polarity": {
+      "value": 5.442622950819672,
+      "impact": "Average word length (shorter=more readable)",
+      "importance": 0.1
+    }
+  },
+  "issues_detected": {
+    "too_short": false,
+    "too_long": false,
+    "no_cta": false,
+    "no_hashtags": true,
+    "hashtag_spam": false,
+    "all_caps": false,
+    "hard_to_read": true,
+    "negative_tone": false,
+    "flat_neutral": false
+  },
+  "interpretation": "Moderate engagement (score 5.3/10). Strengths: sentiment, structure. Weaknesses: hashtags. Issues detected: No Hashtags, Hard To Read."
+}

@@ -1,0 +1,81 @@
+{
+  "image": "./uploads\\20260505_014051_Capture_decran_2026-05-02_114044_crop.png",
+  "image_composition": {
+    "file_path": "./uploads\\20260505_014051_Capture_decran_2026-05-02_114044_crop.png",
+    "dimensions": {
+      "width": 555,
+      "height": 612
+    },
+    "aspect_ratio": 0.91,
+    "color_space": "RGB",
+    "file_size_kb": 255.6416015625,
+    "average_color": {
+      "red": 126.3,
+      "green": 88.4,
+      "blue": 132.9
+    },
+    "brightness_0_255": 104.8,
+    "brightness_label": "medium",
+    "contrast_std": 103.2,
+    "contrast_label": "high",
+    "color_saturation_0_1": 0.229,
+    "saturation_label": "normal"
+  },
+  "extracted_text": "Afficher Ia traduction\nFUSION\nFirST X\nIMMEDIATE\nHIRING\nAcROss MULTIPLE ROLES\nFollow Us On Linkedln\n381\n799 commentaires\n130\nrepublications",
+  "visual_prediction": {
+    "class": "good",
+    "score_0_10": 5.86,
+    "class_id": 2,
+    "source": "notebook_visual_evaluation"
+  },
+  "grad_cam": {
+    "heatmap_save": "./outputs/gradcam_20260505_014051_Capture_decran_2026-05-02_114044_crop.png",
+    "top_regions": [
+      "Region 1: row=0/1, col=0/1 (intensity=1.000)"
+    ]
+  },
+  "attribute_importance_inference": {
+    "top_3": [
+      [
+        "Object",
+        0.9999999913852842
+      ],
+      [
+        "Light",
+        0.9384484675201858
+      ],
+      [
+        "VividColor",
+        0.8767239018810071
+      ]
+    ],
+    "full": {
+      "BalacingElements": 0.6181065520547622,
+      "ColorHarmony": 0.6043840826316674,
+      "Content": 0.5261126669215366,
+      "DoF": 0.7562510377691214,
+      "Light": 0.9384484675201858,
+      "MotionBlur": 0.7411442341533853,
+      "Object": 0.9999999913852842,
+      "Repetition": 0.0,
+      "RuleOfThirds": 0.4150453903632885,
+      "Symmetry": 0.0,
+      "VividColor": 0.8767239018810071
+    }
+  },
+  "attribute_importance_training": {
+    "Content": 0.6808642017202233,
+    "Light": 0.5693554032653336,
+    "ColorHarmony": 0.5619543730650818,
+    "Object": 0.5418692003813564,
+    "VividColor": 0.5144203182980835,
+    "DoF": 0.4373044485203855,
+    "RuleOfThirds": 0.3530456447115033,
+    "BalacingElements": 0.33214858063586367,
+    "MotionBlur": 0.21686219788450856,
+    "Symmetry": 0.1290828079344685,
+    "Repetition": 0.10040885388955621
+  },
+  "interpretation": "The notebook-trained visual score is 5.9/10, which falls in the 'good' band. Image: 555x612 (0.91:1), medium with high contrast. Image regions with highest activation shown in Grad-CAM heatmap. Top influencing attributes: Object(1.00), Light(0.94), VividColor(0.88)",
+  "score_source": "notebook_visual_evaluation"
+}
