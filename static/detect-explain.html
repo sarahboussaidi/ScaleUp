@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scaleup Legal | Detection Explain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="/static/home.html">
+        <span class="brand-mark"><i class="fa-solid fa-scale-balanced"></i></span>
+        <span>Scaleup Legal</span>
+      </a>
+      <nav class="nav">
+        <a class="nav-link" href="/static/home.html">Home</a>
+        <a class="nav-link" href="/static/index.html">Document Generator</a>
+        <a class="nav-link" href="/static/scanner.html">Analyzer Tools</a>
+        <a class="nav-link" href="/static/explain.html">Signature Explain</a>
+        <a class="nav-link active" href="/static/detect-explain.html">Detection Explain</a>
+        <a class="nav-link" href="/static/ocr-explain.html">OCR Explain</a>
+        <a class="nav-link" href="/static/summarization-explain.html">Summarization Explain</a>
+        <a class="nav-link" href="/static/evaluation.html">Evaluation</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero-card reveal">
+      <h2>Signature Detection Explain</h2>
+      <p>Upload an image to see which regions were detected as signatures and their confidence scores.</p>
+      <input id="file" type="file" accept="image/*" />
+      <button id="upload" class="btn btn-primary" style="margin-top:12px">Upload & Explain</button>
+      <div id="result" style="margin-top:16px;font-weight:500"></div>
+      <img id="annotatedPreview" src="" alt="Annotated detection" style="max-width:100%;border:1px solid #ddd;display:none;margin-top:12px" />
+      <pre id="details" style="background:#f6f6f6;padding:10px;border-radius:8px;white-space:pre-wrap;max-height:300px;overflow-y:auto"></pre>
+    </section>
+  </main>
+
+  <script>
+    const fileEl = document.getElementById('file');
+    const btn = document.getElementById('upload');
+    const res = document.getElementById('result');
+    const details = document.getElementById('details');
+
+    btn.addEventListener('click', async () => {
+      if (!fileEl.files || fileEl.files.length === 0) {
+        alert('Choose an image first');
+        return;
+      }
+      const fd = new FormData();
+      fd.append('file', fileEl.files[0]);
+
+      res.textContent = 'Uploading...';
+      try {
+        const r = await fetch('/api/signature/detect-explain', { method: 'POST', body: fd });
+        if (!r.ok) {
+          const txt = await r.text();
+          res.textContent = 'Error: ' + txt;
+          return;
+        }
+        const j = await r.json();
+        res.textContent = `Found ${j.count} signature region(s)`;
+        if (j.annotated_image_url) {
+          const preview = document.getElementById('annotatedPreview');
+          preview.src = j.annotated_image_url + '?t=' + Date.now();
+          preview.style.display = 'block';
+        }
+        details.textContent = [
+          `Model: ${j.model}`,
+          `Explanation: ${j.explanation_text || 'N/A'}`,
+          `Detections:`,
+          ...(j.detections || []).map(d => `  - ${d.class_name} @ ${(d.confidence * 100).toFixed(1)}%`)
+        ].join('\n');
+      } catch (err) {
+        res.textContent = 'Upload failed: ' + err;
+      }
+    });
+  </script>
+</body>
+</html>

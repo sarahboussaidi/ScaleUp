@@ -1,0 +1,19 @@
+# Modèles et fichiers lourds
+*.pth
+*.pt
+*.bin
+*.ptl
+models/
+runs/
+
+# Données
+data/
+data2/
+funsd/
+lexglue/
+generated/
+
+# Python
+__pycache__/
+*.pyc
+.env

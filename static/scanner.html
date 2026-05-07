@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scaleup Legal | Analyzer Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="/static/home.html">
+        <span class="brand-mark"><i class="fa-solid fa-scale-balanced"></i></span>
+        <span>Scaleup Legal</span>
+      </a>
+      <nav class="nav">
+        <a class="nav-link" href="/static/home.html">Home</a>
+        <a class="nav-link" href="/static/index.html">Document Generator</a>
+        <a class="nav-link active" href="/static/scanner.html">Analyzer Tools</a>
+        <a class="nav-link" href="/static/explain.html">Signature Explain</a>
+        <a class="nav-link" href="/static/detect-explain.html">Detection Explain</a>
+        <a class="nav-link" href="/static/ocr-explain.html">OCR Explain</a>
+        <a class="nav-link" href="/static/summarization-explain.html">Summarization Explain</a>
+        <a class="nav-link" href="/static/evaluation.html">Evaluation</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero reveal">
+      <article class="hero-card">
+        <h1 style="font-size: clamp(30px, 4vw, 44px);">Document Analysis and Signature Lab</h1>
+        <p>
+          Upload scans for OCR, run legal document intelligence, verify signatures,
+          and detect signature regions. Results appear with readable contrast and larger output panes.
+        </p>
+        <div class="chip-row" style="margin-top:16px;">
+          <span class="chip">OCR + Entities</span>
+          <span class="chip">Legal Analysis</span>
+          <span class="chip">Signature AI</span>
+          <span class="chip">Detection Preview</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="workspace-intro reveal delay-1">
+      <div class="workspace-banner">
+        <p>Analyzer Tools workspace: each task has its own panel, output area, and preview state.</p>
+        <div class="chip-row">
+          <span class="chip">Readable Output</span>
+          <span class="chip">Clear Status</span>
+          <span class="chip">Modular Layout</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="tools-grid reveal delay-1">
+      <article class="panel tool-card">
+        <h3><i class="fa-solid fa-file-waveform" style="color:#0a7d62"></i> OCR Scanner</h3>
+        <p>Extract text, entities, and keyword hits from an image, plus annotated preview.</p>
+        <input id="ocrFile" class="file-input" type="file" accept="image/*" />
+        <button id="ocrBtn" class="btn btn-primary">Analyze Scan</button>
+        <div id="ocrStatus" class="note"></div>
+        <img id="ocrPreview" class="preview hidden" alt="OCR annotated preview" />
+        <div id="ocrResult" class="results hidden"></div>
+      </article>
+
+      <article class="panel tool-card">
+        <h3><i class="fa-solid fa-scale-balanced" style="color:#d2691f"></i> Legal Intelligence</h3>
+        <p>Analyze legal text or upload a file for summary, clauses, risk flags, and evidence.</p>
+        <input id="intelFile" class="file-input" type="file" accept=".docx,.txt,.md,image/*" />
+        <textarea id="intelText" class="text-area" placeholder="Paste legal text here, or upload a file above..."></textarea>
+        <button id="intelBtn" class="btn btn-secondary">Analyze Document</button>
+        <div id="intelStatus" class="note"></div>
+        <div id="intelResult" class="results hidden"></div>
+      </article>
+
+      <article class="panel tool-card">
+        <h3><i class="fa-solid fa-signature" style="color:#0a7d62"></i> Signature Verification</h3>
+        <p>Classify a signature image as real or fake using your trained classifier.</p>
+        <input id="sigFile" class="file-input" type="file" accept="image/*" />
+        <button id="sigBtn" class="btn btn-primary">Verify Signature</button>
+        <div id="sigStatus" class="note"></div>
+        <div id="sigResult" class="results hidden"></div>
+      </article>
+
+      <article class="panel tool-card">
+        <h3><i class="fa-solid fa-vector-square" style="color:#d2691f"></i> Signature Detection</h3>
+        <p>Detect signature regions with YOLO and preview bounding boxes.</p>
+        <input id="detFile" class="file-input" type="file" accept="image/*" />
+        <button id="detBtn" class="btn btn-secondary">Detect Signature Region</button>
+        <div id="detStatus" class="note"></div>
+        <img id="detPreview" class="preview hidden" alt="Detected signature preview" />
+        <div id="detResult" class="results hidden"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">Analyzer workspace rebuilt with separate modules for OCR, intelligence, and signature operations.</footer>
+
+  <script>
+    function showResult(el, text) {
+      el.textContent = text;
+      el.classList.remove("hidden");
+    }
+
+    function hideResult(el) {
+      el.classList.add("hidden");
+      el.textContent = "";
+    }
+
+    function hideImage(el) {
+      el.classList.add("hidden");
+      el.removeAttribute("src");
+    }
+
+    function showImage(el, src) {
+      el.src = src;
+      el.classList.remove("hidden");
+    }
+
+    const ocrFile = document.getElementById("ocrFile");
+    const ocrBtn = document.getElementById("ocrBtn");
+    const ocrStatus = document.getElementById("ocrStatus");
+    const ocrResult = document.getElementById("ocrResult");
+    const ocrPreview = document.getElementById("ocrPreview");
+
+    const intelFile = document.getElementById("intelFile");
+    const intelText = document.getElementById("intelText");
+    const intelBtn = document.getElementById("intelBtn");
+    const intelStatus = document.getElementById("intelStatus");
+    const intelResult = document.getElementById("intelResult");
+
+    const sigFile = document.getElementById("sigFile");
+    const sigBtn = document.getElementById("sigBtn");
+    const sigStatus = document.getElementById("sigStatus");
+    const sigResult = document.getElementById("sigResult");
+
+    const detFile = document.getElementById("detFile");
+    const detBtn = document.getElementById("detBtn");
+    const detStatus = document.getElementById("detStatus");
+    const detResult = document.getElementById("detResult");
+    const detPreview = document.getElementById("detPreview");
+
+    ocrBtn.onclick = async () => {
+      if (!ocrFile.files[0]) {
+        ocrStatus.textContent = "Select an image file first.";
+        return;
+      }
+
+      ocrStatus.textContent = "Analyzing image...";
+      hideResult(ocrResult);
+      hideImage(ocrPreview);
+
+      const form = new FormData();
+      form.append("file", ocrFile.files[0]);
+      form.append("save_annotated", "true");
+
+      try {
+        const res = await fetch("/api/ocr/analyze-upload", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "OCR request failed");
+        }
+
+        const entityLines = (data.entities || []).slice(0, 20).map((e) => "- " + e.text + " (" + e.label + ")");
+        const keywordLines = (data.keyword_hits || []).slice(0, 10).map((k) => "- " + k);
+        const textPreview = (data.text || "").slice(0, 2200);
+
+        const lines = [
+          "Extracted text preview:",
+          textPreview || "-",
+          "",
+          "Entities:",
+          entityLines.length ? entityLines.join("\n") : "- none",
+          "",
+          "Keyword hits:",
+          keywordLines.length ? keywordLines.join("\n") : "- none",
+          "",
+          "OCR boxes: " + ((data.ocr_results || []).length)
+        ];
+
+        showResult(ocrResult, lines.join("\n"));
+        if (data.annotated_image_url) {
+          showImage(ocrPreview, data.annotated_image_url + "?t=" + Date.now());
+        }
+        ocrStatus.textContent = "OCR complete.";
+      } catch (error) {
+        ocrStatus.textContent = "Error: " + error.message;
+      }
+    };
+
+    intelBtn.onclick = async () => {
+      const pastedText = (intelText.value || "").trim();
+      const file = intelFile.files[0];
+
+      if (!pastedText && !file) {
+        intelStatus.textContent = "Paste text or choose a file first.";
+        return;
+      }
+
+      intelStatus.textContent = "Analyzing document...";
+      hideResult(intelResult);
+
+      try {
+        let data;
+
+        if (file) {
+          const form = new FormData();
+          form.append("file", file);
+          form.append("question", "");
+          const res = await fetch("/api/document/intel-upload", { method: "POST", body: form });
+          data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.detail || "Document intelligence upload failed");
+          }
+        } else {
+          const res = await fetch("/api/document/intel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: pastedText,
+              source_name: "pasted text",
+              question: ""
+            })
+          });
+          data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.detail || "Document intelligence request failed");
+          }
+        }
+
+        const lines = [];
+        lines.push("Document kind: " + (data.document_kind || "unknown"));
+        lines.push("Source: " + (data.source_name || "unknown"));
+        lines.push("");
+        lines.push("Summary:");
+        lines.push(data.summary || "-");
+        lines.push("");
+        lines.push("Domain tags: " + ((data.domain_tags || []).join(", ") || "-"));
+        lines.push("");
+        lines.push("Key clauses:");
+        (data.key_clauses || []).slice(0, 8).forEach((item, idx) => {
+          lines.push((idx + 1) + ". " + (item.title || item.category || "Clause") + " :: " + (item.snippet || "-"));
+        });
+        if (!(data.key_clauses || []).length) lines.push("- none found");
+        lines.push("");
+        lines.push("Startup signals:");
+        (data.startup_signals || []).slice(0, 8).forEach((item, idx) => {
+          lines.push((idx + 1) + ". " + (item.title || item.category || "Signal") + " :: " + (item.snippet || "-"));
+        });
+        if (!(data.startup_signals || []).length) lines.push("- none found");
+        lines.push("");
+        lines.push("Risk flags:");
+        (data.risk_flags || []).forEach((item) => lines.push("- " + item));
+        if (!(data.risk_flags || []).length) lines.push("- none");
+        lines.push("");
+        lines.push("Open questions:");
+        (data.open_questions || []).forEach((item) => lines.push("- " + item));
+        if (!(data.open_questions || []).length) lines.push("- none");
+        if (data.answer) {
+          lines.push("");
+          lines.push("Answer:");
+          lines.push(data.answer);
+        }
+        if (Array.isArray(data.evidence) && data.evidence.length) {
+          lines.push("");
+          lines.push("Evidence:");
+          data.evidence.forEach((item) => lines.push("- " + item));
+        }
+
+        showResult(intelResult, lines.join("\n"));
+        intelStatus.textContent = "Document analysis complete.";
+      } catch (error) {
+        intelStatus.textContent = "Error: " + error.message;
+      }
+    };
+
+    sigBtn.onclick = async () => {
+      if (!sigFile.files[0]) {
+        sigStatus.textContent = "Select a signature image first.";
+        return;
+      }
+
+      sigStatus.textContent = "Verifying signature...";
+      hideResult(sigResult);
+
+      const form = new FormData();
+      form.append("file", sigFile.files[0]);
+
+      try {
+        const res = await fetch("/api/signature/predict", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Signature verification failed");
+        }
+
+        const isReal = data.prediction === "real";
+        const lines = [
+          "Prediction: " + (isReal ? "Real signature" : "Fake signature"),
+          "Model: " + (data.model || "unknown")
+        ];
+        showResult(sigResult, lines.join("\n"));
+        sigStatus.textContent = "Verification complete.";
+      } catch (error) {
+        sigStatus.textContent = "Error: " + error.message;
+      }
+    };
+
+    detBtn.onclick = async () => {
+      if (!detFile.files[0]) {
+        detStatus.textContent = "Select an image first.";
+        return;
+      }
+
+      detStatus.textContent = "Detecting signatures...";
+      hideResult(detResult);
+      hideImage(detPreview);
+
+      const form = new FormData();
+      form.append("file", detFile.files[0]);
+
+      try {
+        const res = await fetch("/api/signature/detect", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Signature detection failed");
+        }
+
+        const lines = [
+          "Model: " + (data.model || "unknown"),
+          "Detections: " + (data.count ?? 0)
+        ];
+
+        if (Array.isArray(data.detections) && data.detections.length) {
+          data.detections.forEach((item, idx) => {
+            lines.push(
+              (idx + 1) + ". " + (item.class_name || "signature") +
+              " | confidence=" + item.confidence +
+              " | box=" + JSON.stringify(item.box_xyxy)
+            );
+          });
+        } else {
+          lines.push("No signature boxes detected.");
+        }
+
+        showResult(detResult, lines.join("\n"));
+        if (data.annotated_image_url) {
+          showImage(detPreview, data.annotated_image_url + "?t=" + Date.now());
+        }
+        detStatus.textContent = "Detection complete.";
+      } catch (error) {
+        detStatus.textContent = "Error: " + error.message;
+      }
+    };
+  </script>
+</body>
+</html>

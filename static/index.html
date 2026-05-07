@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scaleup Legal | Document Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="/static/home.html">
+        <span class="brand-mark"><i class="fa-solid fa-scale-balanced"></i></span>
+        <span>Scaleup Legal</span>
+      </a>
+      <nav class="nav">
+        <a class="nav-link" href="/static/home.html">Home</a>
+        <a class="nav-link active" href="/static/index.html">Document Generator</a>
+        <a class="nav-link" href="/static/scanner.html">Analyzer Tools</a>
+        <a class="nav-link" href="/static/explain.html">Signature Explain</a>
+        <a class="nav-link" href="/static/detect-explain.html">Detection Explain</a>
+        <a class="nav-link" href="/static/ocr-explain.html">OCR Explain</a>
+        <a class="nav-link" href="/static/summarization-explain.html">Summarization Explain</a>
+        <a class="nav-link" href="/static/evaluation.html">Evaluation</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="workspace-intro reveal">
+      <div class="workspace-banner">
+        <p>Document Generator workspace: structured intake, readable conversation, and clean actions.</p>
+        <div class="chip-row">
+          <span class="chip">Template-driven</span>
+          <span class="chip">Guided Q&A</span>
+          <span class="chip">Generation Ready</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-layout reveal">
+      <aside class="panel sidebar">
+        <h2>Generator Workspace</h2>
+        <p class="subtitle">Pick a template and fill details in the chat. Built for clarity and speed.</p>
+        <span class="pill" id="sessionChip">No active session</span>
+
+        <div class="stack-card">
+          <h3 style="margin-bottom:6px;">How It Works</h3>
+          <p style="margin:0; color:#536761; font-size:13px; line-height:1.45;">1) Select template 2) Answer prompts 3) Review with show 4) Generate final document.</p>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom:8px;">Templates</h3>
+          <div class="scroll-box">
+            <ul class="template-list" id="templateList"></ul>
+          </div>
+        </div>
+
+        <div style="display:grid; gap:8px;">
+          <button class="ghost-btn" id="showBtn">Show Current Data</button>
+          <button class="ghost-btn" id="generateBtn">Generate Document</button>
+          <button class="ghost-btn" id="newBtn">Start New Session</button>
+        </div>
+
+        <div class="stack-card">
+          <h3 style="margin-bottom:6px;">Quick Commands</h3>
+          <p style="margin:0; color:#536761; font-size:13px; line-height:1.45;">Use show to inspect values, set [field]=value for edits, and generate to produce output.</p>
+        </div>
+      </aside>
+
+      <section class="panel workspace">
+        <header class="workspace-head">
+          <h2 style="font-size:22px;">Conversation</h2>
+          <span class="stage" id="stageBadge">stage: idle</span>
+        </header>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="workspace-input">
+          <div class="input-row">
+            <input id="chatInput" class="text-input" type="text" placeholder="Type a message, or click a template on the left..." />
+            <button class="btn btn-primary" id="sendBtn">Send</button>
+            <button class="btn btn-secondary" id="clearBtn">Clear Chat</button>
+          </div>
+          <div class="error" id="errorText"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">Document generator UI rebuilt with larger components, readable contrast, and split navigation.</footer>
+
+  <script>
+    const state = {
+      sessionId: null,
+      stage: "idle",
+      templates: []
+    };
+
+    const el = {
+      messages: document.getElementById("messages"),
+      input: document.getElementById("chatInput"),
+      send: document.getElementById("sendBtn"),
+      clear: document.getElementById("clearBtn"),
+      next: document.getElementById("newBtn"),
+      show: document.getElementById("showBtn"),
+      generate: document.getElementById("generateBtn"),
+      stage: document.getElementById("stageBadge"),
+      templates: document.getElementById("templateList"),
+      sessionChip: document.getElementById("sessionChip"),
+      error: document.getElementById("errorText")
+    };
+
+    function formatPreview(preview) {
+      if (!preview || typeof preview !== "object") {
+        return "";
+      }
+
+      const lines = [];
+      for (const [key, value] of Object.entries(preview)) {
+        const label = key.replace(/^\[/, "").replace(/\]$/, "");
+        if (Array.isArray(value)) {
+          const compact = value.map((item) => String(item || "").trim()).filter(Boolean).join(" | ");
+          lines.push(label + ": " + (compact || "-"));
+        } else {
+          lines.push(label + ": " + String(value || "-"));
+        }
+      }
+      return lines.join("\n");
+    }
+
+    function addMessage(role, text, meta, options) {
+      const card = document.createElement("div");
+      card.className = "msg " + role;
+      card.textContent = text;
+
+      if (meta) {
+        const metaEl = document.createElement("div");
+        metaEl.className = "meta";
+        metaEl.textContent = meta;
+        card.appendChild(metaEl);
+      }
+
+      if (role === "assistant" && Array.isArray(options) && options.length) {
+        const row = document.createElement("div");
+        row.className = "option-row";
+        options.forEach((value) => {
+          const btn = document.createElement("button");
+          btn.className = "option-btn";
+          btn.textContent = value;
+          btn.onclick = async () => sendMessage(value, false);
+          row.appendChild(btn);
+        });
+        card.appendChild(row);
+      }
+
+      el.messages.appendChild(card);
+      el.messages.scrollTop = el.messages.scrollHeight;
+    }
+
+    function setStage(stage) {
+      state.stage = stage;
+      el.stage.textContent = "stage: " + stage;
+    }
+
+    function setError(text) {
+      el.error.textContent = text || "";
+    }
+
+    async function api(url, payload) {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.detail || "Request failed");
+      }
+      return json;
+    }
+
+    function renderTemplates() {
+      el.templates.innerHTML = "";
+      state.templates.forEach((name) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.className = "template-btn";
+        btn.textContent = name;
+        btn.onclick = () => sendMessage(name, true);
+        li.appendChild(btn);
+        el.templates.appendChild(li);
+      });
+    }
+
+    async function startSession() {
+      setError("");
+      const data = await api("/api/chat/start", {});
+      state.sessionId = data.session_id;
+      state.templates = data.templates || [];
+      el.sessionChip.textContent = "session: " + state.sessionId.slice(0, 8);
+      setStage("awaiting_template");
+      renderTemplates();
+      addMessage("assistant", data.message, "Choose any template from the left panel.", []);
+    }
+
+    async function sendMessage(message, fromTemplateClick) {
+      const raw = String(message || "").trim();
+      if (!raw) {
+        return;
+      }
+      if (!state.sessionId) {
+        setError("No active session. Click Start New Session.");
+        return;
+      }
+
+      setError("");
+      if (fromTemplateClick) {
+        addMessage("user", "Selected template: " + raw, null, []);
+      } else {
+        addMessage("user", raw, null, []);
+      }
+
+      try {
+        const response = await api("/api/chat/message", {
+          session_id: state.sessionId,
+          message: raw
+        });
+
+        setStage(response.stage);
+        let text = response.reply;
+        if (response.data_preview) {
+          text += "\n\nCurrent values:\n" + formatPreview(response.data_preview);
+        }
+        if (response.can_generate) {
+          text += "\n\nReady when you are. Click Generate Document or type generate.";
+        }
+
+        addMessage("assistant", text, null, response.options || []);
+      } catch (error) {
+        setError(error.message);
+        addMessage("assistant", "Error: " + error.message, null, []);
+      }
+    }
+
+    el.send.onclick = async () => {
+      const text = el.input.value;
+      el.input.value = "";
+      await sendMessage(text, false);
+    };
+
+    el.input.addEventListener("keydown", async (event) => {
+      if (event.key === "Enter") {
+        const text = el.input.value;
+        el.input.value = "";
+        await sendMessage(text, false);
+      }
+    });
+
+    el.clear.onclick = () => {
+      el.messages.innerHTML = "";
+      setError("");
+    };
+
+    el.next.onclick = async () => {
+      el.messages.innerHTML = "";
+      await startSession();
+    };
+
+    el.show.onclick = async () => {
+      await sendMessage("show", false);
+    };
+
+    el.generate.onclick = async () => {
+      await sendMessage("generate", false);
+    };
+
+    startSession().catch((error) => {
+      setError(error.message);
+      addMessage("assistant", "Failed to start session: " + error.message, null, []);
+    });
+  </script>
+</body>
+</html>

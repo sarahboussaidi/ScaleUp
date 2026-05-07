@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scaleup Legal | Evaluation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 16px; }
+    .metric-card { background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 14px; padding: 14px; box-shadow: 0 8px 28px rgba(0,0,0,0.04); }
+    .metric-label { font-size: 12px; color: #6a7d77; text-transform: uppercase; letter-spacing: 0.06em; }
+    .metric-value { font-size: 28px; font-weight: 700; margin-top: 6px; color: #0b7f63; }
+    .section-title { margin: 0 0 8px; font-family: 'Space Grotesk', sans-serif; }
+    .candidate { background: #fbfbfb; border-left: 4px solid #0b7f63; padding: 12px; border-radius: 10px; margin: 10px 0; }
+    .candidate.best { border-left-color: #cf6a23; background: #fff7ef; }
+    .badge { display: inline-block; background: #e8f4f8; color: #134a5a; padding: 4px 8px; border-radius: 999px; font-size: 11px; margin-right: 6px; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="/static/home.html">
+        <span class="brand-mark"><i class="fa-solid fa-scale-balanced"></i></span>
+        <span>Scaleup Legal</span>
+      </a>
+      <nav class="nav">
+        <a class="nav-link" href="/static/home.html">Home</a>
+        <a class="nav-link" href="/static/index.html">Document Generator</a>
+        <a class="nav-link" href="/static/scanner.html">Analyzer Tools</a>
+        <a class="nav-link" href="/static/explain.html">Signature Explain</a>
+        <a class="nav-link" href="/static/detect-explain.html">Detection Explain</a>
+        <a class="nav-link" href="/static/ocr-explain.html">OCR Explain</a>
+        <a class="nav-link" href="/static/summarization-explain.html">Summarization Explain</a>
+        <a class="nav-link active" href="/static/evaluation.html">Evaluation</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero-card reveal">
+      <h2>Objective Evaluation Dashboard</h2>
+      <p>Compares the available model candidates and tools, then saves the best selection for the rest of the project. Classification and detection use validation metrics. OCR uses consensus overlap on a small sample set, and summarization uses comparative benchmark scoring.</p>
+      <div class="metric-grid" id="summaryMetrics"></div>
+      <div style="margin-top: 16px; display:flex; gap:12px; flex-wrap:wrap;">
+        <button class="btn btn-primary" id="refreshBtn">Refresh Report</button>
+        <a class="btn btn-secondary" href="/generated/objective_evaluation_report.json" target="_blank">Open JSON Report</a>
+      </div>
+      <div id="status" style="margin-top: 12px; font-weight: 500;"></div>
+    </section>
+
+    <section class="hero-card reveal" style="margin-top: 18px;">
+      <h3 class="section-title">Selections</h3>
+      <div id="selections"></div>
+    </section>
+
+    <section class="hero-card reveal" style="margin-top: 18px;">
+      <h3 class="section-title">Detailed Results</h3>
+      <div id="details"></div>
+    </section>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const selectionsEl = document.getElementById('selections');
+    const detailsEl = document.getElementById('details');
+    const summaryMetricsEl = document.getElementById('summaryMetrics');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    function fmtPct(value) {
+      if (typeof value !== 'number' || Number.isNaN(value)) return 'n/a';
+      return (value * 100).toFixed(1) + '%';
+    }
+
+    function metricCard(label, value) {
+      return `<div class="metric-card"><div class="metric-label">${label}</div><div class="metric-value">${value}</div></div>`;
+    }
+
+    function candidateHtml(candidate, best) {
+      const cls = best ? 'candidate best' : 'candidate';
+      const metrics = candidate.metrics || {};
+      const lines = Object.entries(metrics)
+        .filter(([key]) => key !== 'model_path' && key !== 'docs' && key !== 'image_reports' && key !== 'images')
+        .map(([key, value]) => `<div><strong>${key}:</strong> ${typeof value === 'number' ? value.toFixed(4) : JSON.stringify(value)}</div>`)
+        .join('');
+      return `<div class="${cls}"><div><strong>${candidate.name}</strong>${best ? ' <span class="badge">Best</span>' : ''}</div>${lines}</div>`;
+    }
+
+    async function loadReport() {
+      statusEl.textContent = 'Loading evaluation report...';
+      try {
+        const response = await fetch('/generated/objective_evaluation_report.json', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('Report not found. Run evaluate_objectives.py first.');
+        }
+        const report = await response.json();
+        const selections = report.selections || {};
+        const judgeStatus = report.xai_llm_judge || {};
+        const ocrMetric = report.ocr?.metric || report.ocr?.best?.metric || 'consensus_f1';
+        const ocrSamples = report.ocr?.sample_count ?? report.ocr?.best?.samples ?? 'n/a';
+        const ocrMetricLabel = ocrMetric === 'text_quality_proxy'
+          ? `OCR Proxy Quality (${ocrSamples} samples)`
+          : `OCR Consensus F1 (${ocrSamples} samples)`;
+        const ocrMetricValue = ocrMetric === 'text_quality_proxy'
+          ? report.ocr?.best?.text_quality
+          : (report.ocr?.best?.consensus_f1 ?? report.ocr?.best?.f1);
+        const ocrMethodText = report.ocr?.best?.evaluation_method === 'single_engine_proxy'
+          ? 'single-engine proxy (no cross-engine consensus available)'
+          : `consensus overlap on ${ocrSamples} samples`;
+
+        summaryMetricsEl.innerHTML = [
+          metricCard('Signature Macro F1', fmtPct(report.signature_classification?.best?.macro_f1)),
+          metricCard('Signature XAI LLM Judge', fmtPct(report.signature_classification?.best?.xai_llm_score)),
+          metricCard('Detection F1', fmtPct(report.signature_detection?.best?.f1)),
+          metricCard('Detection XAI LLM Judge', fmtPct(report.signature_detection?.best?.xai_llm_score)),
+          metricCard(ocrMetricLabel, fmtPct(ocrMetricValue)),
+          metricCard('OCR XAI LLM Judge', fmtPct(report.ocr?.best?.xai_llm_score)),
+          metricCard('Summarization Score', (report.summarization?.best?.combined_score ?? 'n/a').toString()),
+          metricCard('Summary Term Recall', fmtPct(report.summarization?.best?.summary_term_recall)),
+          metricCard('ROUGE-L F', fmtPct(report.summarization?.best?.rouge_l_f)),
+          metricCard('Summarization XAI LLM Judge', fmtPct(report.summarization?.best?.xai_llm_score)),
+        ].join('');
+
+        selectionsEl.innerHTML = Object.entries(selections).map(([objective, choice]) => {
+          return `<div class="candidate"><div><strong>${objective}</strong></div><pre>${JSON.stringify(choice, null, 2)}</pre></div>`;
+        }).join('');
+
+        const sections = [
+          ['Signature Classification', report.signature_classification],
+          ['Signature Detection', report.signature_detection],
+          ['OCR', report.ocr],
+          ['Summarization', report.summarization],
+        ];
+
+        detailsEl.innerHTML = sections.map(([title, section]) => {
+          const best = section?.best || {};
+          const candidates = section?.candidates || [];
+          return `
+            <div style="margin-bottom: 20px;">
+              <h4 style="margin-bottom: 8px;">${title}</h4>
+              <div class="badge">metric: ${section?.metric || 'n/a'}</div>
+              <div class="candidate best" style="margin-top: 10px;">
+                <div><strong>Best</strong></div>
+                <pre>${JSON.stringify(best, null, 2)}</pre>
+              </div>
+              ${candidates.map(c => candidateHtml(c, false)).join('')}
+            </div>
+          `;
+        }).join('');
+
+        statusEl.textContent = `Loaded report generated at ${report.generated_at} | OCR metric: ${ocrMethodText} | LLM Judge: ${judgeStatus.available ? 'available' : 'unavailable'} (${judgeStatus.reason || 'ok'})`;
+      } catch (error) {
+        statusEl.textContent = error.message;
+        summaryMetricsEl.innerHTML = '';
+        selectionsEl.innerHTML = '';
+        detailsEl.innerHTML = '';
+      }
+    }
+
+    refreshBtn.addEventListener('click', async () => {
+      try {
+        const response = await fetch('/evaluate-objectives-run', { method: 'POST' });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+      } catch (error) {
+        statusEl.textContent = 'Evaluation run failed: ' + error.message;
+      }
+      await loadReport();
+    });
+
+    loadReport();
+  </script>
+</body>
+</html>

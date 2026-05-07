@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scaleup Legal | Summarization Explain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>.clause{background:#f9f9f9;border-left:3px solid #007acc;padding:10px;margin:10px 0}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="/static/home.html">
+        <span class="brand-mark"><i class="fa-solid fa-scale-balanced"></i></span>
+        <span>Scaleup Legal</span>
+      </a>
+      <nav class="nav">
+        <a class="nav-link" href="/static/home.html">Home</a>
+        <a class="nav-link" href="/static/index.html">Document Generator</a>
+        <a class="nav-link" href="/static/scanner.html">Analyzer Tools</a>
+        <a class="nav-link" href="/static/explain.html">Signature Explain</a>
+        <a class="nav-link" href="/static/detect-explain.html">Detection Explain</a>
+        <a class="nav-link" href="/static/ocr-explain.html">OCR Explain</a>
+        <a class="nav-link active" href="/static/summarization-explain.html">Summarization Explain</a>
+        <a class="nav-link" href="/static/evaluation.html">Evaluation</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero-card reveal">
+      <h2>Document Summarization Explain</h2>
+      <p>Paste or upload a legal document to see which clauses were extracted and their confidence scores.</p>
+      <input id="docfile" type="file" accept=".txt,.docx,image/*" style="margin-bottom:10px" />
+      <textarea id="doctext" placeholder="Paste document text here..." style="width:100%;height:200px;padding:8px;font-family:monospace;font-size:13px;border:1px solid #ccc;border-radius:4px"></textarea>
+      <button id="upload" class="btn btn-primary" style="margin-top:12px">Analyze & Explain</button>
+      <div id="result" style="margin-top:16px;font-weight:500"></div>
+      <div style="margin-top:12px">
+        <img id="annotatedPreview" src="" alt="Annotated" style="max-width:100%;border:1px solid #ddd;display:none;margin-bottom:12px" />
+      </div>
+      <div id="details"></div>
+    </section>
+  </main>
+
+  <script>
+    const textEl = document.getElementById('doctext');
+    const fileEl = document.getElementById('docfile');
+    const btn = document.getElementById('upload');
+    const res = document.getElementById('result');
+    const details = document.getElementById('details');
+
+    btn.addEventListener('click', async () => {
+      res.textContent = 'Analyzing...';
+      try {
+        let r;
+        if (fileEl.files && fileEl.files.length > 0) {
+          const fd = new FormData();
+          fd.append('file', fileEl.files[0]);
+          r = await fetch('/api/document/summarization-explain-upload', {
+            method: 'POST',
+            body: fd
+          });
+        } else {
+          if (!textEl.value.trim()) {
+            alert('Paste text or choose a file first');
+            return;
+          }
+          r = await fetch('/api/document/summarization-explain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: textEl.value })
+          });
+        }
+        if (!r.ok) {
+          const txt = await r.text();
+          res.textContent = 'Error: ' + txt;
+          return;
+        }
+        const j = await r.json();
+        res.textContent = `Extracted ${j.key_clauses_count} key clauses • ${j.document_kind || 'unknown type'}`;
+
+        const sources = Array.isArray(j.summary_sources) ? j.summary_sources.join(', ') : 'n/a';
+        
+        if (j.annotated_image_url) {
+          const img = document.getElementById('annotatedPreview');
+          img.src = j.annotated_image_url + '?t=' + Date.now();
+          img.style.display = 'block';
+        }
+
+        details.innerHTML = [
+          `<p><strong>Summary:</strong> ${j.summary || 'N/A'}</p>`,
+          `<p><strong>Summary Sources:</strong> ${sources}</p>`,
+          `<p><strong>Explanation:</strong> ${j.explanation_text || 'N/A'}</p>`,
+          '<h3>Top Clauses:</h3>',
+          ...(j.key_clauses || []).map(c => 
+            `<div class="clause"><strong>${c.category || 'Unknown'}:</strong> ${c.xai_explanation || ''}<br/><em>"${(c.highlighted_snippet || c.snippet || '').substring(0, 220)}..."</em></div>`
+          )
+        ].join('');
+      } catch (err) {
+        res.textContent = 'Analysis failed: ' + err;
+      }
+    });
+  </script>
+</body>
+</html>
