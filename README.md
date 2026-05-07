@@ -402,9 +402,9 @@ If you use this platform in your research, please cite:
 ```bibtex
 @software{legal_doc_intelligence_2026,
   title={Legal Document Intelligence Platform with Advanced XAI},
-  author={Your Name},
+  author={Sarra Boussaidi},
   year={2026},
-  url={https://github.com/yourorg/legal-doc-intelligence}
+  url={https://github.com/sarahboussaidi/ScaleUp}
 }
 ```
 
@@ -412,7 +412,9 @@ If you use this platform in your research, please cite:
 
 ## 📄 License
 
-[Specify your license here]
+**All Rights Reserved.** This project and all its contents are proprietary and confidential. Unauthorized copying, modification, distribution, or use of this software in source or binary form is strictly prohibited without prior written permission from the copyright holder.
+
+For licensing inquiries, please contact: sarra.boussaidi@esprit.tn
 
 ---
 
