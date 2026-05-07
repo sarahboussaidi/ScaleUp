@@ -432,12 +432,12 @@ Contributions are welcome! Please:
 ## 📧 Contact & Support
 
 For questions, issues, or collaboration:
-- **Email:** [Your email]
-- **Issues:** [GitHub Issues Link]
+- **Email:** sarra.boussaidi@esprit.tn
+- **Issues:**  https://github.com/sarahboussaidi
 - **Documentation:** See the `docs/` folder for detailed guides
 
 ---
 
 **Last Updated:** May 7, 2026  
-**Maintained by:** [Your Name/Team]  
+**Maintained by:** Sarra Boussaidi | Team HarmonIA
 **Status:** ✅ Production Ready
