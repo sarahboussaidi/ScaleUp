@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
   <style>
     .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 16px; }
     .metric-card { background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 14px; padding: 14px; box-shadow: 0 8px 28px rgba(0,0,0,0.04); }
@@ -24,19 +24,19 @@
 <body>
   <header class="topbar">
     <div class="shell topbar-inner">
-      <a class="brand" href="/static/home.html">
+      <a class="brand" href="home.html">
         <span class="brand-mark"><i class="fa-solid fa-scale-balanced"></i></span>
         <span>Scaleup Legal</span>
       </a>
       <nav class="nav">
-        <a class="nav-link" href="/static/home.html">Home</a>
-        <a class="nav-link" href="/static/index.html">Document Generator</a>
-        <a class="nav-link" href="/static/scanner.html">Analyzer Tools</a>
-        <a class="nav-link" href="/static/explain.html">Signature Explain</a>
-        <a class="nav-link" href="/static/detect-explain.html">Detection Explain</a>
-        <a class="nav-link" href="/static/ocr-explain.html">OCR Explain</a>
-        <a class="nav-link" href="/static/summarization-explain.html">Summarization Explain</a>
-        <a class="nav-link active" href="/static/evaluation.html">Evaluation</a>
+        <a class="nav-link" href="home.html">Home</a>
+        <a class="nav-link" href="index.html">Document Generator</a>
+        <a class="nav-link" href="scanner.html">Analyzer Tools</a>
+        <a class="nav-link" href="explain.html">Signature Explain</a>
+        <a class="nav-link" href="detect-explain.html">Detection Explain</a>
+        <a class="nav-link" href="ocr-explain.html">OCR Explain</a>
+        <a class="nav-link" href="summarization-explain.html">Summarization Explain</a>
+        <a class="nav-link active" href="evaluation.html">Evaluation</a>
       </nav>
     </div>
   </header>
@@ -48,7 +48,7 @@
       <div class="metric-grid" id="summaryMetrics"></div>
       <div style="margin-top: 16px; display:flex; gap:12px; flex-wrap:wrap;">
         <button class="btn btn-primary" id="refreshBtn">Refresh Report</button>
-        <a class="btn btn-secondary" href="/generated/objective_evaluation_report.json" target="_blank">Open JSON Report</a>
+        <a class="btn btn-secondary" id="openJsonBtn" href="generated/objective_evaluation_report.json" target="_blank" rel="noopener">Open JSON Report</a>
       </div>
       <div id="status" style="margin-top: 12px; font-weight: 500;"></div>
     </section>
@@ -70,6 +70,17 @@
     const detailsEl = document.getElementById('details');
     const summaryMetricsEl = document.getElementById('summaryMetrics');
     const refreshBtn = document.getElementById('refreshBtn');
+    const openJsonBtn = document.getElementById('openJsonBtn');
+
+    const isFileProtocol = window.location.protocol === 'file:';
+    const reportUrl = isFileProtocol
+      ? new URL('../generated/objective_evaluation_report.json', window.location.href).href
+      : '/generated/objective_evaluation_report.json';
+    const evaluateRunUrl = isFileProtocol
+      ? null
+      : '/evaluate-objectives-run';
+
+    openJsonBtn.href = reportUrl;
 
     function fmtPct(value) {
       if (typeof value !== 'number' || Number.isNaN(value)) return 'n/a';
@@ -93,7 +104,7 @@
     async function loadReport() {
       statusEl.textContent = 'Loading evaluation report...';
       try {
-        const response = await fetch('/generated/objective_evaluation_report.json', { cache: 'no-store' });
+        const response = await fetch(reportUrl, { cache: 'no-store' });
         if (!response.ok) {
           throw new Error('Report not found. Run evaluate_objectives.py first.');
         }
@@ -162,8 +173,12 @@
     }
 
     refreshBtn.addEventListener('click', async () => {
+      if (!evaluateRunUrl) {
+        statusEl.textContent = 'Refresh requires the app server. Open this page through the project server to regenerate the report.';
+        return;
+      }
       try {
-        const response = await fetch('/evaluate-objectives-run', { method: 'POST' });
+        const response = await fetch(evaluateRunUrl, { method: 'POST' });
         if (!response.ok) {
           throw new Error(await response.text());
         }

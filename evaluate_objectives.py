@@ -6,6 +6,7 @@ import os
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
 
@@ -61,6 +62,17 @@ from objective_registry import (
 class CandidateResult:
     name: str
     metrics: Dict[str, Any]
+
+
+def _candidate_to_dict(item: Any) -> Dict[str, Any]:
+    if isinstance(item, CandidateResult):
+        return {"name": item.name, "metrics": item.metrics}
+    if isinstance(item, dict):
+        return item
+    return {
+        "name": getattr(item, "name", str(item)),
+        "metrics": getattr(item, "metrics", {}),
+    }
 
 
 GRAY_TRANSFORM = transforms.Compose(
@@ -219,7 +231,7 @@ def _load_pth_model(model_path: Path) -> tuple[torch.nn.Module, transforms.Compo
         resnet.fc = nn.Linear(resnet.fc.in_features, 2)
         resnet.load_state_dict(state_dict)
         resnet.eval()
-        return resnet, GRAY_TRANSFORM
+        return resnet, RGB_TRANSFORM
 
     cnn = _SignatureCNN()
     cnn.load_state_dict(state_dict)
@@ -286,6 +298,8 @@ def _evaluate_signature_classification() -> Tuple[CandidateResult, List[Candidat
             metrics = _binary_metrics(truths, preds)
             # Add XAI LLM judge score
             xai_llm_score = judge_signature_classification_xai(predictions_for_judge, truths)
+            if xai_llm_score is None:
+                xai_llm_score = 0.0
             metrics["xai_llm_score"] = xai_llm_score
             metrics["samples"] = len(samples)
             metrics["model_path"] = str(model_path)
@@ -336,6 +350,8 @@ def _evaluate_signature_detection() -> Tuple[CandidateResult, List[CandidateResu
                 for _ in range(max(1, result_metrics.get("instances", 1)))
             ]
             xai_llm_score = judge_signature_detection_xai(detections_for_judge)
+            if xai_llm_score is None:
+                xai_llm_score = 0.0
             result_metrics["xai_llm_score"] = xai_llm_score
             all_results.append(CandidateResult(model_path.name, result_metrics))
         except Exception as exc:
@@ -503,7 +519,8 @@ def _evaluate_ocr() -> Tuple[CandidateResult, List[CandidateResult]]:
             metric_name = "text_quality_proxy"
             evaluation_method = "single_engine_proxy"
             score = avg_quality
-            consensus_f1_value = None
+            # Keep this numeric for downstream dashboards that always read consensus_f1.
+            consensus_f1_value = avg_f1
 
         metrics = {
             "precision": totals["precision"] / count,
@@ -530,11 +547,22 @@ def _evaluate_ocr() -> Tuple[CandidateResult, List[CandidateResult]]:
                         "confidence": engine_stats.get("mean_confidence", 0.5)
                     })
         xai_llm_score = judge_ocr_xai(ocr_results_for_judge) if ocr_results_for_judge else None
+        if xai_llm_score is None:
+            xai_llm_score = 0.0
         metrics["xai_llm_score"] = xai_llm_score
         candidate_results.append(CandidateResult(engine_name, metrics))
 
     if not candidate_results:
-        return CandidateResult("ocr", {"error": "all OCR engines failed"}), image_reports
+        return CandidateResult(
+            "ocr",
+            {
+                "error": "all OCR engines failed",
+                "consensus_f1": 0.0,
+                "xai_llm_score": 0.0,
+                "images": [],
+                "metric": "consensus_f1",
+            },
+        ), []
 
     best = sorted(
         candidate_results,
@@ -630,6 +658,8 @@ def _evaluate_summarization() -> Tuple[CandidateResult, List[CandidateResult]]:
                 xai_llm_score = judge_summarization_xai(benchmark["text"], summary_text, result.get("key_clauses", []))
             except Exception:
                 xai_llm_score = None
+            if xai_llm_score is None:
+                xai_llm_score = 0.0
 
             f1_values.append(f1)
             accuracy_values.append(accuracy)
@@ -687,6 +717,23 @@ def build_report() -> Dict[str, Any]:
     ocr_best, ocr_all = _evaluate_ocr()
     sum_best, sum_all = _evaluate_summarization()
 
+    if not judge_status.get("available"):
+        def _clear_xai_scores(value: Any) -> None:
+            if isinstance(value, dict):
+                if "xai_llm_score" in value:
+                    value["xai_llm_score"] = None
+                for item in value.values():
+                    _clear_xai_scores(item)
+            elif isinstance(value, list):
+                for item in value:
+                    _clear_xai_scores(item)
+
+        for candidate in [sig_best.metrics, det_best.metrics, ocr_best.metrics, sum_best.metrics]:
+            _clear_xai_scores(candidate)
+        for collection in (sig_all, det_all, ocr_all, sum_all):
+            for candidate in collection:
+                _clear_xai_scores(candidate.metrics)
+
     selections = {
         "signature_classification": {
             "model_path": sig_best.metrics.get("model_path") or sig_best.name,
@@ -715,29 +762,29 @@ def build_report() -> Dict[str, Any]:
     }
 
     report = {
-        "generated_at": __import__("datetime").datetime.utcnow().isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "selection_file": str(SELECTIONS_FILE),
         "report_file": str(REPORT_FILE),
         "xai_llm_judge": judge_status,
         "signature_classification": {
             "best": sig_best.metrics,
-            "candidates": [item.__dict__ for item in sig_all],
+            "candidates": [_candidate_to_dict(item) for item in sig_all],
             "metric": "macro_f1",
         },
         "signature_detection": {
             "best": det_best.metrics,
-            "candidates": [item.__dict__ for item in det_all],
+            "candidates": [_candidate_to_dict(item) for item in det_all],
             "metric": "f1",
         },
         "ocr": {
             "best": ocr_best.metrics,
-            "candidates": [item.__dict__ for item in ocr_all],
+            "candidates": [_candidate_to_dict(item) for item in ocr_all],
             "metric": ocr_best.metrics.get("metric", "consensus_f1"),
             "sample_count": len(ocr_best.metrics.get("images", [])),
         },
         "summarization": {
             "best": sum_best.metrics,
-            "candidates": [item.__dict__ for item in sum_all],
+            "candidates": [_candidate_to_dict(item) for item in sum_all],
             "metric": "combined_score",
         },
         "selections": selections,

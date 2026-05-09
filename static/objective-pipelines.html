@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scaleup Legal | Objective Pipelines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --panel: rgba(255, 255, 255, 0.82);
+      --panel-strong: #ffffff;
+      --ink: #12332c;
+      --muted: #58716a;
+      --accent: #0b7f63;
+      --accent-2: #cf6a23;
+      --accent-3: #1c4c8c;
+      --border: rgba(18, 51, 44, 0.12);
+      --shadow: 0 24px 60px rgba(22, 40, 36, 0.12);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(11, 127, 99, 0.16), transparent 34%),
+        radial-gradient(circle at top right, rgba(207, 106, 35, 0.14), transparent 30%),
+        linear-gradient(180deg, #fcfaf6 0%, var(--bg) 100%);
+      font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    .pipeline-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(16px);
+      background: rgba(252, 250, 246, 0.82);
+      border-bottom: 1px solid rgba(18, 51, 44, 0.08);
+    }
+
+    .hero {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: 1.2fr 0.8fr;
+      align-items: stretch;
+      margin-top: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+      overflow: hidden;
+    }
+
+    .hero-copy h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(34px, 5vw, 62px);
+      line-height: 0.95;
+      margin: 0 0 14px;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-copy p {
+      margin: 0;
+      max-width: 64ch;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(11, 127, 99, 0.08);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .summary-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+      background: linear-gradient(180deg, rgba(11, 127, 99, 0.12), rgba(207, 106, 35, 0.08));
+    }
+
+    .summary-panel h2,
+    .section-title {
+      margin: 0;
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.03em;
+    }
+
+    .summary-panel p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .flow {
+      margin-top: 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .flow-line {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .flow-step {
+      position: relative;
+      border-radius: 22px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 30px rgba(22, 40, 36, 0.08);
+      padding: 18px;
+      min-height: 114px;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: '->';
+      position: absolute;
+      right: -18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(18, 51, 44, 0.42);
+      font-weight: 700;
+    }
+
+    .flow-step strong {
+      display: block;
+      font-family: 'Space Grotesk', sans-serif;
+      margin-bottom: 8px;
+    }
+
+    .flow-step span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .section {
+      margin-top: 26px;
+    }
+
+    .objective-grid {
+      margin-top: 16px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .objective-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: 0 16px 36px rgba(22, 40, 36, 0.08);
+    }
+
+    .objective-card header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .objective-card h3 {
+      margin: 0;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .objective-card .tag {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(28, 76, 140, 0.08);
+      color: var(--accent-3);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pipeline-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .pipeline-list li {
+      display: grid;
+      grid-template-columns: 132px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(246, 241, 232, 0.72);
+    }
+
+    .pipeline-list strong {
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .pipeline-list span {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .footer-note {
+      margin-top: 22px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      border: 1px solid rgba(18, 51, 44, 0.12);
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .objective-grid,
+      .flow-line {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-step:not(:last-child)::after {
+        content: 'v';
+        right: 50%;
+        top: auto;
+        bottom: -22px;
+        transform: translateX(50%);
+      }
+
+      .pipeline-list li {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="/static/home.html">
+        <span class="brand-mark"><i class="fa-solid fa-scale-balanced"></i></span>
+        <span>Scaleup Legal</span>
+      </a>
+      <nav class="nav">
+        <a class="nav-link" href="/static/home.html">Home</a>
+        <a class="nav-link" href="/static/index.html">Document Generator</a>
+        <a class="nav-link" href="/static/scanner.html">Analyzer Tools</a>
+        <a class="nav-link" href="/static/explain.html">Signature Explain</a>
+        <a class="nav-link" href="/static/detect-explain.html">Detection Explain</a>
+        <a class="nav-link" href="/static/ocr-explain.html">OCR Explain</a>
+        <a class="nav-link" href="/static/summarization-explain.html">Summarization Explain</a>
+        <a class="nav-link active" href="/static/objective-pipelines.html">Pipelines</a>
+        <a class="nav-link" href="/static/evaluation.html">Evaluation</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pipeline-shell">
+    <section class="hero">
+      <article class="card hero-copy">
+        <h1>Objective Pipelines</h1>
+        <p>
+          Each objective follows the same control loop: ingest, preprocess, run the task model,
+          generate an explanation, score the result, and save the best selection. The page below
+          maps that loop to the four objective-specific implementations already in the codebase.
+        </p>
+        <div class="badge-row">
+          <span class="badge"><i class="fa-solid fa-diagram-project"></i> Shared objective router</span>
+          <span class="badge"><i class="fa-solid fa-robot"></i> Model + engine selection</span>
+          <span class="badge"><i class="fa-solid fa-star"></i> XAI judge scoring</span>
+        </div>
+        <div class="actions">
+          <a class="btn-link" href="/static/evaluation.html"><i class="fa-solid fa-chart-column"></i> Open Evaluation Dashboard</a>
+          <a class="btn-link" href="/generated/objective_evaluation_report.json" target="_blank"><i class="fa-solid fa-file-lines"></i> Open Latest Report</a>
+        </div>
+      </article>
+
+      <article class="card summary-panel">
+        <div>
+          <h2>Shared Pipeline</h2>
+          <p style="margin-top:10px;">
+            All objectives converge on the same registry and report files, so downstream pages can read
+            the selected model, OCR engine, or summarization strategy without hardcoding paths.
+          </p>
+        </div>
+
+        <div class="flow">
+          <div class="flow-line">
+            <div class="flow-step">
+              <strong>1. Input</strong>
+              <span>Document image, legal text, or benchmark sample enters the objective runner.</span>
+            </div>
+            <div class="flow-step">
+              <strong>2. Preprocess</strong>
+              <span>Resize, tokenize, normalize, or extract fields depending on the task.</span>
+            </div>
+            <div class="flow-step">
+              <strong>3. Inference</strong>
+              <span>Run the classifier, detector, OCR engine, or summarizer candidate.</span>
+            </div>
+            <div class="flow-step">
+              <strong>4. XAI</strong>
+              <span>Produce Grad-CAM, bbox annotations, OCR confidence views, or clause highlights.</span>
+            </div>
+            <div class="flow-step">
+              <strong>5. Select</strong>
+              <span>Score candidates, write the report, and persist the best objective choice.</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Per-Objective Pipelines</h2>
+      <p class="footer-note">
+        These cards mirror the four objective branches in evaluate_objectives.py and the selections stored in generated/objective_selections.json.
+      </p>
+
+      <div class="objective-grid">
+        <article class="objective-card">
+          <header>
+            <div>
+              <h3>Signature Classification</h3>
+              <p style="margin:8px 0 0; color:var(--muted);">Best model: CNN or ViT signature classifier.</p>
+            </div>
+            <span class="tag">macro_f1 + xai</span>
+          </header>
+          <ul class="pipeline-list">
+            <li><strong>Input</strong><span>Signature image is loaded from the classifier dataset or upload.</span></li>
+            <li><strong>Preprocess</strong><span>Gray or RGB transform is applied, then the image is resized and normalized.</span></li>
+            <li><strong>Inference</strong><span>The selected CNN or ViT predicts real vs fake and returns class probabilities.</span></li>
+            <li><strong>Explain</strong><span>Grad-CAM or a similar attribution view highlights the regions driving the prediction.</span></li>
+            <li><strong>Judge</strong><span>LLM judge checks confidence alignment, consistency, and overconfidence.</span></li>
+            <li><strong>Output</strong><span>Best model path and xai_llm_score are saved into the objective registry.</span></li>
+          </ul>
+        </article>
+
+        <article class="objective-card">
+          <header>
+            <div>
+              <h3>Signature Detection</h3>
+              <p style="margin:8px 0 0; color:var(--muted);">Best detector: YOLO signature region model.</p>
+            </div>
+            <span class="tag">f1 + xai</span>
+          </header>
+          <ul class="pipeline-list">
+            <li><strong>Input</strong><span>Uploaded page or scan image enters the signature detector branch.</span></li>
+            <li><strong>Preprocess</strong><span>The image is resized and prepared for the YOLO inference pipeline.</span></li>
+            <li><strong>Inference</strong><span>Detector returns boxes, classes, and confidences for signature regions.</span></li>
+            <li><strong>Explain</strong><span>Annotated overlays show the predicted regions and their bounding boxes.</span></li>
+            <li><strong>Judge</strong><span>LLM judge checks localization quality and whether confidence matches the box quality.</span></li>
+            <li><strong>Output</strong><span>Best weights and evaluation metrics are written to the report and selections file.</span></li>
+          </ul>
+        </article>
+
+        <article class="objective-card">
+          <header>
+            <div>
+              <h3>OCR</h3>
+              <p style="margin:8px 0 0; color:var(--muted);">Best engine: tesseract, paddle, or easyocr by consensus.</p>
+            </div>
+            <span class="tag">consensus_f1 + xai</span>
+          </header>
+          <ul class="pipeline-list">
+            <li><strong>Input</strong><span>Document image is sent through the OCR branch with sample images or user uploads.</span></li>
+            <li><strong>Preprocess</strong><span>Each engine normalizes the image and extracts token-level text candidates.</span></li>
+            <li><strong>Inference</strong><span>Multiple OCR engines produce text and confidence scores for comparison.</span></li>
+            <li><strong>Explain</strong><span>OCR overlays and confidence summaries expose readable vs noisy regions.</span></li>
+            <li><strong>Judge</strong><span>LLM judge scores readability, confidence calibration, and token noise.</span></li>
+            <li><strong>Output</strong><span>The registry stores the primary OCR engine and the report keeps the consensus score.</span></li>
+          </ul>
+        </article>
+
+        <article class="objective-card">
+          <header>
+            <div>
+              <h3>Summarization</h3>
+              <p style="margin:8px 0 0; color:var(--muted);">Best strategy: rule based, local LLM, or hybrid summarizer.</p>
+            </div>
+            <span class="tag">combined_score + rouge</span>
+          </header>
+          <ul class="pipeline-list">
+            <li><strong>Input</strong><span>Legal text or benchmark document is routed into the summarization benchmarks.</span></li>
+            <li><strong>Preprocess</strong><span>Clauses, entity hints, and expected summary terms are prepared for scoring.</span></li>
+            <li><strong>Inference</strong><span>The summarizer generates a concise summary or clause-level abstraction.</span></li>
+            <li><strong>Explain</strong><span>Highlight evidence, clause coverage, or key-term coverage to show why the summary was chosen.</span></li>
+            <li><strong>Judge</strong><span>ROUGE-L, term recall, and the LLM judge score faithfulness and completeness.</span></li>
+            <li><strong>Output</strong><span>The selected strategy and score are persisted for downstream document workflows.</span></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "ocr": {
+    "metric": "consensus_f1",
+    "primary_engine": "tesseract",
+    "score": 0.9746198923028192,
+    "xai_llm_score": 0.8
+  },
+  "signature_classification": {
+    "metric": "macro_f1",
+    "model_path": "/Users/mac/Documents/django/scaleup rectified/signature_cnn_script.pt",
+    "score": 0.946172605787289,
+    "xai_llm_score": 0.9
+  },
+  "signature_detection": {
+    "metric": "f1",
+    "model_path": "/Users/mac/Documents/django/scaleup rectified/runs/detect/runs/detect/signature_yolo_clean/weights/best.pt",
+    "score": 0.841106503605709,
+    "xai_llm_score": 0.8
+  },
+  "summarization": {
+    "metric": 0.8879013209013209,
+    "score": 0.8879013209013209,
+    "strategy": "rule_based",
+    "xai_llm_score": 0.9
+  }
+}

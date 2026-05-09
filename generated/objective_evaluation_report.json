@@ -1,0 +1,912 @@
+{
+  "generated_at": "2026-05-09T12:53:44.123120+00:00",
+  "ocr": {
+    "best": {
+      "consensus_f1": 0.9746198923028192,
+      "consensus_images": 2,
+      "evaluation_method": "consensus_overlap",
+      "f1": 0.9746198923028192,
+      "image_reports": [
+        {
+          "best_engine": "paddle",
+          "consensus_available": true,
+          "consensus_tokens": 161,
+          "engines": {
+            "easyocr": {
+              "consensus_overlap": 92,
+              "evaluation_method": "consensus_overlap",
+              "f1": 0.5661538461538462,
+              "mean_confidence": 0.5318336207758497,
+              "precision": 0.5609756097560976,
+              "quality_weighted_score": 0.6631368684511401,
+              "recall": 0.5714285714285714,
+              "text_quality": 0.8894305871448255,
+              "token_count": 164
+            },
+            "paddle": {
+              "consensus_overlap": 161,
+              "evaluation_method": "consensus_overlap",
+              "f1": 0.9877300613496933,
+              "mean_confidence": 0.9831075652649528,
+              "precision": 0.9757575757575757,
+              "quality_weighted_score": 0.960273068788887,
+              "recall": 1.0,
+              "text_quality": 0.8962067528136723,
+              "token_count": 165
+            },
+            "tesseract": {
+              "consensus_overlap": 161,
+              "evaluation_method": "consensus_overlap",
+              "f1": 0.9817073170731708,
+              "mean_confidence": 0.9346272493573263,
+              "precision": 0.9640718562874252,
+              "quality_weighted_score": 0.9554518109144303,
+              "recall": 1.0,
+              "text_quality": 0.8941889632107023,
+              "token_count": 167
+            }
+          },
+          "image": "00040534.png",
+          "metric": "consensus_f1"
+        },
+        {
+          "best_engine": "tesseract",
+          "consensus_available": true,
+          "consensus_tokens": 151,
+          "engines": {
+            "easyocr": {
+              "consensus_overlap": 48,
+              "evaluation_method": "consensus_overlap",
+              "f1": 0.39024390243902435,
+              "mean_confidence": 0.5131206718220498,
+              "precision": 0.5052631578947369,
+              "quality_weighted_score": 0.5400834472245584,
+              "recall": 0.31788079470198677,
+              "text_quality": 0.8897090517241381,
+              "token_count": 95
+            },
+            "paddle": {
+              "consensus_overlap": 151,
+              "evaluation_method": "consensus_overlap",
+              "f1": 0.949685534591195,
+              "mean_confidence": 0.9765082867372603,
+              "precision": 0.9041916167664671,
+              "quality_weighted_score": 0.9338525559180971,
+              "recall": 1.0,
+              "text_quality": 0.8969089390142023,
+              "token_count": 167
+            },
+            "tesseract": {
+              "consensus_overlap": 149,
+              "evaluation_method": "consensus_overlap",
+              "f1": 0.9675324675324676,
+              "mean_confidence": 0.9219886363636363,
+              "precision": 0.9490445859872612,
+              "quality_weighted_score": 0.9453822598116823,
+              "recall": 0.9867549668874173,
+              "text_quality": 0.893698441796517,
+              "token_count": 157
+            }
+          },
+          "image": "annotated_test.png",
+          "metric": "consensus_f1"
+        }
+      ],
+      "images": [
+        "00040534.png",
+        "annotated_test.png"
+      ],
+      "mean_confidence": 0.9283079428604812,
+      "metric": "consensus_f1",
+      "precision": 0.9565582211373431,
+      "quality_weighted_score": 0.9504170353630563,
+      "recall": 0.9933774834437086,
+      "samples": 2,
+      "score": 0.9746198923028192,
+      "text_quality": 0.8939437025036097,
+      "xai_llm_score": 0.8
+    },
+    "candidates": [
+      {
+        "metrics": {
+          "consensus_f1": 0.47819887429643526,
+          "consensus_images": 2,
+          "evaluation_method": "consensus_overlap",
+          "f1": 0.47819887429643526,
+          "mean_confidence": 0.5224771462989497,
+          "metric": "consensus_f1",
+          "precision": 0.5331193838254172,
+          "quality_weighted_score": 0.6016101578378492,
+          "recall": 0.4446546830652791,
+          "samples": 2,
+          "score": 0.47819887429643526,
+          "text_quality": 0.8895698194344818,
+          "xai_llm_score": 0.5
+        },
+        "name": "easyocr"
+      },
+      {
+        "metrics": {
+          "consensus_f1": 0.9687077979704442,
+          "consensus_images": 2,
+          "evaluation_method": "consensus_overlap",
+          "f1": 0.9687077979704442,
+          "mean_confidence": 0.9798079260011066,
+          "metric": "consensus_f1",
+          "precision": 0.9399745962620214,
+          "quality_weighted_score": 0.9470628123534921,
+          "recall": 1.0,
+          "samples": 2,
+          "score": 0.9687077979704442,
+          "text_quality": 0.8965578459139374,
+          "xai_llm_score": 0.9
+        },
+        "name": "paddle"
+      },
+      {
+        "metrics": {
+          "consensus_f1": 0.9746198923028192,
+          "consensus_images": 2,
+          "evaluation_method": "consensus_overlap",
+          "f1": 0.9746198923028192,
+          "image_reports": [
+            {
+              "best_engine": "paddle",
+              "consensus_available": true,
+              "consensus_tokens": 161,
+              "engines": {
+                "easyocr": {
+                  "consensus_overlap": 92,
+                  "evaluation_method": "consensus_overlap",
+                  "f1": 0.5661538461538462,
+                  "mean_confidence": 0.5318336207758497,
+                  "precision": 0.5609756097560976,
+                  "quality_weighted_score": 0.6631368684511401,
+                  "recall": 0.5714285714285714,
+                  "text_quality": 0.8894305871448255,
+                  "token_count": 164
+                },
+                "paddle": {
+                  "consensus_overlap": 161,
+                  "evaluation_method": "consensus_overlap",
+                  "f1": 0.9877300613496933,
+                  "mean_confidence": 0.9831075652649528,
+                  "precision": 0.9757575757575757,
+                  "quality_weighted_score": 0.960273068788887,
+                  "recall": 1.0,
+                  "text_quality": 0.8962067528136723,
+                  "token_count": 165
+                },
+                "tesseract": {
+                  "consensus_overlap": 161,
+                  "evaluation_method": "consensus_overlap",
+                  "f1": 0.9817073170731708,
+                  "mean_confidence": 0.9346272493573263,
+                  "precision": 0.9640718562874252,
+                  "quality_weighted_score": 0.9554518109144303,
+                  "recall": 1.0,
+                  "text_quality": 0.8941889632107023,
+                  "token_count": 167
+                }
+              },
+              "image": "00040534.png",
+              "metric": "consensus_f1"
+            },
+            {
+              "best_engine": "tesseract",
+              "consensus_available": true,
+              "consensus_tokens": 151,
+              "engines": {
+                "easyocr": {
+                  "consensus_overlap": 48,
+                  "evaluation_method": "consensus_overlap",
+                  "f1": 0.39024390243902435,
+                  "mean_confidence": 0.5131206718220498,
+                  "precision": 0.5052631578947369,
+                  "quality_weighted_score": 0.5400834472245584,
+                  "recall": 0.31788079470198677,
+                  "text_quality": 0.8897090517241381,
+                  "token_count": 95
+                },
+                "paddle": {
+                  "consensus_overlap": 151,
+                  "evaluation_method": "consensus_overlap",
+                  "f1": 0.949685534591195,
+                  "mean_confidence": 0.9765082867372603,
+                  "precision": 0.9041916167664671,
+                  "quality_weighted_score": 0.9338525559180971,
+                  "recall": 1.0,
+                  "text_quality": 0.8969089390142023,
+                  "token_count": 167
+                },
+                "tesseract": {
+                  "consensus_overlap": 149,
+                  "evaluation_method": "consensus_overlap",
+                  "f1": 0.9675324675324676,
+                  "mean_confidence": 0.9219886363636363,
+                  "precision": 0.9490445859872612,
+                  "quality_weighted_score": 0.9453822598116823,
+                  "recall": 0.9867549668874173,
+                  "text_quality": 0.893698441796517,
+                  "token_count": 157
+                }
+              },
+              "image": "annotated_test.png",
+              "metric": "consensus_f1"
+            }
+          ],
+          "images": [
+            "00040534.png",
+            "annotated_test.png"
+          ],
+          "mean_confidence": 0.9283079428604812,
+          "metric": "consensus_f1",
+          "precision": 0.9565582211373431,
+          "quality_weighted_score": 0.9504170353630563,
+          "recall": 0.9933774834437086,
+          "samples": 2,
+          "score": 0.9746198923028192,
+          "text_quality": 0.8939437025036097,
+          "xai_llm_score": 0.8
+        },
+        "name": "tesseract"
+      }
+    ],
+    "metric": "consensus_f1",
+    "sample_count": 2
+  },
+  "report_file": "/Users/mac/Documents/django/scaleup rectified/generated/objective_evaluation_report.json",
+  "selection_file": "/Users/mac/Documents/django/scaleup rectified/generated/objective_selections.json",
+  "selections": {
+    "ocr": {
+      "metric": "consensus_f1",
+      "primary_engine": "tesseract",
+      "score": 0.9746198923028192,
+      "xai_llm_score": 0.8
+    },
+    "signature_classification": {
+      "metric": "macro_f1",
+      "model_path": "/Users/mac/Documents/django/scaleup rectified/signature_cnn_script.pt",
+      "score": 0.946172605787289,
+      "xai_llm_score": 0.9
+    },
+    "signature_detection": {
+      "metric": "f1",
+      "model_path": "/Users/mac/Documents/django/scaleup rectified/runs/detect/runs/detect/signature_yolo_clean/weights/best.pt",
+      "score": 0.841106503605709,
+      "xai_llm_score": 0.8
+    },
+    "summarization": {
+      "metric": 0.8879013209013209,
+      "score": 0.8879013209013209,
+      "strategy": "rule_based",
+      "xai_llm_score": 0.9
+    }
+  },
+  "signature_classification": {
+    "best": {
+      "accuracy": 0.9461805555555556,
+      "confusion_matrix": {
+        "fn": 19,
+        "fp": 12,
+        "tn": 276,
+        "tp": 269
+      },
+      "f1_fake": 0.9468267581475129,
+      "f1_real": 0.945518453427065,
+      "macro_f1": 0.946172605787289,
+      "model_path": "/Users/mac/Documents/django/scaleup rectified/signature_cnn_script.pt",
+      "precision_fake": 0.9355932203389831,
+      "precision_real": 0.9572953736654805,
+      "recall_fake": 0.9583333333333334,
+      "recall_real": 0.9340277777777778,
+      "samples": 576,
+      "xai_llm_score": 0.9
+    },
+    "candidates": [
+      {
+        "metrics": {
+          "accuracy": 0.4930555555555556,
+          "confusion_matrix": {
+            "fn": 5,
+            "fp": 287,
+            "tn": 1,
+            "tp": 283
+          },
+          "f1_fake": 0.006802721088435375,
+          "f1_real": 0.6596736596736597,
+          "macro_f1": 0.3332381903810475,
+          "model_path": "/Users/mac/Documents/django/scaleup rectified/signature_best_script.pt",
+          "precision_fake": 0.16666666666666666,
+          "precision_real": 0.4964912280701754,
+          "recall_fake": 0.003472222222222222,
+          "recall_real": 0.9826388888888888,
+          "samples": 576,
+          "xai_llm_score": 0.8
+        },
+        "name": "signature_best_script.pt"
+      },
+      {
+        "metrics": {
+          "accuracy": 0.4930555555555556,
+          "confusion_matrix": {
+            "fn": 5,
+            "fp": 287,
+            "tn": 1,
+            "tp": 283
+          },
+          "f1_fake": 0.006802721088435375,
+          "f1_real": 0.6596736596736597,
+          "macro_f1": 0.3332381903810475,
+          "model_path": "/Users/mac/Documents/django/scaleup rectified/signature_resnet18_script.pt",
+          "precision_fake": 0.16666666666666666,
+          "precision_real": 0.4964912280701754,
+          "recall_fake": 0.003472222222222222,
+          "recall_real": 0.9826388888888888,
+          "samples": 576,
+          "xai_llm_score": 0.8
+        },
+        "name": "signature_resnet18_script.pt"
+      },
+      {
+        "metrics": {
+          "accuracy": 0.9461805555555556,
+          "confusion_matrix": {
+            "fn": 19,
+            "fp": 12,
+            "tn": 276,
+            "tp": 269
+          },
+          "f1_fake": 0.9468267581475129,
+          "f1_real": 0.945518453427065,
+          "macro_f1": 0.946172605787289,
+          "model_path": "/Users/mac/Documents/django/scaleup rectified/signature_cnn_script.pt",
+          "precision_fake": 0.9355932203389831,
+          "precision_real": 0.9572953736654805,
+          "recall_fake": 0.9583333333333334,
+          "recall_real": 0.9340277777777778,
+          "samples": 576,
+          "xai_llm_score": 0.9
+        },
+        "name": "signature_cnn_script.pt"
+      },
+      {
+        "metrics": {
+          "accuracy": 0.9114583333333334,
+          "confusion_matrix": {
+            "fn": 15,
+            "fp": 36,
+            "tn": 252,
+            "tp": 273
+          },
+          "f1_fake": 0.908108108108108,
+          "f1_real": 0.9145728643216081,
+          "macro_f1": 0.9113404862148581,
+          "model_path": "/Users/mac/Documents/django/scaleup rectified/best_signature_vit.pth",
+          "precision_fake": 0.9438202247191011,
+          "precision_real": 0.883495145631068,
+          "recall_fake": 0.875,
+          "recall_real": 0.9479166666666666,
+          "samples": 576,
+          "xai_llm_score": 0.9
+        },
+        "name": "best_signature_vit.pth"
+      },
+      {
+        "metrics": {
+          "accuracy": 0.5920138888888888,
+          "confusion_matrix": {
+            "fn": 27,
+            "fp": 208,
+            "tn": 80,
+            "tp": 261
+          },
+          "f1_fake": 0.4050632911392405,
+          "f1_real": 0.6895640686922061,
+          "macro_f1": 0.5473136799157233,
+          "model_path": "/Users/mac/Documents/django/scaleup rectified/best_signature_resnet18.pth",
+          "precision_fake": 0.7476635514018691,
+          "precision_real": 0.5565031982942431,
+          "recall_fake": 0.2777777777777778,
+          "recall_real": 0.90625,
+          "samples": 576,
+          "xai_llm_score": 0.8
+        },
+        "name": "best_signature_resnet18.pth"
+      }
+    ],
+    "metric": "macro_f1"
+  },
+  "signature_detection": {
+    "best": {
+      "f1": 0.841106503605709,
+      "instances": 94,
+      "map50": 0.9171699138667927,
+      "map50_95": 0.5046916003785569,
+      "model_path": "/Users/mac/Documents/django/scaleup rectified/runs/detect/runs/detect/signature_yolo_clean/weights/best.pt",
+      "precision": 0.7783331339369143,
+      "recall": 0.9148936170212766,
+      "samples": 62,
+      "xai_llm_score": 0.8
+    },
+    "candidates": [
+      {
+        "metrics": {
+          "f1": 0.841106503605709,
+          "instances": 94,
+          "map50": 0.9171699138667927,
+          "map50_95": 0.5046916003785569,
+          "model_path": "/Users/mac/Documents/django/scaleup rectified/runs/detect/runs/detect/signature_yolo_clean/weights/best.pt",
+          "precision": 0.7783331339369143,
+          "recall": 0.9148936170212766,
+          "samples": 62,
+          "xai_llm_score": 0.8
+        },
+        "name": "best.pt"
+      },
+      {
+        "metrics": {
+          "f1": 0.5106096393381562,
+          "instances": 94,
+          "map50": 0.4538089249064003,
+          "map50_95": 0.24225921111241683,
+          "model_path": "/Users/mac/Documents/django/scaleup rectified/data2/chekpoint_last.pt",
+          "precision": 0.5777541599560648,
+          "recall": 0.4574468085106383,
+          "samples": 62,
+          "xai_llm_score": 0.5
+        },
+        "name": "chekpoint_last.pt"
+      }
+    ],
+    "metric": "f1"
+  },
+  "summarization": {
+    "best": {
+      "category_f1": 0.7868686868686868,
+      "combined_score": 0.8879013209013209,
+      "docs": [
+        {
+          "document_kind_match": 1.0,
+          "expected_categories": [
+            "confidentiality",
+            "governing_law",
+            "liability",
+            "term",
+            "termination"
+          ],
+          "f1": 0.7272727272727272,
+          "matched_summary_terms": [
+            "confidential",
+            "liability",
+            "term",
+            "terminate"
+          ],
+          "name": "nda_confidentiality_liability",
+          "precision": 0.6666666666666666,
+          "predicted_categories": [
+            "clause",
+            "confidentiality",
+            "customer_risk",
+            "liability",
+            "term",
+            "termination"
+          ],
+          "recall": 0.8,
+          "rouge_l_f": 0.923076923076923,
+          "summary_term_recall": 0.8,
+          "xai_llm_score": 0.9
+        },
+        {
+          "document_kind_match": 1.0,
+          "expected_categories": [
+            "commercial",
+            "equity",
+            "fundraising",
+            "governance",
+            "ip",
+            "payment"
+          ],
+          "f1": 0.8,
+          "matched_summary_terms": [
+            "board",
+            "equity",
+            "fundraising",
+            "intellectual property",
+            "payment"
+          ],
+          "name": "startup_investment_governance",
+          "precision": 0.6666666666666666,
+          "predicted_categories": [
+            "assignment",
+            "commercial",
+            "equity",
+            "fundraising",
+            "governance",
+            "ip",
+            "ip_strategy",
+            "payment",
+            "term"
+          ],
+          "recall": 1.0,
+          "rouge_l_f": 1.0,
+          "summary_term_recall": 1.0,
+          "xai_llm_score": 0.9
+        },
+        {
+          "document_kind_match": 1.0,
+          "expected_categories": [
+            "confidentiality",
+            "governing_law",
+            "non_compete",
+            "payment",
+            "termination"
+          ],
+          "f1": 0.8333333333333333,
+          "matched_summary_terms": [
+            "confidentiality",
+            "governing law",
+            "non-compete",
+            "payment",
+            "termination"
+          ],
+          "name": "employment_terms",
+          "precision": 0.7142857142857143,
+          "predicted_categories": [
+            "confidentiality",
+            "employment",
+            "governing_law",
+            "non_compete",
+            "payment",
+            "term",
+            "termination"
+          ],
+          "recall": 1.0,
+          "rouge_l_f": 1.0,
+          "summary_term_recall": 1.0,
+          "xai_llm_score": 0.9
+        }
+      ],
+      "document_kind_accuracy": 1.0,
+      "rouge_l_f": 0.9743589743589743,
+      "samples": 3,
+      "summary_term_recall": 0.9333333333333332,
+      "xai_llm_score": 0.9
+    },
+    "candidates": [
+      {
+        "metrics": {
+          "category_f1": 0.7868686868686868,
+          "combined_score": 0.8879013209013209,
+          "docs": [
+            {
+              "document_kind_match": 1.0,
+              "expected_categories": [
+                "confidentiality",
+                "governing_law",
+                "liability",
+                "term",
+                "termination"
+              ],
+              "f1": 0.7272727272727272,
+              "matched_summary_terms": [
+                "confidential",
+                "liability",
+                "term",
+                "terminate"
+              ],
+              "name": "nda_confidentiality_liability",
+              "precision": 0.6666666666666666,
+              "predicted_categories": [
+                "clause",
+                "confidentiality",
+                "customer_risk",
+                "liability",
+                "term",
+                "termination"
+              ],
+              "recall": 0.8,
+              "rouge_l_f": 0.923076923076923,
+              "summary_term_recall": 0.8,
+              "xai_llm_score": 0.9
+            },
+            {
+              "document_kind_match": 1.0,
+              "expected_categories": [
+                "commercial",
+                "equity",
+                "fundraising",
+                "governance",
+                "ip",
+                "payment"
+              ],
+              "f1": 0.8,
+              "matched_summary_terms": [
+                "board",
+                "equity",
+                "fundraising",
+                "intellectual property",
+                "payment"
+              ],
+              "name": "startup_investment_governance",
+              "precision": 0.6666666666666666,
+              "predicted_categories": [
+                "assignment",
+                "commercial",
+                "equity",
+                "fundraising",
+                "governance",
+                "ip",
+                "ip_strategy",
+                "payment",
+                "term"
+              ],
+              "recall": 1.0,
+              "rouge_l_f": 1.0,
+              "summary_term_recall": 1.0,
+              "xai_llm_score": 0.9
+            },
+            {
+              "document_kind_match": 1.0,
+              "expected_categories": [
+                "confidentiality",
+                "governing_law",
+                "non_compete",
+                "payment",
+                "termination"
+              ],
+              "f1": 0.8333333333333333,
+              "matched_summary_terms": [
+                "confidentiality",
+                "governing law",
+                "non-compete",
+                "payment",
+                "termination"
+              ],
+              "name": "employment_terms",
+              "precision": 0.7142857142857143,
+              "predicted_categories": [
+                "confidentiality",
+                "employment",
+                "governing_law",
+                "non_compete",
+                "payment",
+                "term",
+                "termination"
+              ],
+              "recall": 1.0,
+              "rouge_l_f": 1.0,
+              "summary_term_recall": 1.0,
+              "xai_llm_score": 0.9
+            }
+          ],
+          "document_kind_accuracy": 1.0,
+          "rouge_l_f": 0.9743589743589743,
+          "samples": 3,
+          "summary_term_recall": 0.9333333333333332,
+          "xai_llm_score": 0.9
+        },
+        "name": "rule_based"
+      },
+      {
+        "metrics": {
+          "category_f1": 0.6868686868686869,
+          "combined_score": 0.7792056687274078,
+          "docs": [
+            {
+              "document_kind_match": 1.0,
+              "expected_categories": [
+                "confidentiality",
+                "governing_law",
+                "liability",
+                "term",
+                "termination"
+              ],
+              "f1": 0.7272727272727272,
+              "matched_summary_terms": [
+                "confidential",
+                "liability",
+                "term",
+                "terminate"
+              ],
+              "name": "nda_confidentiality_liability",
+              "precision": 0.6666666666666666,
+              "predicted_categories": [
+                "clause",
+                "confidentiality",
+                "customer_risk",
+                "liability",
+                "term",
+                "termination"
+              ],
+              "recall": 0.8,
+              "rouge_l_f": 0.923076923076923,
+              "summary_term_recall": 0.8,
+              "xai_llm_score": 0.9
+            },
+            {
+              "document_kind_match": 0.0,
+              "expected_categories": [
+                "commercial",
+                "equity",
+                "fundraising",
+                "governance",
+                "ip",
+                "payment"
+              ],
+              "f1": 0.5,
+              "matched_summary_terms": [
+                "board",
+                "equity",
+                "fundraising",
+                "intellectual property",
+                "payment"
+              ],
+              "name": "startup_investment_governance",
+              "precision": 1.0,
+              "predicted_categories": [
+                "fundraising",
+                "ip"
+              ],
+              "recall": 0.3333333333333333,
+              "rouge_l_f": 0.8260869565217392,
+              "summary_term_recall": 1.0,
+              "xai_llm_score": 0.9
+            },
+            {
+              "document_kind_match": 1.0,
+              "expected_categories": [
+                "confidentiality",
+                "governing_law",
+                "non_compete",
+                "payment",
+                "termination"
+              ],
+              "f1": 0.8333333333333333,
+              "matched_summary_terms": [
+                "confidentiality",
+                "governing law",
+                "non-compete",
+                "payment",
+                "termination"
+              ],
+              "name": "employment_terms",
+              "precision": 0.7142857142857143,
+              "predicted_categories": [
+                "confidentiality",
+                "employment",
+                "governing_law",
+                "non_compete",
+                "payment",
+                "term",
+                "termination"
+              ],
+              "recall": 1.0,
+              "rouge_l_f": 1.0,
+              "summary_term_recall": 1.0,
+              "xai_llm_score": 0.9
+            }
+          ],
+          "document_kind_accuracy": 0.6666666666666666,
+          "rouge_l_f": 0.9163879598662207,
+          "samples": 3,
+          "summary_term_recall": 0.9333333333333332,
+          "xai_llm_score": 0.9
+        },
+        "name": "ai_assisted"
+      },
+      {
+        "metrics": {
+          "category_f1": 0.6868686868686869,
+          "combined_score": 0.7792056687274078,
+          "docs": [
+            {
+              "document_kind_match": 1.0,
+              "expected_categories": [
+                "confidentiality",
+                "governing_law",
+                "liability",
+                "term",
+                "termination"
+              ],
+              "f1": 0.7272727272727272,
+              "matched_summary_terms": [
+                "confidential",
+                "liability",
+                "term",
+                "terminate"
+              ],
+              "name": "nda_confidentiality_liability",
+              "precision": 0.6666666666666666,
+              "predicted_categories": [
+                "clause",
+                "confidentiality",
+                "customer_risk",
+                "liability",
+                "term",
+                "termination"
+              ],
+              "recall": 0.8,
+              "rouge_l_f": 0.923076923076923,
+              "summary_term_recall": 0.8,
+              "xai_llm_score": 0.9
+            },
+            {
+              "document_kind_match": 0.0,
+              "expected_categories": [
+                "commercial",
+                "equity",
+                "fundraising",
+                "governance",
+                "ip",
+                "payment"
+              ],
+              "f1": 0.5,
+              "matched_summary_terms": [
+                "board",
+                "equity",
+                "fundraising",
+                "intellectual property",
+                "payment"
+              ],
+              "name": "startup_investment_governance",
+              "precision": 1.0,
+              "predicted_categories": [
+                "fundraising",
+                "ip"
+              ],
+              "recall": 0.3333333333333333,
+              "rouge_l_f": 0.8260869565217392,
+              "summary_term_recall": 1.0,
+              "xai_llm_score": 0.9
+            },
+            {
+              "document_kind_match": 1.0,
+              "expected_categories": [
+                "confidentiality",
+                "governing_law",
+                "non_compete",
+                "payment",
+                "termination"
+              ],
+              "f1": 0.8333333333333333,
+              "matched_summary_terms": [
+                "confidentiality",
+                "governing law",
+                "non-compete",
+                "payment",
+                "termination"
+              ],
+              "name": "employment_terms",
+              "precision": 0.7142857142857143,
+              "predicted_categories": [
+                "confidentiality",
+                "employment",
+                "governing_law",
+                "non_compete",
+                "payment",
+                "term",
+                "termination"
+              ],
+              "recall": 1.0,
+              "rouge_l_f": 1.0,
+              "summary_term_recall": 1.0,
+              "xai_llm_score": 0.9
+            }
+          ],
+          "document_kind_accuracy": 0.6666666666666666,
+          "rouge_l_f": 0.9163879598662207,
+          "samples": 3,
+          "summary_term_recall": 0.9333333333333332,
+          "xai_llm_score": 0.9
+        },
+        "name": "hybrid"
+      }
+    ],
+    "metric": "combined_score"
+  },
+  "xai_llm_judge": {
+    "available": true,
+    "reason": "ok"
+  }
+}
