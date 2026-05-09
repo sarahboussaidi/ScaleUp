@@ -122,12 +122,26 @@ export default function Aurora(props) {
     const ctn = ctnDom.current
     if (!ctn) return
 
-    const renderer = new Renderer({
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: true,
-    })
-    const gl = renderer.gl
+    let renderer
+    let gl
+
+    try {
+      renderer = new Renderer({
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: true,
+      })
+      gl = renderer.gl
+    } catch (error) {
+      console.warn("Aurora background disabled: WebGL renderer could not be created.", error)
+      return
+    }
+
+    if (!gl) {
+      console.warn("Aurora background disabled: WebGL context is unavailable.")
+      return
+    }
+
     gl.clearColor(0, 0, 0, 0)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
