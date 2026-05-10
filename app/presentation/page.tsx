@@ -6,6 +6,7 @@ import { GlassmorphismNav } from "@/components/glassmorphism-nav"
 import { CameraFeed } from "@/components/pitch-coach/camera-feed"
 import { MetricsPanel } from "@/components/pitch-coach/metrics-panel"
 import { PosturePanel } from "@/components/pitch-coach/posture-panel"
+import { SpeechStrength } from "@/components/pitch-coach/speech-strength"
 import { SpeechTranscription } from "@/components/pitch-coach/speech-transcription"
 import { RecordingControls, AnalysisDataPoint } from "@/components/pitch-coach/recording-controls"
 import { PitchHero } from "@/components/pitch-coach/pitch-hero"
@@ -18,6 +19,11 @@ const Aurora = dynamic(() => import("@/components/Aurora"), {
 })
 
 export default function PitchCoachPage() {
+  const [activeView, setActiveView] = useState<"pitch-evaluation" | "pitch-deck">("pitch-evaluation")
+  const [startupName, setStartupName] = useState("")
+  const [industry, setIndustry] = useState("")
+  const [startupDescription, setStartupDescription] = useState("")
+  const [generatedPitchDeck, setGeneratedPitchDeck] = useState<Array<{ title: string; text: string }>>([])
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [postureData, setPostureData] = useState({
@@ -27,6 +33,7 @@ export default function PitchCoachPage() {
   const [recordingAnalysis, setRecordingAnalysis] = useState<RecordingAnalysisData | null>(null)
   const [recordingDuration, setRecordingDuration] = useState(0)
   const [transcription, setTranscription] = useState("")
+  const [speechStrength, setSpeechStrength] = useState<{ label: string; score: number } | null>(null)
   
   // Refs for recording analysis data
   const analysisDataRef = useRef<AnalysisDataPoint[]>([])
@@ -180,6 +187,39 @@ export default function PitchCoachPage() {
     }
   }, [])
 
+  const handleGeneratePitchDeck = useCallback(() => {
+    const company = startupName.trim() || "Your Startup"
+    const sector = industry.trim() || "your industry"
+    const description = startupDescription.trim() || "a clear solution to a real problem"
+
+    setGeneratedPitchDeck([
+      {
+        title: "Problem",
+        text: `${company} operates in ${sector}. The problem is that customers still struggle with ${description.toLowerCase()}.`,
+      },
+      {
+        title: "Solution",
+        text: `${company} solves this with a focused product that makes the value proposition simple, fast, and scalable.`,
+      },
+      {
+        title: "Why Now",
+        text: `The market is ready because ${sector} is evolving quickly and users expect better experiences.`,
+      },
+      {
+        title: "Business Model",
+        text: `${company} can monetize through subscriptions, usage fees, or premium services depending on customer demand.`,
+      },
+      {
+        title: "Traction",
+        text: `Use this slide to highlight pilots, users, revenue, or any validation you already have for ${company}.`,
+      },
+      {
+        title: "Ask",
+        text: `Clearly state what you need next: funding, partners, pilots, or hiring support.`,
+      },
+    ])
+  }, [industry, startupDescription, startupName])
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0a0a14]">
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -195,46 +235,158 @@ export default function PitchCoachPage() {
       <main className="relative z-10">
         <PitchHero />
 
-        <section className="px-4 pb-20 md:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div className="space-y-4 lg:col-span-2">
-                <CameraFeed
-                  onStreamReady={handleStreamReady}
-                  onStreamEnd={handleStreamEnd}
-                  isRecording={isRecording}
-                  onAnalysisUpdate={handleAnalysisUpdate}
-                />
+        <section className="px-4 pb-6 md:px-8">
+          <div className="mx-auto flex max-w-3xl items-center justify-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.04] p-2 backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={() => setActiveView("pitch-evaluation")}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+                activeView === "pitch-evaluation"
+                  ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20"
+                  : "text-slate-300 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              Pitch Evaluation
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView("pitch-deck")}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+                activeView === "pitch-deck"
+                  ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20"
+                  : "text-slate-300 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              Pitch Deck
+            </button>
+          </div>
+        </section>
 
-                <SpeechTranscription
-                  isRecording={isRecording}
-                  onTranscriptionUpdate={setTranscription}
-                  onFinalTranscript={setTranscription}
-                />
+        {activeView === "pitch-evaluation" ? (
+          <section className="px-4 pb-20 md:px-8">
+            <div className="mx-auto max-w-7xl">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div className="space-y-4 lg:col-span-2">
+                  <CameraFeed
+                    onStreamReady={handleStreamReady}
+                    onStreamEnd={handleStreamEnd}
+                    isRecording={isRecording}
+                    onAnalysisUpdate={handleAnalysisUpdate}
+                  />
 
-                <RecordingControls
-                  stream={stream}
-                  onRecordingStart={handleRecordingStart}
-                  onRecordingStop={handleRecordingStop}
-                />
-              </div>
+                  <SpeechTranscription
+                    isRecording={isRecording}
+                    onTranscriptionUpdate={setTranscription}
+                    onFinalTranscript={setTranscription}
+                    speechStrength={speechStrength}
+                  />
 
-              <div className="lg:col-span-1">
-                <div className="lg:sticky lg:top-28 space-y-4">
-                  <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-slate-200">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-purple-500" />
-                    </span>
-                    Live Analysis
-                  </h3>
-                  <MetricsPanel isActive={!!stream} isRecording={isRecording} />
-                  <PosturePanel isActive={!!stream} isRecording={isRecording} postureData={postureData} />
+                  <RecordingControls
+                    stream={stream}
+                    onRecordingStart={handleRecordingStart}
+                    onRecordingStop={handleRecordingStop}
+                  />
+                </div>
+
+                <div className="lg:col-span-1">
+                  <div className="lg:sticky lg:top-28 space-y-4">
+                    <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-slate-200">
+                      <span className="relative flex h-2 w-2">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-purple-500" />
+                      </span>
+                      Live Analysis
+                    </h3>
+                    <MetricsPanel isActive={!!stream} isRecording={isRecording} />
+                    <PosturePanel isActive={!!stream} isRecording={isRecording} postureData={postureData} />
+                    <div className="mt-4">
+                      <SpeechStrength onResult={(result) => setSpeechStrength(result.prediction)} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        ) : (
+          <section className="px-4 pb-20 md:px-8">
+            <div className="mx-auto max-w-7xl">
+              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-sm md:p-8">
+                <div className="mb-8 flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-semibold text-white md:text-3xl">Pitch Deck Template</h2>
+                    <p className="mt-2 max-w-2xl text-sm text-slate-400">
+                      Add your startup details, generate a pitch deck, and keep everything on the same page.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveView("pitch-evaluation")}
+                    className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/5"
+                  >
+                    Back to evaluation
+                  </button>
+                </div>
+
+                <div className="mb-8 grid grid-cols-1 gap-4 rounded-2xl border border-white/[0.08] bg-black/20 p-5 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-200">Startup name</label>
+                    <input
+                      value={startupName}
+                      onChange={(e) => setStartupName(e.target.value)}
+                      placeholder="e.g. ScaleUp"
+                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-purple-500/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-200">Industry</label>
+                    <input
+                      value={industry}
+                      onChange={(e) => setIndustry(e.target.value)}
+                      placeholder="e.g. AI, HealthTech, FinTech"
+                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-purple-500/50"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="mb-2 block text-sm font-medium text-slate-200">Short description</label>
+                    <textarea
+                      value={startupDescription}
+                      onChange={(e) => setStartupDescription(e.target.value)}
+                      placeholder="Write a short sentence about the problem you solve..."
+                      rows={4}
+                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-purple-500/50"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleGeneratePitchDeck}
+                      className="rounded-full bg-purple-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-purple-400"
+                    >
+                      Generate Pitch Deck
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {(generatedPitchDeck.length > 0
+                    ? generatedPitchDeck
+                    : [
+                        { title: "Problem", text: "Fill the form above and click Generate Pitch Deck." },
+                        { title: "Solution", text: "The generated slides will appear here." },
+                        { title: "Market", text: "You can customize them by changing the startup inputs." },
+                      ]
+                  ).map((slide) => (
+                    <div key={slide.title} className="rounded-xl border border-white/[0.08] bg-black/20 p-5">
+                      <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Slide</p>
+                      <h3 className="mt-2 text-lg font-semibold text-white">{slide.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-400">{slide.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="px-4 py-20 md:px-8">
           <div className="mx-auto max-w-5xl">

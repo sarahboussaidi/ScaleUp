@@ -11,6 +11,7 @@ export const API_CONFIG = {
     ANALYZE_STRESS: "/api/analyze/stress",
     ANALYZE_POSTURE: "/api/analyze/posture",
     ANALYZE_VOICE_EMOTION: "/api/analyze/voice-emotion",
+    ANALYZE_SPEECH_STRENGTH: "/api/analyze/speech-strength",
   },
 
   // Timeouts (in ms)

@@ -16,6 +16,12 @@ import pickle
 import mediapipe as mp
 import librosa
 import io
+import tempfile
+from strength_predictor import hybrid_strength_predict
+try:
+    from speech_strength_app import transcribe_audio
+except Exception:
+    transcribe_audio = None
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -64,15 +70,15 @@ def load_models():
         
         if emotion_path:
             models_loaded['emotion'] = load_model(emotion_path)
-            print("[✓] Emotion model loaded")
+            print("[OK] Emotion model loaded")
         else:
-            print("[⚠] Emotion model not found in any expected location")
+            print("[!] Emotion model not found in any expected location")
             
         if stress_path:
             models_loaded['stress'] = load_model(stress_path)
-            print("[✓] Stress model loaded")
+            print("[OK] Stress model loaded")
         else:
-            print("[⚠] Stress model not found in any expected location")
+            print("[!] Stress model not found in any expected location")
         
         # Load pose detection model
         try:
@@ -81,11 +87,11 @@ def load_models():
                 base_options = mp.tasks.BaseOptions(model_asset_path=pose_task_path)
                 options = mp.tasks.vision.PoseLandmarkerOptions(base_options=base_options, output_segmentation_masks=False)
                 models_loaded['pose_detector'] = mp.tasks.vision.PoseLandmarker.create_from_options(options)
-                print("[✓] Pose detector loaded")
+                print("[OK] Pose detector loaded")
             else:
-                print("[⚠] Pose landmarker task not found")
+                print("[!] Pose landmarker task not found")
         except Exception as e:
-            print(f"[⚠] Pose detector loading failed: {e}")
+            print(f"[!] Pose detector loading failed: {e}")
         
         # Load posture confidence model
         try:
@@ -93,9 +99,11 @@ def load_models():
             if confidence_path:
                 with open(confidence_path, 'rb') as f:
                     models_loaded['confidence_model'] = pickle.load(f)
-                print("[✓] Confidence model loaded")
+                print("[OK] Confidence model loaded")
+            else:
+                print("[!] Confidence model not found - posture detection will use landmarks only")
         except Exception as e:
-            print(f"[⚠] Confidence model loading failed: {e}")
+            print(f"[!] Confidence model loading skipped (corrupted or missing): {str(e)[:50]}")
         
         # Load label encoder
         try:
@@ -103,9 +111,11 @@ def load_models():
             if encoder_path:
                 with open(encoder_path, 'rb') as f:
                     models_loaded['label_encoder'] = pickle.load(f)
-                print("[✓] Label encoder loaded")
+                print("[OK] Label encoder loaded")
+            else:
+                print("[!] Label encoder not found")
         except Exception as e:
-            print(f"[⚠] Label encoder loading failed: {e}")
+            print(f"[!] Label encoder loading skipped (corrupted or missing): {str(e)[:50]}")
         
         # Load scaler
         try:
@@ -113,9 +123,11 @@ def load_models():
             if scaler_path:
                 with open(scaler_path, 'rb') as f:
                     models_loaded['scaler'] = pickle.load(f)
-                print("[✓] Scaler loaded")
+                print("[OK] Scaler loaded")
+            else:
+                print("[!] Scaler not found")
         except Exception as e:
-            print(f"[⚠] Scaler loading failed: {e}")
+            print(f"[!] Scaler loading skipped (corrupted or missing): {str(e)[:50]}")
         
         # Load voice emotion model
         try:
@@ -125,14 +137,14 @@ def load_models():
             )
             if voice_emotion_path:
                 models_loaded['voice_emotion'] = load_model(voice_emotion_path)
-                print("[✓] Voice emotion model loaded")
+                print("[OK] Voice emotion model loaded")
             else:
-                print("[⚠] Voice emotion model not found")
+                print("[!] Voice emotion model not found")
         except Exception as e:
-            print(f"[⚠] Voice emotion model loading failed: {e}")
+            print(f"[!] Voice emotion model loading failed: {e}")
             
     except Exception as e:
-        print(f"[✗] Error loading models: {e}")
+        print(f"[ERROR] Error loading models: {e}")
         traceback.print_exc()
 
 def preprocess_face(face_array):
@@ -144,7 +156,7 @@ def preprocess_face(face_array):
         face = np.expand_dims(face, axis=0)
         return face
     except Exception as e:
-        print(f"[✗] Error preprocessing face: {e}")
+        print(f"[ERROR] Error preprocessing face: {e}")
         return None
 
 def detect_emotion(frame_base64):
@@ -197,7 +209,7 @@ def detect_emotion(frame_base64):
             }
         }
     except Exception as e:
-        print(f"[✗] Error detecting emotion: {e}")
+        print(f"[ERROR] Error detecting emotion: {e}")
         traceback.print_exc()
         return {"error": str(e)}
 
@@ -255,7 +267,7 @@ def detect_stress(frame_base64):
             },
         }
     except Exception as e:
-        print(f"[✗] Error detecting stress: {e}")
+        print(f"[ERROR] Error detecting stress: {e}")
         traceback.print_exc()
         return {"error": str(e)}
 
@@ -319,7 +331,7 @@ def detect_posture(frame_base64):
             "landmarks_count": len(landmarks)
         }
     except Exception as e:
-        print(f"[✗] Error detecting posture: {e}")
+        print(f"[ERROR] Error detecting posture: {e}")
         traceback.print_exc()
         return {"error": str(e)}
 
@@ -337,7 +349,7 @@ def detect_voice_emotion(audio_base64):
             audio_stream = io.BytesIO(audio_data)
             y, sr = librosa.load(audio_stream, sr=16000)
         except Exception as e:
-            print(f"[⚠] Librosa load failed: {e}, trying alternative")
+            print(f"[!] Librosa load failed: {e}, trying alternative")
             # If librosa fails, try alternative loading
             import soundfile as sf
             audio_stream = io.BytesIO(audio_data)
@@ -377,7 +389,7 @@ def detect_voice_emotion(audio_base64):
             }
         }
     except Exception as e:
-        print(f"[✗] Error detecting voice emotion: {e}")
+        print(f"[ERROR] Error detecting voice emotion: {e}")
         traceback.print_exc()
         return {"error": str(e)}
 
@@ -457,6 +469,53 @@ def analyze_voice_emotion():
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/analyze/speech-strength', methods=['POST'])
+def analyze_speech_strength():
+    """Analyze speech strength from audio (base64 or multipart file)"""
+    try:
+        # Accept JSON body with 'audio' (data URL) or multipart file
+        if request.content_type and request.content_type.startswith('multipart'):
+            # file upload
+            if 'file' not in request.files:
+                return jsonify({'error': 'No file uploaded'}), 400
+            f = request.files['file']
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+            f.save(tmp.name)
+            audio_path = tmp.name
+        else:
+            data = request.get_json() or {}
+            audio_b64 = data.get('audio')
+            if not audio_b64:
+                return jsonify({'error': 'No audio provided'}), 400
+            # strip data URL prefix if present
+            if ',' in audio_b64:
+                audio_b64 = audio_b64.split(',', 1)[1]
+            audio_bytes = base64.b64decode(audio_b64)
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+            tmp.write(audio_bytes)
+            tmp.flush()
+            audio_path = tmp.name
+
+        # Transcribe
+        transcript = ""
+        if transcribe_audio is not None:
+            try:
+                transcript = transcribe_audio(audio_path)
+            except Exception:
+                transcript = ""
+
+        # Predict strength
+        prediction = hybrid_strength_predict(transcript or "")
+
+        return jsonify({
+            'transcript': transcript,
+            'prediction': prediction
+        })
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     # Load models on startup

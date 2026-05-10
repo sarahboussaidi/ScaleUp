@@ -8,12 +8,17 @@ interface SpeechTranscriptionProps {
   isRecording: boolean
   onTranscriptionUpdate?: (transcript: string) => void
   onFinalTranscript?: (transcript: string) => void
+  speechStrength?: {
+    label: string
+    score: number
+  } | null
 }
 
 export function SpeechTranscription({
   isRecording,
   onTranscriptionUpdate,
   onFinalTranscript,
+  speechStrength,
 }: SpeechTranscriptionProps) {
   const recognitionRef = useRef<any>(null)
   const [transcript, setTranscript] = useState("")
@@ -158,6 +163,25 @@ export function SpeechTranscription({
       <div className="flex items-center gap-2 rounded-lg bg-slate-800/30 px-3 py-2 text-xs text-slate-400">
         <Volume2 className="h-3 w-3" />
         <span>Words detected: {transcript.split(/\s+/).filter((w) => w).length}</span>
+      </div>
+
+      <div className="flex items-center justify-between rounded-lg bg-slate-800/30 px-3 py-2 text-xs">
+        <span className="text-slate-400">Speech strength</span>
+        {speechStrength ? (
+          <span
+            className={`rounded-full px-3 py-1 font-semibold ${
+              speechStrength.label === "weak"
+                ? "bg-red-600 text-white"
+                : speechStrength.label === "moderate"
+                  ? "bg-orange-400 text-black"
+                  : "bg-green-600 text-white"
+            }`}
+          >
+            {speechStrength.label.toUpperCase()} ({speechStrength.score.toFixed(2)})
+          </span>
+        ) : (
+          <span className="text-slate-500">Waiting for analysis</span>
+        )}
       </div>
     </Card>
   )
