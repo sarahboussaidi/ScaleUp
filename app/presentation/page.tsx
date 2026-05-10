@@ -24,6 +24,7 @@ export default function PitchCoachPage() {
   const [industry, setIndustry] = useState("")
   const [startupDescription, setStartupDescription] = useState("")
   const [generatedPitchDeck, setGeneratedPitchDeck] = useState<Array<{ title: string; text: string }>>([])
+  const [deckEvaluation, setDeckEvaluation] = useState<{ score: number; label: string; feedback: string[] } | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [postureData, setPostureData] = useState({
@@ -218,7 +219,34 @@ export default function PitchCoachPage() {
         text: `Clearly state what you need next: funding, partners, pilots, or hiring support.`,
       },
     ])
+
+    setDeckEvaluation(null)
   }, [industry, startupDescription, startupName])
+
+  const handleEvaluatePitchDeck = useCallback(() => {
+    const checks = [
+      startupName.trim().length > 2,
+      industry.trim().length > 2,
+      startupDescription.trim().length > 20,
+      generatedPitchDeck.length > 0,
+    ]
+
+    const score = Math.round((checks.filter(Boolean).length / checks.length) * 100)
+    const label = score >= 80 ? "Strong" : score >= 50 ? "Moderate" : "Weak"
+
+    const feedback: string[] = []
+    if (!startupName.trim()) feedback.push("Add your startup name.")
+    if (!industry.trim()) feedback.push("Specify the industry.")
+    if (!startupDescription.trim()) feedback.push("Add a short description of the problem and solution.")
+    if (generatedPitchDeck.length === 0) feedback.push("Generate the pitch deck first.")
+
+    if (feedback.length === 0) {
+      feedback.push("Your pitch deck inputs look complete.")
+      feedback.push("You can now refine the wording of each slide.")
+    }
+
+    setDeckEvaluation({ score, label, feedback })
+  }, [generatedPitchDeck.length, industry, startupDescription, startupName])
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0a0a14]">
@@ -382,6 +410,49 @@ export default function PitchCoachPage() {
                       <p className="mt-2 text-sm leading-relaxed text-slate-400">{slide.text}</p>
                     </div>
                   ))}
+                </div>
+
+                <div className="mt-8 rounded-2xl border border-white/[0.08] bg-black/20 p-5">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Evaluate</p>
+                      <h3 className="mt-2 text-xl font-semibold text-white">Pitch deck evaluation</h3>
+                      <p className="mt-2 text-sm text-slate-400">
+                        Check whether the essential inputs are ready before you present.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleEvaluatePitchDeck}
+                      className="rounded-full border border-purple-500/30 bg-purple-500/10 px-5 py-3 text-sm font-semibold text-purple-200 transition hover:bg-purple-500/20"
+                    >
+                      Evaluate Pitch Deck
+                    </button>
+                  </div>
+
+                  {deckEvaluation ? (
+                    <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-[220px_1fr]">
+                      <div className={`rounded-2xl p-5 text-center ${deckEvaluation.label === "Weak" ? "bg-red-600/20" : deckEvaluation.label === "Moderate" ? "bg-orange-500/20" : "bg-green-600/20"}`}>
+                        <p className="text-sm text-slate-300">Overall score</p>
+                        <p className="mt-2 text-4xl font-bold text-white">{deckEvaluation.score}</p>
+                        <p className="mt-2 text-sm font-semibold text-white">{deckEvaluation.label}</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+                        <p className="text-sm font-medium text-slate-200">Feedback</p>
+                        <ul className="mt-3 space-y-2 text-sm text-slate-400">
+                          {deckEvaluation.feedback.map((item) => (
+                            <li key={item} className="rounded-lg bg-black/20 px-3 py-2">
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="mt-5 text-sm text-slate-500">
+                      Click <span className="text-slate-200">Evaluate Pitch Deck</span> to see the assessment.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
