@@ -9,3 +9,4 @@ node_modules
 .env*.local
 .DS_Store
 backend/models/posturedata/pitch_deck_final (1).zip
+pitch_deck_cache/

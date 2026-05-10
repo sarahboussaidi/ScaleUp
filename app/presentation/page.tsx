@@ -188,39 +188,53 @@ export default function PitchCoachPage() {
     }
   }, [])
 
-  const handleGeneratePitchDeck = useCallback(() => {
+  const handleGeneratePitchDeck = useCallback(async () => {
     const company = startupName.trim() || "Your Startup"
     const sector = industry.trim() || "your industry"
     const description = startupDescription.trim() || "a clear solution to a real problem"
 
-    setGeneratedPitchDeck([
-      {
-        title: "Problem",
-        text: `${company} operates in ${sector}. The problem is that customers still struggle with ${description.toLowerCase()}.`,
-      },
-      {
-        title: "Solution",
-        text: `${company} solves this with a focused product that makes the value proposition simple, fast, and scalable.`,
-      },
-      {
-        title: "Why Now",
-        text: `The market is ready because ${sector} is evolving quickly and users expect better experiences.`,
-      },
-      {
-        title: "Business Model",
-        text: `${company} can monetize through subscriptions, usage fees, or premium services depending on customer demand.`,
-      },
-      {
-        title: "Traction",
-        text: `Use this slide to highlight pilots, users, revenue, or any validation you already have for ${company}.`,
-      },
-      {
-        title: "Ask",
-        text: `Clearly state what you need next: funding, partners, pilots, or hiring support.`,
-      },
-    ])
-
+    setGeneratedPitchDeck([])
     setDeckEvaluation(null)
+
+    try {
+      const API_BASE = typeof window !== 'undefined' ? `http://${window.location.hostname}:5000` : 'http://localhost:5000'
+      const res = await fetch(`${API_BASE}/api/pitch/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company, industry: sector, description }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+
+      const keyToTitle: Record<string, string> = {
+        problem: 'Problem',
+        solution: 'Solution',
+        market: 'Why Now',
+        product: 'Product',
+        business_model: 'Business Model',
+        competition: 'Competition',
+        team: 'Team',
+        ask: 'Ask',
+      }
+
+      if (data.slides) {
+        const mapped = Object.entries(data.slides).map(([k, v]) => ({ title: keyToTitle[k] || k, text: v }))
+        setGeneratedPitchDeck(mapped)
+      } else {
+        throw new Error('No slides returned')
+      }
+    } catch (err) {
+      console.error('Generate pitch deck failed:', err)
+      // fallback to simple template
+      setGeneratedPitchDeck([
+        { title: 'Problem', text: `${company} operates in ${sector}. The problem is that customers still struggle with ${description.toLowerCase()}.` },
+        { title: 'Solution', text: `${company} solves this with a focused product that makes the value proposition simple, fast, and scalable.` },
+        { title: 'Why Now', text: `The market is ready because ${sector} is evolving quickly and users expect better experiences.` },
+        { title: 'Business Model', text: `${company} can monetize through subscriptions, usage fees, or premium services depending on customer demand.` },
+        { title: 'Traction', text: `Use this slide to highlight pilots, users, revenue, or any validation you already have for ${company}.` },
+        { title: 'Ask', text: `Clearly state what you need next: funding, partners, pilots, or hiring support.` },
+      ])
+    }
   }, [industry, startupDescription, startupName])
 
   const handleEvaluatePitchDeck = useCallback(() => {
@@ -247,6 +261,27 @@ export default function PitchCoachPage() {
 
     setDeckEvaluation({ score, label, feedback })
   }, [generatedPitchDeck.length, industry, startupDescription, startupName])
+
+  const pitchDeckSections = useMemo(
+    () => [
+      {
+        key: "title",
+        title: "Title Slide",
+        text: startupName.trim()
+          ? `${startupName.trim()} in ${industry.trim() || "your market"}. ${startupDescription.trim() || "A concise summary of the startup."}`
+          : "Add your startup name, industry, and short description to generate the cover slide.",
+      },
+      { key: "problem", title: "Problem", text: "What pain point exists, who feels it, and why it matters now." },
+      { key: "solution", title: "Solution", text: "How your product solves the problem in a clear and differentiated way." },
+      { key: "market", title: "Market", text: "Who your target customers are and why the opportunity is large." },
+      { key: "product", title: "Product", text: "Core features, user flow, and what the product actually does." },
+      { key: "business_model", title: "Business Model", text: "How the company makes money and how revenue scales." },
+      { key: "competition", title: "Competition", text: "Alternatives, competitors, and why this startup wins." },
+      { key: "team", title: "Team", text: "Why this team is credible and able to execute." },
+      { key: "ask", title: "Ask", text: "What you need next: funding, customers, partners, or hiring." },
+    ],
+    [industry, startupDescription, startupName],
+  )
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0a0a14]">
@@ -396,20 +431,18 @@ export default function PitchCoachPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {(generatedPitchDeck.length > 0
-                    ? generatedPitchDeck
-                    : [
-                        { title: "Problem", text: "Fill the form above and click Generate Pitch Deck." },
-                        { title: "Solution", text: "The generated slides will appear here." },
-                        { title: "Market", text: "You can customize them by changing the startup inputs." },
-                      ]
-                  ).map((slide) => (
-                    <div key={slide.title} className="rounded-xl border border-white/[0.08] bg-black/20 p-5">
-                      <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Slide</p>
-                      <h3 className="mt-2 text-lg font-semibold text-white">{slide.title}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-slate-400">{slide.text}</p>
-                    </div>
-                  ))}
+                  {pitchDeckSections.map((section) => {
+                    const generatedSlide = generatedPitchDeck.find((slide) => slide.title.toLowerCase() === section.title.toLowerCase())
+                    const text = generatedSlide?.text || section.text
+
+                    return (
+                      <div key={section.key} className="rounded-xl border border-white/[0.08] bg-black/20 p-5">
+                        <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Slide</p>
+                        <h3 className="mt-2 text-lg font-semibold text-white">{section.title}</h3>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-400">{text}</p>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 <div className="mt-8 rounded-2xl border border-white/[0.08] bg-black/20 p-5">

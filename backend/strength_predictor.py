@@ -19,18 +19,22 @@ _model = None
 _tokenizer = None
 _strong_kw = {}
 _weak_kw = {}
+_loading = False
 
 def load_resources():
-    global _model, _tokenizer, _strong_kw, _weak_kw
+    global _model, _tokenizer, _strong_kw, _weak_kw, _loading
     if AutoTokenizer is None:
         raise ImportError("transformers not available")
 
-    if _model is None:
+    if _model is None and not _loading:
+        _loading = True
+        print("[*] Loading DistilBERT model (this may take 30-60s on first run)...")
         if not os.path.isdir(MODEL_DIR):
             raise FileNotFoundError(f"Model dir not found: {MODEL_DIR}")
         _tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
         _model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
         _model.eval()
+        print("[OK] DistilBERT model loaded successfully")
 
     # load keywords if present
     try:

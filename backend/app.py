@@ -4,6 +4,7 @@ Simplified for Next.js integration
 """
 
 from flask import Flask, request, jsonify
+from flask import send_file
 from flask_cors import CORS
 import cv2
 import numpy as np
@@ -146,6 +147,48 @@ def load_models():
     except Exception as e:
         print(f"[ERROR] Error loading models: {e}")
         traceback.print_exc()
+
+
+# -----------------
+# Pitch deck routes
+# -----------------
+@app.route('/api/pitch/generate', methods=['POST'])
+def api_generate_pitch():
+    try:
+        data = request.json or {}
+        company = data.get('company', 'Your Startup')
+        industry = data.get('industry', 'your industry')
+        description = data.get('description', 'a clear solution to a real problem')
+
+        # Import here to avoid heavy import at startup
+        from pitch_generator import generate_all_slides
+
+        slides = generate_all_slides(company, industry, description)
+        return jsonify({'slides': slides})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/pitch/download', methods=['POST'])
+def api_download_pitch():
+    try:
+        data = request.json or {}
+        company = data.get('company', 'Your Startup')
+        industry = data.get('industry', 'your industry')
+        description = data.get('description', 'a clear solution to a real problem')
+
+        from pitch_generator import generate_all_slides, build_pptx
+
+        slides = generate_all_slides(company, industry, description)
+        # Save to temporary file
+        fd, tmp_path = tempfile.mkstemp(suffix='.pptx')
+        os.close(fd)
+        build_pptx(company, industry, description, slides, tmp_path)
+        return send_file(tmp_path, as_attachment=True, download_name=f"{company}_pitch_deck.pptx")
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 def preprocess_face(face_array):
     """Preprocess face image for model prediction"""

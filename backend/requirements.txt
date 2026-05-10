@@ -12,3 +12,4 @@ torch>=2.2.0
 gradio>=3.40.0
 openai-whisper>=20230314
 pydub>=0.25.1
+huggingface_hub>=0.16.4
