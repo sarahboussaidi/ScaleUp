@@ -15,9 +15,7 @@ from pptx.dml.color import RGBColor
 
 # ── HuggingFace model config ─────────────────────────────────────────────────
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
-HF_REPO    = "didina01/pitch-deck-phi3"
-HF_TOKEN   = os.getenv("HF_TOKEN", "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")
-LOCAL_CACHE = os.path.join(BASE_DIR, "pitch_deck_cache")
+LOCAL_MODEL = os.path.join(BASE_DIR, "models", "pitch_deck_final")
 
 # ── Slide tasks ───────────────────────────────────────────────────────────────
 SLIDE_TASKS = {
@@ -43,36 +41,17 @@ _tokenizer = None
 
 
 def load_model():
-    """
-    Load the fine-tuned model from Hugging Face Hub snapshot.
-    - GPU available  → loads with 4-bit quantization (fast)
-    - CPU only       → loads in float32 (slow but works)
-    """
     global _model, _tokenizer
 
     if _model is not None:
         return _model, _tokenizer
 
-    # Ensure local cache directory exists
-    os.makedirs(LOCAL_CACHE, exist_ok=True)
-
-    print(f"[PitchGen] Downloading model snapshot from HF repo: {HF_REPO} into {LOCAL_CACHE}")
-    from huggingface_hub import snapshot_download
-
-    model_dir = snapshot_download(
-        repo_id=HF_REPO,
-        token=HF_TOKEN,
-        local_dir=LOCAL_CACHE,
-        ignore_patterns=["*.msgpack", "*.h5", "flax_model*"],
-    )
-
-    print(f"[PitchGen] Loading model from snapshot: {model_dir}")
+    print(f"[PitchGen] Loading model from local folder: {LOCAL_MODEL}")
     has_gpu = torch.cuda.is_available()
-    print(f"[PitchGen] GPU available: {has_gpu}")
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    _tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    _tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL, local_files_only=True)
 
     if has_gpu:
         from transformers import BitsAndBytesConfig
@@ -83,23 +62,24 @@ def load_model():
             bnb_4bit_use_double_quant=True,
         )
         _model = AutoModelForCausalLM.from_pretrained(
-            model_dir,
+            LOCAL_MODEL,
             quantization_config=quant_config,
             device_map="auto",
+            local_files_only=True,
         )
         print("[PitchGen] Model loaded on GPU ✅")
     else:
         _model = AutoModelForCausalLM.from_pretrained(
-            model_dir,
+            LOCAL_MODEL,
             torch_dtype=torch.float32,
             device_map="cpu",
             low_cpu_mem_usage=True,
+            local_files_only=True,
         )
         print("[PitchGen] Model loaded on CPU ✅ (generation will be slow)")
 
     _model.eval()
     return _model, _tokenizer
-
 
 # ── Text cleaning ─────────────────────────────────────────────────────────────
 BAD_STOPS = [
