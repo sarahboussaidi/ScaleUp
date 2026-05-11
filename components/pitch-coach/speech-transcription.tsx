@@ -1,16 +1,25 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Mic, MicOff, Volume2 } from "lucide-react"
+import { Mic, MicOff, Play, Square, Volume2 } from "lucide-react"
 
 interface SpeechTranscriptionProps {
   isRecording: boolean
   onTranscriptionUpdate?: (transcript: string) => void
   onFinalTranscript?: (transcript: string) => void
+  stream?: MediaStream | null
+  onRecordingStart?: () => void | Promise<void>
+  onRecordingStop?: () => void | Promise<void>
+  recordingDuration?: number
   speechStrength?: {
     label: string
     score: number
+  } | null
+  speechSafety?: {
+    label: string
+    confidence: number
   } | null
 }
 
@@ -18,7 +27,12 @@ export function SpeechTranscription({
   isRecording,
   onTranscriptionUpdate,
   onFinalTranscript,
+  stream,
+  onRecordingStart,
+  onRecordingStop,
+  recordingDuration = 0,
   speechStrength,
+  speechSafety,
 }: SpeechTranscriptionProps) {
   const recognitionRef = useRef<any>(null)
   const [transcript, setTranscript] = useState("")
@@ -26,11 +40,22 @@ export function SpeechTranscription({
   const [isListening, setIsListening] = useState(false)
   const [isBrowserSupported, setIsBrowserSupported] = useState(true)
   const finalTranscriptRef = useRef("")
+  const [isMicMuted, setIsMicMuted] = useState(false)
+
+  const toggleMic = () => {
+    if (!stream) return
+
+    const audioTrack = stream.getAudioTracks()[0]
+    if (!audioTrack) return
+
+    audioTrack.enabled = !audioTrack.enabled
+    setIsMicMuted(!audioTrack.enabled)
+  }
 
   useEffect(() => {
     // Check browser support
     const SpeechRecognition =
-      window.SpeechRecognition || (window as any).webkitSpeechRecognition
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 
     if (!SpeechRecognition) {
       setIsBrowserSupported(false)
@@ -73,7 +98,8 @@ export function SpeechTranscription({
       setInterimTranscript(interim)
 
       if (final) {
-        const newTranscript = transcript + final
+        // Use the ref to avoid stale closure over `transcript`
+        const newTranscript = finalTranscriptRef.current + final
         setTranscript(newTranscript)
         finalTranscriptRef.current = newTranscript
         onTranscriptionUpdate?.(newTranscript)
@@ -118,7 +144,7 @@ export function SpeechTranscription({
   }
 
   return (
-    <Card className="border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl space-y-3">
+    <Card className="border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isListening ? (
@@ -137,6 +163,31 @@ export function SpeechTranscription({
         >
           {isListening ? "● Active" : "○ Inactive"}
         </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
+        <Button
+          onClick={isRecording ? onRecordingStop : onRecordingStart}
+          disabled={!stream}
+          className="rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white hover:from-fuchsia-500 hover:to-purple-500"
+        >
+          {isRecording ? <Square className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+          {isRecording ? "Stop Recording" : "Start Recording"}
+        </Button>
+
+        <Button
+          onClick={toggleMic}
+          disabled={!stream}
+          variant="outline"
+          className="rounded-xl border-white/10 bg-white/[0.04] text-slate-100 hover:bg-white/[0.08] hover:text-white"
+        >
+          {isMicMuted ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+          {isMicMuted ? "Unmute Mic" : "Mute Mic"}
+        </Button>
+
+        <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-2 text-sm text-slate-300">
+          <span className="text-slate-500">Duration</span> <span className="ml-2 font-medium text-white">{Math.floor(recordingDuration / 60).toString().padStart(2, "0")}:{(recordingDuration % 60).toString().padStart(2, "0")}</span>
+        </div>
       </div>
 
       <div className="rounded-lg bg-slate-900/50 p-3 min-h-[80px] max-h-[150px] overflow-y-auto">
@@ -178,6 +229,23 @@ export function SpeechTranscription({
             }`}
           >
             {speechStrength.label.toUpperCase()} ({speechStrength.score.toFixed(2)})
+          </span>
+        ) : (
+          <span className="text-slate-500">Waiting for analysis</span>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between rounded-lg bg-slate-800/30 px-3 py-2 text-xs">
+        <span className="text-slate-400">Bad words</span>
+        {speechSafety ? (
+          <span
+            className={`rounded-full px-3 py-1 font-semibold ${
+              speechSafety.label === "toxic"
+                ? "bg-red-600 text-white"
+                : "bg-emerald-600 text-white"
+            }`}
+          >
+            {speechSafety.label.toUpperCase()} ({speechSafety.confidence.toFixed(2)})
           </span>
         ) : (
           <span className="text-slate-500">Waiting for analysis</span>

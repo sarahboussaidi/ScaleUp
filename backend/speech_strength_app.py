@@ -16,7 +16,7 @@ try:
 except Exception:
     sr = None
 
-from strength_predictor import hybrid_strength_predict
+from strength_predictor import detect_bad_words, hybrid_strength_predict
 
 
 def transcribe_with_whisper(audio_path: str) -> str:
@@ -62,7 +62,8 @@ def transcribe_audio(audio) -> str:
 def analyze(audio) -> Tuple[str, Dict[str, Any]]:
     transcript = transcribe_audio(audio)
     prediction = hybrid_strength_predict(transcript or "")
-    return transcript, prediction
+    safety = detect_bad_words(transcript or "")
+    return transcript, prediction, safety
 
 
 def launch_ui():

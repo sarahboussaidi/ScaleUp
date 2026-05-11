@@ -78,43 +78,50 @@ export async function analyzeVoiceEmotion(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const reader = new FileReader();
-    
-    return new Promise((resolve, reject) => {
-      reader.onload = async () => {
-        try {
-          const audioBase64 = reader.result as string;
-          
-          const response = await fetch(
-            `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ANALYZE_VOICE_EMOTION}`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ audio: audioBase64 }),
-              signal: controller.signal,
-            }
-          );
+    const formData = new FormData()
+    formData.append("file", audioBlob, "voice.webm")
 
-          if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-          }
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ANALYZE_VOICE_EMOTION}`, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    })
 
-          const result = await response.json();
-          resolve(result);
-        } catch (error) {
-          reject(error);
-        }
-      };
-      
-      reader.onerror = () => {
-        reject(new Error("Failed to read audio blob"));
-      };
-      
-      reader.readAsDataURL(audioBlob);
-    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
+
+    const result = await response.json()
+    return result
   } finally {
     clearTimeout(timeoutId);
+  }
+}
+
+// Analyze audio for speech strength / transcript
+export async function analyzeSpeechStrength(
+  audioBlob: Blob,
+  timeout: number = API_CONFIG.TIMEOUTS.ANALYSIS
+): Promise<any> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const formData = new FormData()
+    formData.append("file", audioBlob, "voice.webm")
+
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ANALYZE_SPEECH_STRENGTH}`, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    })
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
+
+    return await response.json()
+  } finally {
+    clearTimeout(timeoutId)
   }
 }

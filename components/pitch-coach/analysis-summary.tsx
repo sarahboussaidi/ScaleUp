@@ -9,6 +9,7 @@ export interface RecordingAnalysisData {
   stress: Record<string, number>
   posture: Record<string, number>
   voiceEmotion: Record<string, number>
+  safety: Record<string, number>
   transcript: string
   duration: number
   timestamp: Date
@@ -16,10 +17,11 @@ export interface RecordingAnalysisData {
 
 interface AnalysisSummaryProps {
   data: RecordingAnalysisData
+  voiceEmotionStatus?: string | null
   onClose: () => void
 }
 
-export function AnalysisSummary({ data, onClose }: AnalysisSummaryProps) {
+export function AnalysisSummary({ data, voiceEmotionStatus, onClose }: AnalysisSummaryProps) {
   const formatDuration = (ms: number) => {
     const seconds = Math.floor(ms / 1000)
     const minutes = Math.floor(seconds / 60)
@@ -59,6 +61,14 @@ export function AnalysisSummary({ data, onClose }: AnalysisSummaryProps) {
     return { emotion, count }
   }
 
+  const getTopSafety = () => {
+    if (Object.keys(data.safety).length === 0) return { label: "No data", count: 0 }
+    const [label, count] = Object.entries(data.safety).reduce((a, b) =>
+      b[1] > a[1] ? b : a
+    )
+    return { label, count }
+  }
+
   const downloadReport = () => {
     const report = {
       timestamp: data.timestamp.toISOString(),
@@ -69,12 +79,14 @@ export function AnalysisSummary({ data, onClose }: AnalysisSummaryProps) {
         voice_emotions: data.voiceEmotion,
         stress_levels: data.stress,
         postures: data.posture,
+          safety_checks: data.safety,
       },
       summary: {
         dominant_facial_emotion: getTopEmotion().emotion,
         dominant_voice_emotion: getTopVoiceEmotion().emotion,
         dominant_stress: getTopStress().stress,
         dominant_posture: getTopPosture().posture,
+          dominant_safety: getTopSafety().label,
         word_count: data.transcript.split(/\s+/).filter((w) => w).length,
       },
     }
@@ -92,10 +104,11 @@ export function AnalysisSummary({ data, onClose }: AnalysisSummaryProps) {
   const topVoiceEmotion = getTopVoiceEmotion()
   const topStress = getTopStress()
   const topPosture = getTopPosture()
+  const topSafety = getTopSafety()
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <Card className="w-full max-w-2xl border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 text-white shadow-2xl">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 text-white shadow-2xl">
         <CardHeader className="relative border-b border-white/10 bg-white/[0.02]">
           <div className="flex items-start justify-between">
             <div className="space-y-2">
@@ -106,14 +119,15 @@ export function AnalysisSummary({ data, onClose }: AnalysisSummaryProps) {
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-2 hover:bg-white/10 transition-colors"
+              className="rounded-lg p-2 transition-colors hover:bg-white/10"
+              aria-label="Back to page"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6 p-6">
+        <CardContent className="max-h-[calc(90vh-88px)] space-y-6 overflow-y-auto p-6">
           {/* Duration */}
           <div className="rounded-lg border border-purple-500/20 bg-purple-500/10 p-4">
             <p className="text-sm text-slate-400">Recording Duration</p>
@@ -123,7 +137,7 @@ export function AnalysisSummary({ data, onClose }: AnalysisSummaryProps) {
           </div>
 
           {/* Grid of main metrics */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
             {/* Dominant Facial Emotion */}
             <div className="rounded-lg border border-slate-700/50 bg-slate-800/30 p-4">
               <p className="text-xs uppercase tracking-wider text-slate-400">Facial Emotion</p>
@@ -165,6 +179,16 @@ export function AnalysisSummary({ data, onClose }: AnalysisSummaryProps) {
               </p>
               <p className="mt-1 text-xs text-slate-500">
                 {topPosture.count} times
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-slate-700/50 bg-slate-800/30 p-4">
+              <p className="text-xs uppercase tracking-wider text-slate-400">Bad Words</p>
+              <p className="mt-2 text-2xl font-bold capitalize text-red-300">
+                {topSafety.label}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                {topSafety.count} times
               </p>
             </div>
           </div>
@@ -214,7 +238,9 @@ export function AnalysisSummary({ data, onClose }: AnalysisSummaryProps) {
                       </div>
                     ))
                 ) : (
-                  <p className="text-xs text-slate-500">No data collected</p>
+                  <p className="text-xs text-slate-500">
+                    {voiceEmotionStatus || "No data collected"}
+                  </p>
                 )}
               </div>
             </div>
@@ -325,7 +351,7 @@ export function AnalysisSummary({ data, onClose }: AnalysisSummaryProps) {
               onClick={onClose}
               className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
             >
-              Close & New Session
+              Back to page
             </Button>
           </div>
         </CardContent>

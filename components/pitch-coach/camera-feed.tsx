@@ -34,6 +34,26 @@ export function CameraFeed({ onStreamReady, onStreamEnd, isRecording, onAnalysis
   const [emotionBox, setEmotionBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null)
 
+  const formatEmotionLabel = (value: string) => {
+    if (!value || value === "waiting") return "Waiting"
+    if (value === "no_face") return "No face"
+    return value
+      .replace(/_/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/^./, (char) => char.toUpperCase())
+  }
+
+  const formatStressLabel = (value: string) => {
+    if (!value || value === "waiting") return "Waiting"
+    if (value === "unknown") return "Unknown"
+    return value
+      .replace(/_/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/^./, (char) => char.toUpperCase())
+  }
+
   useEffect(() => {
     const checkBackend = async () => {
       try {
@@ -91,9 +111,13 @@ export function CameraFeed({ onStreamReady, onStreamEnd, isRecording, onAnalysis
           const stressResponse = await analyzeFrame(API_CONFIG.ENDPOINTS.ANALYZE_STRESS, frame)
           const postureResponse = await analyzeFrame(API_CONFIG.ENDPOINTS.ANALYZE_POSTURE, frame)
 
-          setLastEmotion(emotionResponse?.emotion || "waiting")
-          setLastStress(stressResponse?.stress || "waiting")
-          setEmotionBox(emotionResponse?.face_box || null)
+          if (emotionResponse?.emotion && emotionResponse.emotion !== "no_face") {
+            setLastEmotion(emotionResponse.emotion)
+          }
+          if (stressResponse?.stress && stressResponse.stress !== "unknown") {
+            setLastStress(stressResponse.stress)
+          }
+          setEmotionBox(emotionResponse?.emotion && emotionResponse.emotion !== "no_face" ? emotionResponse.face_box || null : null)
           onAnalysisUpdate?.({
             emotion: emotionResponse?.emotion,
             emotionConfidence: emotionResponse?.confidence,
@@ -182,7 +206,7 @@ export function CameraFeed({ onStreamReady, onStreamEnd, isRecording, onAnalysis
               className="pointer-events-none absolute z-20 rounded-full border border-purple-300/40 bg-black/70 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-purple-950/40 backdrop-blur-md"
               style={getOverlayStyle() || undefined}
             >
-              Emotion: {lastEmotion}
+              Emotion: {formatEmotionLabel(lastEmotion)}
             </div>
           )}
 
@@ -224,11 +248,11 @@ export function CameraFeed({ onStreamReady, onStreamEnd, isRecording, onAnalysis
           <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
             <div className="flex items-center justify-between">
               <span>Emotion</span>
-              <span className="font-medium text-white">{lastEmotion}</span>
+              <span className="font-medium text-white">{formatEmotionLabel(lastEmotion)}</span>
             </div>
             <div className="mt-2 flex items-center justify-between">
               <span>Stress</span>
-              <span className="font-medium text-white">{lastStress}</span>
+              <span className="font-medium text-white">{formatStressLabel(lastStress)}</span>
             </div>
           </div>
         </div>

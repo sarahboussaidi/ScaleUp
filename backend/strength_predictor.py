@@ -12,17 +12,35 @@ except Exception:
     torch = None
 
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models", "final_distilbert_pitch_strength_74")
+HATE_MODEL_DIR = os.path.join(os.path.dirname(__file__), "models", "distilbert_hate_final_v2")
 STRONG_KEYWORDS = os.path.join(os.path.dirname(__file__), "models", "strong_keywords_weights.json")
 WEAK_KEYWORDS = os.path.join(os.path.dirname(__file__), "models", "weak_keywords.json")
 
+TOXIC_KEYWORDS = [
+    "hate",
+    "toxic",
+    "abusive",
+    "offensive",
+    "idiot",
+    "stupid",
+    "moron",
+    "fool",
+    "fuck",
+    "shit",
+    "bitch",
+    "asshole",
+]
+
 _model = None
 _tokenizer = None
+_hate_model = None
+_hate_tokenizer = None
 _strong_kw = {}
 _weak_kw = {}
 _loading = False
 
 def load_resources():
-    global _model, _tokenizer, _strong_kw, _weak_kw, _loading
+    global _model, _tokenizer, _hate_model, _hate_tokenizer, _strong_kw, _weak_kw, _loading
     if AutoTokenizer is None:
         raise ImportError("transformers not available")
 
@@ -35,6 +53,15 @@ def load_resources():
         _model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
         _model.eval()
         print("[OK] DistilBERT model loaded successfully")
+
+    if _hate_model is None and os.path.isdir(HATE_MODEL_DIR):
+        try:
+            _hate_tokenizer = AutoTokenizer.from_pretrained(HATE_MODEL_DIR)
+            _hate_model = AutoModelForSequenceClassification.from_pretrained(HATE_MODEL_DIR)
+            _hate_model.eval()
+            print("[OK] Toxicity model loaded successfully")
+        except Exception as e:
+            print(f"[WARN] Toxicity model load skipped: {e}")
 
     # load keywords if present
     try:
@@ -118,6 +145,47 @@ def structure_score(text: str) -> float:
     return float(min(1.0, n_sent / 12.0))
 
 
+def toxicity_keyword_hits(text: str):
+    txt = text.lower()
+    return [keyword for keyword in TOXIC_KEYWORDS if keyword in txt]
+
+
+def bert_toxicity_prob(text: str) -> float:
+    try:
+        load_resources()
+    except Exception:
+        return 0.5
+
+    if _hate_model is None or _hate_tokenizer is None or torch is None:
+        return 0.5
+
+    try:
+        inputs = _hate_tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+        with torch.no_grad():
+            outputs = _hate_model(**inputs)
+            logits = outputs.logits
+            probs = torch.softmax(logits, dim=-1).cpu().numpy()[0]
+
+        if probs.shape[0] == 1:
+            return float(probs[0])
+
+        if probs.shape[0] >= 2:
+            labels = getattr(_hate_model.config, "id2label", {}) or {}
+            toxic_index = None
+            for index, label in labels.items():
+                label_text = str(label).lower()
+                if any(marker in label_text for marker in ("toxic", "hate", "offensive", "abusive")):
+                    toxic_index = int(index)
+                    break
+            if toxic_index is None:
+                toxic_index = min(1, len(probs) - 1)
+            return float(probs[toxic_index])
+    except Exception:
+        return 0.5
+
+    return 0.5
+
+
 def hybrid_strength_predict(text: str) -> Dict[str, Any]:
     """
     Combine BERT probability (40%) + keyword (40%) + length (10%) + structure (10%)
@@ -160,6 +228,40 @@ def hybrid_strength_predict(text: str) -> Dict[str, Any]:
     }
 
     return {"label": label, "final_score": float(final_score), "details": details}
+
+
+def detect_bad_words(text: str) -> Dict[str, Any]:
+    """Detect toxic or bad-word content from the transcript."""
+    try:
+        keyword_hits = toxicity_keyword_hits(text)
+        keyword_score = min(1.0, len(keyword_hits) / 3.0)
+        model_prob = bert_toxicity_prob(text)
+
+        final_score = (0.65 * keyword_score) + (0.35 * model_prob)
+        if keyword_hits:
+            label = "toxic"
+        else:
+            label = "toxic" if final_score >= 0.55 else "clean"
+
+        return {
+            "label": label,
+            "confidence": float(final_score),
+            "details": {
+                "keyword_hits": keyword_hits,
+                "keyword_score": float(keyword_score),
+                "model_prob": float(model_prob),
+            },
+        }
+    except Exception:
+        return {
+            "label": "clean",
+            "confidence": 0.0,
+            "details": {
+                "keyword_hits": [],
+                "keyword_score": 0.0,
+                "model_prob": 0.0,
+            },
+        }
 
 
 if __name__ == "__main__":

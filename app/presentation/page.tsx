@@ -6,158 +6,214 @@ import { GlassmorphismNav } from "@/components/glassmorphism-nav"
 import { CameraFeed } from "@/components/pitch-coach/camera-feed"
 import { MetricsPanel } from "@/components/pitch-coach/metrics-panel"
 import { PosturePanel } from "@/components/pitch-coach/posture-panel"
-import { SpeechStrength } from "@/components/pitch-coach/speech-strength"
 import { SpeechTranscription } from "@/components/pitch-coach/speech-transcription"
-import { RecordingControls, AnalysisDataPoint } from "@/components/pitch-coach/recording-controls"
+import { AnalysisDataPoint } from "@/components/pitch-coach/recording-controls"
 import { PitchHero } from "@/components/pitch-coach/pitch-hero"
 import { AnalysisSummary, RecordingAnalysisData } from "@/components/pitch-coach/analysis-summary"
 import { Footer } from "@/components/footer"
-import { analyzeVoiceEmotion } from "@/lib/pitch-analyzer-config"
+import { analyzeVoiceEmotion, analyzeSpeechStrength } from "@/lib/pitch-analyzer-config"
 
 const Aurora = dynamic(() => import("@/components/Aurora"), {
   ssr: false,
 })
+
+// ── Slide definitions matching backend SLIDE_TASKS keys exactly ──────────────
+const SLIDE_DEFS = [
+  { key: "problem",        title: "Problem" },
+  { key: "solution",       title: "Solution" },
+  { key: "market",         title: "Market" },
+  { key: "product",        title: "Product" },
+  { key: "business_model", title: "Business Model" },
+  { key: "competition",    title: "Competition" },
+  { key: "team",           title: "Team" },
+  { key: "ask",            title: "Ask" },
+]
+
+// Placeholder text shown before generation
+const SLIDE_PLACEHOLDERS: Record<string, string> = {
+  problem:        "Who has the problem, what is the pain, why does it matter.",
+  solution:       "What the product does, how it works, key differentiator.",
+  market:         "Who is the target market and why now.",
+  product:        "Core features and how users use it.",
+  business_model: "How the company makes money.",
+  competition:    "Alternatives and why this product wins.",
+  team:           "Why this team can build it.",
+  ask:            "What support, funding, or partners are needed.",
+}
 
 export default function PitchCoachPage() {
   const [activeView, setActiveView] = useState<"pitch-evaluation" | "pitch-deck">("pitch-evaluation")
   const [startupName, setStartupName] = useState("")
   const [industry, setIndustry] = useState("")
   const [startupDescription, setStartupDescription] = useState("")
-  const [generatedPitchDeck, setGeneratedPitchDeck] = useState<Array<{ title: string; text: string }>>([])
+
+  // ── FIX: store slides as a key→text record matching backend keys ──────────
+  const [generatedSlides, setGeneratedSlides] = useState<Record<string, string>>({})
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [generateError, setGenerateError] = useState<string | null>(null)
+
   const [deckEvaluation, setDeckEvaluation] = useState<{ score: number; label: string; feedback: string[] } | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [isRecording, setIsRecording] = useState(false)
-  const [postureData, setPostureData] = useState({
-    posture: "waiting",
-    confidence: 0,
-  })
+  const [postureData, setPostureData] = useState({ posture: "waiting", confidence: 0 })
   const [recordingAnalysis, setRecordingAnalysis] = useState<RecordingAnalysisData | null>(null)
   const [recordingDuration, setRecordingDuration] = useState(0)
   const [transcription, setTranscription] = useState("")
+  const [finalTranscript, setFinalTranscript] = useState("")
   const [speechStrength, setSpeechStrength] = useState<{ label: string; score: number } | null>(null)
-  
-  // Refs for recording analysis data
+  const [speechSafety, setSpeechSafety] = useState<{ label: string; confidence: number } | null>(null)
+  const [voiceEmotionStatus, setVoiceEmotionStatus] = useState<string | null>(null)
+
   const analysisDataRef = useRef<AnalysisDataPoint[]>([])
   const isRecordingRef = useRef(false)
   const recordingStartTimeRef = useRef<number>(0)
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const voiceAudioStreamRef = useRef<MediaStream | null>(null)
 
-  // Update refs when state changes
-  useEffect(() => {
-    isRecordingRef.current = isRecording
-  }, [isRecording])
+  useEffect(() => { isRecordingRef.current = isRecording }, [isRecording])
 
-  // Update recording duration and cleanup
   useEffect(() => {
     if (isRecording) {
       recordingStartTimeRef.current = Date.now()
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingDuration((prev) => prev + 1)
-      }, 1000)
+      recordingTimerRef.current = setInterval(() => setRecordingDuration((p) => p + 1), 1000)
     } else {
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-      }
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current)
     }
-
-    return () => {
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-      }
-    }
+    return () => { if (recordingTimerRef.current) clearInterval(recordingTimerRef.current) }
   }, [isRecording])
 
-  const handleStreamReady = useCallback((mediaStream: MediaStream) => {
-    setStream(mediaStream)
-  }, [])
+  const handleStreamReady = useCallback((mediaStream: MediaStream) => setStream(mediaStream), [])
 
   const handleStreamEnd = useCallback(() => {
     setStream(null)
     setIsRecording(false)
+    if (voiceAudioStreamRef.current) {
+      voiceAudioStreamRef.current.getTracks().forEach((t) => t.stop())
+      voiceAudioStreamRef.current = null
+    }
   }, [])
 
   const handleRecordingStart = useCallback(() => {
     setIsRecording(true)
     setRecordingDuration(0)
     setTranscription("")
+    setFinalTranscript("")
+    setSpeechStrength(null)
+    setSpeechSafety(null)
+    setVoiceEmotionStatus(null)
     analysisDataRef.current = []
     audioChunksRef.current = []
-    
-    // Start audio capture
+
     if (stream) {
       try {
-        const mediaRecorder = new MediaRecorder(stream)
-        mediaRecorderRef.current = mediaRecorder
-        
-        mediaRecorder.ondataavailable = (event) => {
-          audioChunksRef.current.push(event.data)
+        const cameraAudioTracks = stream.getAudioTracks()
+        const audioStream = cameraAudioTracks.length > 0 ? new MediaStream(cameraAudioTracks) : null
+
+        const startRecorder = (sourceStream: MediaStream) => {
+          const preferredMimeTypes = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"]
+          const mimeType = preferredMimeTypes.find((t) => MediaRecorder.isTypeSupported(t))
+          const mediaRecorder = mimeType ? new MediaRecorder(sourceStream, { mimeType }) : new MediaRecorder(sourceStream)
+          mediaRecorderRef.current = mediaRecorder
+          mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data) }
+          mediaRecorder.start()
         }
-        
-        mediaRecorder.start()
-      } catch (error) {
-        console.error("Failed to start MediaRecorder:", error)
+
+        if (audioStream) {
+          voiceAudioStreamRef.current = audioStream
+          startRecorder(audioStream)
+        } else {
+          navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((micStream) => {
+            voiceAudioStreamRef.current = micStream
+            startRecorder(micStream)
+          }).catch((e) => console.error("Microphone access failed:", e))
+        }
+      } catch (e) {
+        console.error("Failed to start MediaRecorder:", e)
       }
     }
   }, [stream])
 
   const handleRecordingStop = useCallback(async () => {
     setIsRecording(false)
-    
-    // Stop media recorder
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop()
+      await new Promise<void>((resolve) => {
+        const recorder = mediaRecorderRef.current
+        if (!recorder) { resolve(); return }
+        recorder.onstop = () => resolve()
+        recorder.stop()
+      })
     }
-    
+    if (voiceAudioStreamRef.current) {
+      voiceAudioStreamRef.current.getTracks().forEach((t) => t.stop())
+      voiceAudioStreamRef.current = null
+    }
+
     const analysisData = analysisDataRef.current
-    if (analysisData && analysisData.length > 0) {
-      // Process analysis data into summary format
-      const emotionCounts: Record<string, number> = {}
-      const stressCounts: Record<string, number> = {}
-      const postureCounts: Record<string, number> = {}
-      const voiceEmotionCounts: Record<string, number> = {}
+    const emotionCounts: Record<string, number> = {}
+    const stressCounts: Record<string, number> = {}
+    const postureCounts: Record<string, number> = {}
+    let safetyCounts: Record<string, number> = {}
 
-      analysisData.forEach((dataPoint) => {
-        if (dataPoint.emotion) {
-          emotionCounts[dataPoint.emotion] = (emotionCounts[dataPoint.emotion] || 0) + 1
-        }
-        if (dataPoint.stress) {
-          stressCounts[dataPoint.stress] = (stressCounts[dataPoint.stress] || 0) + 1
-        }
-        if (dataPoint.posture) {
-          postureCounts[dataPoint.posture] = (postureCounts[dataPoint.posture] || 0) + 1
-        }
-      })
+    analysisData.forEach((dp) => {
+      if (dp.emotion) emotionCounts[dp.emotion] = (emotionCounts[dp.emotion] || 0) + 1
+      if (dp.stress) stressCounts[dp.stress] = (stressCounts[dp.stress] || 0) + 1
+      if (dp.posture) postureCounts[dp.posture] = (postureCounts[dp.posture] || 0) + 1
+    })
 
-      // Analyze audio if chunks are available
-      let voiceEmotionAnalysis: Record<string, number> = {}
-      if (audioChunksRef.current && audioChunksRef.current.length > 0) {
-        try {
-          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
-          const result = await analyzeVoiceEmotion(audioBlob)
-          
-          if (result && !result.error) {
-            // If we got a single result, add it to counts
-            if (result.emotion) {
-              voiceEmotionAnalysis[result.emotion] = 1
-            }
+    let voiceEmotionAnalysis: Record<string, number> = {}
+    let transcriptFromAnalysis = transcription
+
+    if (audioChunksRef.current && audioChunksRef.current.length > 0) {
+      try {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
+        const [voiceEmotionResult, speechStrengthResult] = await Promise.allSettled([
+          analyzeVoiceEmotion(audioBlob, 15000),
+          analyzeSpeechStrength(audioBlob, 45000),
+        ])
+
+        if (voiceEmotionResult.status === "fulfilled" && voiceEmotionResult.value && !voiceEmotionResult.value.error) {
+          if (voiceEmotionResult.value.emotion) {
+            voiceEmotionAnalysis[voiceEmotionResult.value.emotion] = 1
           }
-        } catch (error) {
-          console.error("Failed to analyze voice emotion:", error)
+        } else if (voiceEmotionResult.status === "rejected") {
+          setVoiceEmotionStatus("Voice emotion analysis failed: request timed out or was aborted.")
         }
-      }
 
-      setRecordingAnalysis({
-        emotion: emotionCounts,
-        stress: stressCounts,
-        posture: postureCounts,
-        voiceEmotion: voiceEmotionAnalysis,
-        transcript: transcription,
-        duration: recordingDuration * 1000,
-        timestamp: new Date(),
-      })
+        if (speechStrengthResult.status === "fulfilled" && speechStrengthResult.value && !speechStrengthResult.value.error) {
+          if (speechStrengthResult.value.prediction) {
+            setSpeechStrength({ label: speechStrengthResult.value.prediction.label, score: speechStrengthResult.value.prediction.final_score })
+          }
+          if (speechStrengthResult.value.bad_words) {
+            const safetyResult = { label: speechStrengthResult.value.bad_words.label, confidence: speechStrengthResult.value.bad_words.confidence }
+            setSpeechSafety(safetyResult)
+            safetyCounts = safetyResult.label ? { [safetyResult.label]: 1 } : {}
+          }
+          if (speechStrengthResult.value.transcript) {
+            transcriptFromAnalysis = speechStrengthResult.value.transcript
+            setTranscription(speechStrengthResult.value.transcript)
+            setFinalTranscript(speechStrengthResult.value.transcript)
+          }
+        }
+      } catch (e) {
+        console.error("Failed to analyze voice audio:", e)
+      }
+    } else {
+      setVoiceEmotionStatus("No audio was captured. Check microphone permission.")
     }
+
+    setRecordingAnalysis({
+      emotion: emotionCounts,
+      stress: stressCounts,
+      posture: postureCounts,
+      voiceEmotion: voiceEmotionAnalysis,
+      safety: safetyCounts,
+      transcript: transcriptFromAnalysis,
+      duration: recordingDuration * 1000,
+      timestamp: new Date(),
+    })
   }, [recordingDuration, transcription])
 
   const handleAnalysisUpdate = useCallback((payload: {
@@ -169,122 +225,123 @@ export default function PitchCoachPage() {
     postureConfidence?: number
     modelStatus?: string
   }) => {
-    if (payload.posture && payload.postureConfidence !== undefined) {
-      setPostureData({
-        posture: payload.posture,
-        confidence: payload.postureConfidence,
-      })
+    const normalizeStress = (v?: string) => {
+      if (!v) return undefined
+      if (v === "stress") return "stressed"
+      if (v === "not_stress") return "not stressed"
+      return v
     }
-
-    // Record analysis data if recording
+    if (payload.posture && payload.postureConfidence !== undefined) {
+      setPostureData({ posture: payload.posture, confidence: payload.postureConfidence })
+    }
     if (isRecordingRef.current) {
-      const dataPoint: AnalysisDataPoint = {
-        emotion: payload.emotion,
-        stress: payload.stress,
+      analysisDataRef.current.push({
+        emotion: payload.emotion === "no_face" ? undefined : payload.emotion,
+        stress: payload.stress === "unknown" ? undefined : normalizeStress(payload.stress),
         posture: payload.posture,
         timestamp: Date.now() - recordingStartTimeRef.current,
-      }
-      analysisDataRef.current.push(dataPoint)
+      })
     }
   }, [])
 
+  // ── FIX: handleGeneratePitchDeck — calls real backend, stores slides by key ─
   const handleGeneratePitchDeck = useCallback(async () => {
     const company = startupName.trim() || "Your Startup"
     const sector = industry.trim() || "your industry"
-    const description = startupDescription.trim() || "a clear solution to a real problem"
+    const desc = startupDescription.trim() || "a clear solution to a real problem"
 
-    setGeneratedPitchDeck([])
+    setIsGenerating(true)
+    setGenerateError(null)
+    setGeneratedSlides({})
     setDeckEvaluation(null)
 
     try {
-      const API_BASE = typeof window !== 'undefined' ? `http://${window.location.hostname}:5000` : 'http://localhost:5000'
+      const API_BASE = `http://${window.location.hostname}:5000`
       const res = await fetch(`${API_BASE}/api/pitch/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company, industry: sector, description }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ company, industry: sector, description: desc }),
       })
+
+      if (!res.ok) throw new Error(`Server error ${res.status}: ${res.statusText}`)
+
       const data = await res.json()
       if (data.error) throw new Error(data.error)
+      if (!data.slides || typeof data.slides !== "object") throw new Error("No slides returned from server")
 
-      const keyToTitle: Record<string, string> = {
-        problem: 'Problem',
-        solution: 'Solution',
-        market: 'Why Now',
-        product: 'Product',
-        business_model: 'Business Model',
-        competition: 'Competition',
-        team: 'Team',
-        ask: 'Ask',
-      }
-
-      if (data.slides) {
-        const mapped = Object.entries(data.slides).map(([k, v]) => ({ title: keyToTitle[k] || k, text: v }))
-        setGeneratedPitchDeck(mapped)
-      } else {
-        throw new Error('No slides returned')
-      }
+      // data.slides is already { problem: "...", solution: "...", ... }
+      setGeneratedSlides(data.slides as Record<string, string>)
     } catch (err) {
-      console.error('Generate pitch deck failed:', err)
-      // fallback to simple template
-      setGeneratedPitchDeck([
-        { title: 'Problem', text: `${company} operates in ${sector}. The problem is that customers still struggle with ${description.toLowerCase()}.` },
-        { title: 'Solution', text: `${company} solves this with a focused product that makes the value proposition simple, fast, and scalable.` },
-        { title: 'Why Now', text: `The market is ready because ${sector} is evolving quickly and users expect better experiences.` },
-        { title: 'Business Model', text: `${company} can monetize through subscriptions, usage fees, or premium services depending on customer demand.` },
-        { title: 'Traction', text: `Use this slide to highlight pilots, users, revenue, or any validation you already have for ${company}.` },
-        { title: 'Ask', text: `Clearly state what you need next: funding, partners, pilots, or hiring support.` },
-      ])
+      const msg = err instanceof Error ? err.message : "Unknown error"
+      setGenerateError(msg)
+      console.error("Pitch deck generation failed:", msg)
+    } finally {
+      setIsGenerating(false)
     }
-  }, [industry, startupDescription, startupName])
+  }, [startupName, industry, startupDescription])
+
+  // ── FIX: handleDownloadPptx — calls /api/pitch/download and triggers download
+  const handleDownloadPptx = useCallback(async () => {
+    const company = startupName.trim() || "Your Startup"
+    const sector = industry.trim() || "your industry"
+    const desc = startupDescription.trim() || "a clear solution to a real problem"
+
+    setIsDownloading(true)
+    setGenerateError(null)
+
+    try {
+      const API_BASE = `http://${window.location.hostname}:5000`
+      const res = await fetch(`${API_BASE}/api/pitch/download`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ company, industry: sector, description: desc }),
+      })
+
+      if (!res.ok) throw new Error(`Download failed: ${res.status}`)
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${company.replace(/\s+/g, "_")}_pitch_deck.pptx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Download failed"
+      setGenerateError(msg)
+    } finally {
+      setIsDownloading(false)
+    }
+  }, [startupName, industry, startupDescription])
 
   const handleEvaluatePitchDeck = useCallback(() => {
+    const hasSlides = Object.keys(generatedSlides).length > 0
     const checks = [
       startupName.trim().length > 2,
       industry.trim().length > 2,
       startupDescription.trim().length > 20,
-      generatedPitchDeck.length > 0,
+      hasSlides,
     ]
-
     const score = Math.round((checks.filter(Boolean).length / checks.length) * 100)
     const label = score >= 80 ? "Strong" : score >= 50 ? "Moderate" : "Weak"
-
     const feedback: string[] = []
     if (!startupName.trim()) feedback.push("Add your startup name.")
     if (!industry.trim()) feedback.push("Specify the industry.")
     if (!startupDescription.trim()) feedback.push("Add a short description of the problem and solution.")
-    if (generatedPitchDeck.length === 0) feedback.push("Generate the pitch deck first.")
-
+    if (!hasSlides) feedback.push("Generate the pitch deck first.")
     if (feedback.length === 0) {
       feedback.push("Your pitch deck inputs look complete.")
       feedback.push("You can now refine the wording of each slide.")
     }
-
     setDeckEvaluation({ score, label, feedback })
-  }, [generatedPitchDeck.length, industry, startupDescription, startupName])
+  }, [generatedSlides, industry, startupDescription, startupName])
 
-  const pitchDeckSections = useMemo(
-    () => [
-      {
-        key: "title",
-        title: "Title Slide",
-        text: startupName.trim()
-          ? `${startupName.trim()} in ${industry.trim() || "your market"}. ${startupDescription.trim() || "A concise summary of the startup."}`
-          : "Add your startup name, industry, and short description to generate the cover slide.",
-      },
-      { key: "problem", title: "Problem", text: "What pain point exists, who feels it, and why it matters now." },
-      { key: "solution", title: "Solution", text: "How your product solves the problem in a clear and differentiated way." },
-      { key: "market", title: "Market", text: "Who your target customers are and why the opportunity is large." },
-      { key: "product", title: "Product", text: "Core features, user flow, and what the product actually does." },
-      { key: "business_model", title: "Business Model", text: "How the company makes money and how revenue scales." },
-      { key: "competition", title: "Competition", text: "Alternatives, competitors, and why this startup wins." },
-      { key: "team", title: "Team", text: "Why this team is credible and able to execute." },
-      { key: "ask", title: "Ask", text: "What you need next: funding, customers, partners, or hiring." },
-    ],
-    [industry, startupDescription, startupName],
-  )
+  const hasSlides = Object.keys(generatedSlides).length > 0
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0a0a14]">
+    <div className="relative min-h-screen overflow-auto bg-[#0a0a14]">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-b from-[#1a1033] via-[#0f0a1f] to-[#0a0a14]" />
         <div className="absolute top-0 left-1/4 h-[600px] w-[600px] rounded-full bg-purple-600/20 blur-[120px]" />
@@ -298,6 +355,7 @@ export default function PitchCoachPage() {
       <main className="relative z-10">
         <PitchHero />
 
+        {/* View toggle */}
         <section className="px-4 pb-6 md:px-8">
           <div className="mx-auto flex max-w-3xl items-center justify-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.04] p-2 backdrop-blur-sm">
             <button
@@ -325,6 +383,7 @@ export default function PitchCoachPage() {
           </div>
         </section>
 
+        {/* ── Pitch Evaluation view ── */}
         {activeView === "pitch-evaluation" ? (
           <section className="px-4 pb-20 md:px-8">
             <div className="mx-auto max-w-7xl">
@@ -336,21 +395,18 @@ export default function PitchCoachPage() {
                     isRecording={isRecording}
                     onAnalysisUpdate={handleAnalysisUpdate}
                   />
-
                   <SpeechTranscription
                     isRecording={isRecording}
                     onTranscriptionUpdate={setTranscription}
                     onFinalTranscript={setTranscription}
-                    speechStrength={speechStrength}
-                  />
-
-                  <RecordingControls
                     stream={stream}
                     onRecordingStart={handleRecordingStart}
                     onRecordingStop={handleRecordingStop}
+                    recordingDuration={recordingDuration}
+                    speechStrength={speechStrength}
+                    speechSafety={speechSafety}
                   />
                 </div>
-
                 <div className="lg:col-span-1">
                   <div className="lg:sticky lg:top-28 space-y-4">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-slate-200">
@@ -362,23 +418,24 @@ export default function PitchCoachPage() {
                     </h3>
                     <MetricsPanel isActive={!!stream} isRecording={isRecording} />
                     <PosturePanel isActive={!!stream} isRecording={isRecording} postureData={postureData} />
-                    <div className="mt-4">
-                      <SpeechStrength onResult={(result) => setSpeechStrength(result.prediction)} />
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </section>
+
         ) : (
+          /* ── Pitch Deck view ── */
           <section className="px-4 pb-20 md:px-8">
             <div className="mx-auto max-w-7xl">
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-sm md:p-8">
+
+                {/* Header */}
                 <div className="mb-8 flex items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-semibold text-white md:text-3xl">Pitch Deck Template</h2>
+                    <h2 className="text-2xl font-semibold text-white md:text-3xl">Pitch Deck Generator</h2>
                     <p className="mt-2 max-w-2xl text-sm text-slate-400">
-                      Add your startup details, generate a pitch deck, and keep everything on the same page.
+                      Fill in your startup details and click Generate. The AI model will write each slide.
                     </p>
                   </div>
                   <button
@@ -390,6 +447,7 @@ export default function PitchCoachPage() {
                   </button>
                 </div>
 
+                {/* Form */}
                 <div className="mb-8 grid grid-cols-1 gap-4 rounded-2xl border border-white/[0.08] bg-black/20 p-5 md:grid-cols-2">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-slate-200">Startup name</label>
@@ -419,32 +477,104 @@ export default function PitchCoachPage() {
                       className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-purple-500/50"
                     />
                   </div>
-                  <div className="md:col-span-2 flex justify-end">
+
+                  {/* Error message */}
+                  {generateError && (
+                    <div className="md:col-span-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                      ⚠ {generateError}
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  <div className="md:col-span-2 flex flex-wrap items-center justify-end gap-3">
+                    {/* Download PPTX — only shown after slides are generated */}
+                    {hasSlides && (
+                      <button
+                        type="button"
+                        onClick={handleDownloadPptx}
+                        disabled={isDownloading}
+                        className="flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-5 py-3 text-sm font-semibold text-purple-200 transition hover:bg-purple-500/20 disabled:opacity-50"
+                      >
+                        {isDownloading ? (
+                          <>
+                            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-purple-300 border-t-transparent" />
+                            Exporting…
+                          </>
+                        ) : (
+                          "⬇ Download PPTX"
+                        )}
+                      </button>
+                    )}
+
+                    {/* Generate button */}
                     <button
                       type="button"
                       onClick={handleGeneratePitchDeck}
-                      className="rounded-full bg-purple-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-purple-400"
+                      disabled={isGenerating}
+                      className="flex items-center gap-2 rounded-full bg-purple-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-purple-400 disabled:opacity-60"
                     >
-                      Generate Pitch Deck
+                      {isGenerating ? (
+                        <>
+                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Generating… (this may take a minute)
+                        </>
+                      ) : (
+                        "Generate Pitch Deck"
+                      )}
                     </button>
                   </div>
                 </div>
 
+                {/* ── Slide cards — FIX: use generatedSlides[key] directly ── */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {pitchDeckSections.map((section) => {
-                    const generatedSlide = generatedPitchDeck.find((slide) => slide.title.toLowerCase() === section.title.toLowerCase())
-                    const text = generatedSlide?.text || section.text
+                  {/* Cover slide always shown first, built from inputs */}
+                  <div className="rounded-xl border border-purple-500/20 bg-black/20 p-5">
+                    <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Slide — Cover</p>
+                    <h3 className="mt-2 text-lg font-semibold text-white">
+                      {startupName.trim() || "Your Startup"}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                      {startupName.trim()
+                        ? `${startupName.trim()} · ${industry.trim() || "Industry"}`
+                        : "Add your startup name and industry above."}
+                      {startupDescription.trim() ? ` — ${startupDescription.trim().slice(0, 100)}…` : ""}
+                    </p>
+                  </div>
 
+                  {/* AI-generated slides */}
+                  {SLIDE_DEFS.map((slide) => {
+                    const text = generatedSlides[slide.key]
+                    const isReady = !!text
                     return (
-                      <div key={section.key} className="rounded-xl border border-white/[0.08] bg-black/20 p-5">
-                        <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Slide</p>
-                        <h3 className="mt-2 text-lg font-semibold text-white">{section.title}</h3>
-                        <p className="mt-2 text-sm leading-relaxed text-slate-400">{text}</p>
+                      <div
+                        key={slide.key}
+                        className={`rounded-xl border p-5 transition-all ${
+                          isReady
+                            ? "border-purple-500/30 bg-black/20"
+                            : "border-white/[0.08] bg-black/20"
+                        }`}
+                      >
+                        <p className="text-xs uppercase tracking-[0.2em] text-purple-300">
+                          Slide — {slide.title}
+                        </p>
+                        <h3 className="mt-2 text-lg font-semibold text-white">{slide.title}</h3>
+
+                        {isGenerating && !isReady ? (
+                          <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+                            <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-purple-400 border-t-transparent" />
+                            Generating…
+                          </div>
+                        ) : (
+                          <p className={`mt-2 text-sm leading-relaxed ${isReady ? "text-slate-200" : "text-slate-500"}`}>
+                            {text || SLIDE_PLACEHOLDERS[slide.key]}
+                          </p>
+                        )}
                       </div>
                     )
                   })}
                 </div>
 
+                {/* Evaluate section */}
                 <div className="mt-8 rounded-2xl border border-white/[0.08] bg-black/20 p-5">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -465,7 +595,13 @@ export default function PitchCoachPage() {
 
                   {deckEvaluation ? (
                     <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-[220px_1fr]">
-                      <div className={`rounded-2xl p-5 text-center ${deckEvaluation.label === "Weak" ? "bg-red-600/20" : deckEvaluation.label === "Moderate" ? "bg-orange-500/20" : "bg-green-600/20"}`}>
+                      <div className={`rounded-2xl p-5 text-center ${
+                        deckEvaluation.label === "Weak"
+                          ? "bg-red-600/20"
+                          : deckEvaluation.label === "Moderate"
+                          ? "bg-orange-500/20"
+                          : "bg-green-600/20"
+                      }`}>
                         <p className="text-sm text-slate-300">Overall score</p>
                         <p className="mt-2 text-4xl font-bold text-white">{deckEvaluation.score}</p>
                         <p className="mt-2 text-sm font-semibold text-white">{deckEvaluation.label}</p>
@@ -474,9 +610,7 @@ export default function PitchCoachPage() {
                         <p className="text-sm font-medium text-slate-200">Feedback</p>
                         <ul className="mt-3 space-y-2 text-sm text-slate-400">
                           {deckEvaluation.feedback.map((item) => (
-                            <li key={item} className="rounded-lg bg-black/20 px-3 py-2">
-                              {item}
-                            </li>
+                            <li key={item} className="rounded-lg bg-black/20 px-3 py-2">{item}</li>
                           ))}
                         </ul>
                       </div>
@@ -492,80 +626,52 @@ export default function PitchCoachPage() {
           </section>
         )}
 
+        {/* How it works */}
         <section className="px-4 py-20 md:px-8">
           <div className="mx-auto max-w-5xl">
-            <h2 className="mb-4 text-center text-2xl font-semibold text-white md:text-3xl">
-              How It Works
-            </h2>
+            <h2 className="mb-4 text-center text-2xl font-semibold text-white md:text-3xl">How It Works</h2>
             <p className="mx-auto mb-12 max-w-xl text-center text-slate-400">
               Three simple steps to perfect your investor pitch with your Flask models.
             </p>
-
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 text-center backdrop-blur-sm transition-all hover:border-purple-500/30 hover:bg-white/[0.05]">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10">
-                  <span className="text-lg font-semibold text-purple-400">1</span>
+              {[
+                { n: "1", title: "Enable Camera", desc: "Allow camera and microphone access to start your practice session." },
+                { n: "2", title: "Practice Your Pitch", desc: "Deliver your pitch while webcam frames are analyzed by backend/app.py." },
+                { n: "3", title: "Review & Improve", desc: "Use emotion and stress models to review and improve your performance over time." },
+              ].map(({ n, title, desc }) => (
+                <div key={n} className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 text-center backdrop-blur-sm transition-all hover:border-purple-500/30 hover:bg-white/[0.05]">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10">
+                    <span className="text-lg font-semibold text-purple-400">{n}</span>
+                  </div>
+                  <h3 className="mb-2 font-medium text-slate-200">{title}</h3>
+                  <p className="text-sm leading-relaxed text-slate-400">{desc}</p>
                 </div>
-                <h3 className="mb-2 font-medium text-slate-200">Enable Camera</h3>
-                <p className="text-sm leading-relaxed text-slate-400">
-                  Allow camera and microphone access to start your practice session.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 text-center backdrop-blur-sm transition-all hover:border-purple-500/30 hover:bg-white/[0.05]">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10">
-                  <span className="text-lg font-semibold text-purple-400">2</span>
-                </div>
-                <h3 className="mb-2 font-medium text-slate-200">Practice Your Pitch</h3>
-                <p className="text-sm leading-relaxed text-slate-400">
-                  Deliver your pitch while the webcam frames are analyzed by backend/app.py.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 text-center backdrop-blur-sm transition-all hover:border-purple-500/30 hover:bg-white/[0.05]">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10">
-                  <span className="text-lg font-semibold text-purple-400">3</span>
-                </div>
-                <h3 className="mb-2 font-medium text-slate-200">Review & Improve</h3>
-                <p className="text-sm leading-relaxed text-slate-400">
-                  Use the emotion and stress models to review and improve your performance over time.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </section>
 
+        {/* Model stack */}
         <section className="px-4 pb-20 md:px-8">
           <div className="mx-auto max-w-5xl">
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-sm md:p-8">
-              <h2 className="text-center text-2xl font-semibold text-white md:text-3xl">
-                Backend Model Stack
-              </h2>
+              <h2 className="text-center text-2xl font-semibold text-white md:text-3xl">Backend Model Stack</h2>
               <p className="mx-auto mt-4 max-w-2xl text-center text-slate-400">
-                This interface is connected to the same model structure used in <span className="text-slate-200">backend/app.py</span>.
+                Connected to <span className="text-slate-200">backend/app.py</span> and <span className="text-slate-200">pitch_generator.py</span>.
               </p>
-
               <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Emotion</p>
-                  <p className="mt-2 text-lg font-medium text-white">emotion_model.h5</p>
-                  <p className="mt-2 text-sm text-slate-400">Face emotion classifier used by `/api/analyze/emotion`.</p>
-                </div>
-                <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Stress</p>
-                  <p className="mt-2 text-lg font-medium text-white">best_final_stress_cnn_73.h5</p>
-                  <p className="mt-2 text-sm text-slate-400">Stress model used by `/api/analyze/stress`.</p>
-                </div>
-                <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Health</p>
-                  <p className="mt-2 text-lg font-medium text-white">/api/health</p>
-                  <p className="mt-2 text-sm text-slate-400">Checks if the Flask models are loaded correctly.</p>
-                </div>
-                <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Frontend</p>
-                  <p className="mt-2 text-lg font-medium text-white">ScaleUp UI</p>
-                  <p className="mt-2 text-sm text-slate-400">Captures webcam frames and sends them to Flask.</p>
-                </div>
+                {[
+                  { label: "Emotion", name: "emotion_model.h5", desc: "Face emotion classifier via /api/analyze/emotion." },
+                  { label: "Stress", name: "stress_cnn_73.h5", desc: "Stress model via /api/analyze/stress." },
+                  { label: "Pitch Gen", name: "didina01/pitch-deck-phi3", desc: "Fine-tuned Phi-3 model via /api/pitch/generate." },
+                  { label: "Health", name: "/api/health", desc: "Checks if Flask models are loaded correctly." },
+                ].map(({ label, name, desc }) => (
+                  <div key={label} className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-purple-300">{label}</p>
+                    <p className="mt-2 text-lg font-medium text-white">{name}</p>
+                    <p className="mt-2 text-sm text-slate-400">{desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -577,6 +683,7 @@ export default function PitchCoachPage() {
       {recordingAnalysis && (
         <AnalysisSummary
           data={recordingAnalysis}
+          voiceEmotionStatus={voiceEmotionStatus}
           onClose={() => setRecordingAnalysis(null)}
         />
       )}
