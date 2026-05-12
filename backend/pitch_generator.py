@@ -70,9 +70,9 @@ def load_model():
         offload_dir = os.path.join(BASE_DIR, "offload")
         os.makedirs(offload_dir, exist_ok=True)
 
-        # Strategy 1: aggressive offload with device_map='auto'
+        # Strategy 1: aggressive offload with device_map='auto' and CPU fp32 offload
         try:
-            print("[PitchGen] Attempting model load: 4-bit + device_map='auto' + offload")
+            print("[PitchGen] Attempting model load: 4-bit + device_map='auto' + offload + fp32_cpu_offload")
             _model = AutoModelForCausalLM.from_pretrained(
                 LOCAL_MODEL,
                 quantization_config=quant_config,
@@ -80,6 +80,7 @@ def load_model():
                 offload_folder=offload_dir,
                 offload_state_dict=True,
                 low_cpu_mem_usage=True,
+                llm_int8_enable_fp32_cpu_offload=True,
                 local_files_only=True,
             )
             print("[PitchGen] Model loaded with offload ✅")
@@ -88,14 +89,15 @@ def load_model():
         except Exception as e1:
             print(f"[PitchGen] Strategy 1 failed: {e1}")
 
-        # Strategy 2: force CPU with low_cpu_mem_usage (may still require large pagefile)
+        # Strategy 2: force CPU with low_cpu_mem_usage and enable fp32 CPU offload
         try:
-            print("[PitchGen] Attempting model load: 4-bit + device_map='cpu' + low_cpu_mem_usage")
+            print("[PitchGen] Attempting model load: 4-bit + device_map='cpu' + low_cpu_mem_usage + fp32_cpu_offload")
             _model = AutoModelForCausalLM.from_pretrained(
                 LOCAL_MODEL,
                 quantization_config=quant_config,
                 device_map="cpu",
                 low_cpu_mem_usage=True,
+                llm_int8_enable_fp32_cpu_offload=True,
                 local_files_only=True,
             )
             print("[PitchGen] Model loaded on CPU ✅")
