@@ -43,6 +43,15 @@ interface BMCAnalysis {
   boxes: BMCBox[]
   strengths: string[]
   weaknesses: string[]
+  coherence: {
+    score: number
+    feedback: string
+    suggestions: string[]
+  }
+  sustainability: {
+    feedback: string
+    suggestions: string[]
+  }
 }
 
 interface GeneratedBMC {
@@ -204,6 +213,25 @@ export default function BMCPage() {
         "Key activities are too generic",
         "Customer relationships could be more personalized",
       ],
+      coherence: {
+        score: 76,
+        feedback: "The BMC shows good internal coherence with aligned value propositions and customer segments. However, some activities don't directly support the stated value propositions.",
+        suggestions: [
+          "Ensure all key activities directly contribute to delivering the value propositions",
+          "Align cost structure with revenue streams for better financial coherence",
+          "Review channels to ensure they effectively reach the defined customer segments"
+        ]
+      },
+      sustainability: {
+        feedback: "The business model has potential for sustainability but lacks explicit environmental and social considerations.",
+        suggestions: [
+          "Incorporate green technology practices in key activities",
+          "Add sustainable sourcing for key resources and partnerships",
+          "Consider social impact metrics in value propositions",
+          "Implement circular economy principles in cost and revenue structures",
+          "Develop long-term partnerships with sustainable suppliers"
+        ]
+      },
     }
 
     setAnalysis(mockAnalysis)
@@ -489,6 +517,72 @@ export default function BMCPage() {
                             </CardContent>
                           </Card>
                         ))}
+                      </div>
+
+                      {/* Additional Evaluations */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                        {/* Coherence Evaluation */}
+                        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+                          <CardHeader className="pb-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle className="w-5 h-5 text-purple-400" />
+                                <CardTitle className="text-white text-base">BMC Coherence</CardTitle>
+                              </div>
+                              <span className={`font-bold ${getScoreColor(analysis.coherence.score)}`}>{analysis.coherence.score}</span>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div className="w-full bg-white/10 rounded-full h-2">
+                              <div
+                                className={`h-2 rounded-full transition-all duration-500 ${
+                                  analysis.coherence.score >= 80
+                                    ? "bg-green-400"
+                                    : analysis.coherence.score >= 60
+                                      ? "bg-yellow-400"
+                                      : "bg-red-400"
+                                }`}
+                                style={{ width: `${analysis.coherence.score}%` }}
+                              />
+                            </div>
+                            <p className="text-white/60 text-sm">{analysis.coherence.feedback}</p>
+                            <div className="pt-2 border-t border-white/10">
+                              <p className="text-xs text-purple-300 mb-1">Suggestions:</p>
+                              <ul className="space-y-1">
+                                {analysis.coherence.suggestions.map((sug, i) => (
+                                  <li key={i} className="text-white/50 text-xs flex items-start gap-1">
+                                    <span className="text-purple-400">•</span>
+                                    {sug}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Sustainability Evaluation */}
+                        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+                          <CardHeader className="pb-2">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="w-5 h-5 text-purple-400" />
+                              <CardTitle className="text-white text-base">Sustainability Advice</CardTitle>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <p className="text-white/60 text-sm">{analysis.sustainability.feedback}</p>
+                            <div className="pt-2 border-t border-white/10">
+                              <p className="text-xs text-purple-300 mb-1">Suggestions:</p>
+                              <ul className="space-y-1">
+                                {analysis.sustainability.suggestions.map((sug, i) => (
+                                  <li key={i} className="text-white/50 text-xs flex items-start gap-1">
+                                    <span className="text-purple-400">•</span>
+                                    {sug}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </CardContent>
+                        </Card>
                       </div>
                     </div>
                   )}

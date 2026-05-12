@@ -10,3 +10,14 @@ node_modules
 .DS_Store
 backend/models/posturedata/pitch_deck_final (1).zip
 pitch_deck_cache/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+# Environment variables
+.env
+# Logs
+npm-debug.log*
+yarn-debug.log*
+
