@@ -415,16 +415,34 @@ def api_generate_pitch():
         industry = data.get('industry', 'your industry')
         description = data.get('description', 'a clear solution to a real problem')
 
-        # Import here to avoid heavy import at startup
-        from pitch_generator import generate_all_slides
+        import subprocess, json, sys
+        script = os.path.join(BASE_DIR, "pitch_generator.py")
+        result = subprocess.run(
+            [sys.executable, script, company, industry, description],
+            capture_output=True, text=True, timeout=600,
+            cwd=BASE_DIR
+        )
+        
+        print("[PitchGen stderr]", result.stderr[-1000:])
+        print("[PitchGen stdout]", result.stdout[:500])
+        
+        if result.returncode != 0:
+            return jsonify({'error': result.stderr[-500:]}), 500
 
-        slides = generate_all_slides(company, industry, description)
+        # Trouve le JSON dans stdout (ignore les warnings avant)
+        stdout = result.stdout.strip()
+        json_start = stdout.rfind('{')
+        json_end = stdout.rfind('}') + 1
+        if json_start == -1:
+            return jsonify({'error': 'No JSON in output', 'raw': stdout[:300]}), 500
+        
+        slides = json.loads(stdout[json_start:json_end])
         return jsonify({'slides': slides})
     except Exception as e:
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
-
-
+    
+            
 @app.route('/api/pitch/download', methods=['POST'])
 def api_download_pitch():
     try:

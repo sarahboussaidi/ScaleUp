@@ -7,14 +7,7 @@ and generates pitch deck slides + exports a .pptx file.
 
 import os
 import torch
-import requests
 from transformers import AutoModelForCausalLM, AutoTokenizer
-
-# Optional: use Hugging Face InferenceClient when available for better retries
-try:
-    from huggingface_hub import InferenceClient
-except Exception:
-    InferenceClient = None
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
@@ -41,17 +34,12 @@ SYSTEM = (
 
 _model     = None
 _tokenizer = None
-_load_attempted = False
 
 def load_model():
-    global _model, _tokenizer, _load_attempted
+    global _model, _tokenizer
 
     if _model is not None:
         return _model, _tokenizer
-    if _load_attempted:
-        return None, None
-
-    _load_attempted = True
 
     print(f"[PitchGen] Loading model from: {LOCAL_MODEL}")
 
@@ -157,56 +145,7 @@ def clean_output(text: str) -> str:
 
 
 def generate_slide(company: str, industry: str, description: str, slide_type: str) -> str:
-    # Do NOT call load_model() here to avoid repeated expensive load attempts.
-    # The caller should call load_model() once via generate_all_slides().
-    model = _model
-    tokenizer = _tokenizer
-
-    HF_API_TOKEN = os.getenv("HF_API_TOKEN")
-    HF_MODEL = os.getenv("HF_MODEL", "didina01/pitch-deck-phi3")
-
-    # Try to use InferenceClient if available (better error handling)
-    def _hf_generate(prompt: str) -> str:
-        if not HF_API_TOKEN:
-            return ""
-        # Prefer InferenceClient when installed
-        try:
-            if InferenceClient is not None:
-                client = InferenceClient(token=HF_API_TOKEN)
-                # text_generation returns a list of dicts with 'generated_text'
-                out = client.text_generation(model=HF_MODEL, inputs=prompt, max_new_tokens=80, temperature=0.4, top_p=0.8)
-                if isinstance(out, list) and out:
-                    return out[0].get("generated_text") or out[0].get("text") or ""
-                if isinstance(out, dict):
-                    return out.get("generated_text") or out.get("text") or ""
-                return ""
-        except Exception as e:
-            print(f"[PitchGen] InferenceClient call failed: {e}")
-
-        # Fallback to direct REST call
-        try:
-            url = f"https://api-inference.huggingface.co/models/{HF_MODEL}"
-            headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
-            payload = {
-                "inputs": prompt,
-                "parameters": {
-                    "max_new_tokens": 80,
-                    "temperature": 0.4,
-                    "top_p": 0.8,
-                    "return_full_text": False,
-                },
-                "options": {"wait_for_model": True},
-            }
-            resp = requests.post(url, headers=headers, json=payload, timeout=120)
-            resp.raise_for_status()
-            data = resp.json()
-            if isinstance(data, list) and data:
-                return data[0].get("generated_text") or data[0].get("text") or ""
-            if isinstance(data, dict):
-                return data.get("generated_text") or data.get("text") or ""
-        except Exception as e:
-            print(f"[PitchGen] HF inference failed: {e}")
-        return ""
+    model, tokenizer = load_model()
 
     def _fallback(slide_type: str, company: str, industry: str, description: str) -> str:
         # Simple rule-based fallback to guarantee output when the model can't be loaded.
@@ -232,24 +171,6 @@ def generate_slide(company: str, industry: str, description: str, slide_type: st
         return first
 
     if model is None or tokenizer is None:
-        # Try remote HF inference using the uploaded model if token available
-        prompt = (
-            f"SYSTEM: {SYSTEM}\n\n"
-            f"Startup:\nName: {company}\nIndustry: {industry}\n"
-            f"Description: {description}\n\n"
-            f"Write the {slide_type} slide.\n\n"
-            "Rules:\n"
-            "- Use only information from the description\n"
-            "- No fake investors or funding numbers\n"
-            "- Maximum 3 sentences\n"
-            "- Output only the slide content\n\n"
-            "ASSISTANT:\n"
-        )
-        if HF_API_TOKEN:
-            raw = _hf_generate(prompt)
-            cleaned = clean_output(raw)
-            if cleaned and len(cleaned) > 20:
-                return cleaned
         return _fallback(slide_type, company, industry, description)
 
     prompt = (
@@ -298,8 +219,6 @@ def generate_slide(company: str, industry: str, description: str, slide_type: st
 
 
 def generate_all_slides(company: str, industry: str, description: str) -> dict:
-    # Try one model load attempt at startup to avoid repeated expensive failures.
-    load_model()
     slides = {}
     for slide_type in SLIDE_TASKS:
         print(f"[PitchGen] Generating: {slide_type}...")
@@ -435,27 +354,9 @@ def build_pptx(company: str, industry: str, description: str, slides: dict, outp
     print(f"[PitchGen] Saved: {output_path}")
 
 if __name__ == "__main__":
-    import sys, json, traceback
-
-    company = sys.argv[1] if len(sys.argv) > 1 else "Your Startup"
-    industry = sys.argv[2] if len(sys.argv) > 2 else "Tech"
+    import sys, json
+    company     = sys.argv[1] if len(sys.argv) > 1 else "Your Startup"
+    industry    = sys.argv[2] if len(sys.argv) > 2 else "Tech"
     description = sys.argv[3] if len(sys.argv) > 3 else "A great product"
-
-    slides = None
-    try:
-        slides = generate_all_slides(company, industry, description)
-    except Exception as e:
-        # If anything unexpected fails, log the traceback and fall back to simple templates
-        print(f"[PitchGen][ERROR] generation failed: {e}")
-        traceback.print_exc()
-        slides = {}
-        for st in SLIDE_TASKS.keys():
-            slides[st] = (f"{company} — {st} (fallback).")
-
-    # Always output JSON and exit cleanly so callers (API) can parse the result.
-    try:
-        print(json.dumps(slides))
-    except Exception:
-        # As a last resort, ensure at least a simple JSON is printed
-        safe = {k: str(v) for k, v in (slides or {}).items()}
-        print(json.dumps(safe))
+    slides = generate_all_slides(company, industry, description)
+    print("Slides generated: ", len(slides)); build_pptx(company, industry, description, slides, "test_pitch.pptx")
