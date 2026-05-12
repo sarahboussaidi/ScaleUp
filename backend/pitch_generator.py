@@ -1,23 +1,20 @@
 """
 pitch_generator.py
 ------------------
-Loads your fine-tuned model from Hugging Face Hub and generates
-pitch deck slides + exports a .pptx file.
-
-Usage: imported by app.py via /pitch routes
+Loads your fine-tuned model from the LOCAL pitch_deck_final/ folder
+and generates pitch deck slides + exports a .pptx file.
 """
 
 import os
 import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 
-# ── HuggingFace model config ─────────────────────────────────────────────────
-BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
 LOCAL_MODEL = os.path.join(BASE_DIR, "models", "pitch_deck_final")
 
-# ── Slide tasks ───────────────────────────────────────────────────────────────
 SLIDE_TASKS = {
     "problem":        "Write a problem slide. Who has the problem, what is the pain, why does it matter.",
     "solution":       "Write a solution slide. What the product does, how it works, key differentiator.",
@@ -35,10 +32,8 @@ SYSTEM = (
     "Be specific and credible. Do not invent fake numbers."
 )
 
-# ── Global model state (loaded once) ─────────────────────────────────────────
 _model     = None
 _tokenizer = None
-
 
 def load_model():
     global _model, _tokenizer
@@ -46,42 +41,23 @@ def load_model():
     if _model is not None:
         return _model, _tokenizer
 
-    print(f"[PitchGen] Loading model from local folder: {LOCAL_MODEL}")
-    has_gpu = torch.cuda.is_available()
+    print(f"[PitchGen] Loading model from: {LOCAL_MODEL}")
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     _tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL, local_files_only=True)
 
-    if has_gpu:
-        from transformers import BitsAndBytesConfig
-        quant_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.float16,
-            bnb_4bit_use_double_quant=True,
-        )
-        _model = AutoModelForCausalLM.from_pretrained(
-            LOCAL_MODEL,
-            quantization_config=quant_config,
-            device_map="auto",
-            local_files_only=True,
-        )
-        print("[PitchGen] Model loaded on GPU ✅")
-    else:
-        _model = AutoModelForCausalLM.from_pretrained(
-            LOCAL_MODEL,
-            torch_dtype=torch.float32,
-            device_map="cpu",
-            low_cpu_mem_usage=True,
-            local_files_only=True,
-        )
-        print("[PitchGen] Model loaded on CPU ✅ (generation will be slow)")
+    _model = AutoModelForCausalLM.from_pretrained(
+        LOCAL_MODEL,
+        torch_dtype=torch.float32,
+        low_cpu_mem_usage=True,
+        local_files_only=True,
+    )
 
+    print("[PitchGen] Model loaded on CPU ✅")
     _model.eval()
     return _model, _tokenizer
 
-# ── Text cleaning ─────────────────────────────────────────────────────────────
 BAD_STOPS = [
     "SYSTEM:", "USER:", "Company:", "Startup:", "Name:",
     "Industry:", "Description:", "Rules:", "Write the",
@@ -108,7 +84,6 @@ def clean_output(text: str) -> str:
     return ". ".join(sentences[:3]).strip()
 
 
-# ── Slide generation ──────────────────────────────────────────────────────────
 def generate_slide(company: str, industry: str, description: str, slide_type: str) -> str:
     model, tokenizer = load_model()
 
