@@ -112,130 +112,83 @@ export default function BMCPage() {
     }
   }
 
-  const analyzeBMC = async () => {
+const analyzeBMC = async () => {
     if (!file) return
     setIsAnalyzing(true)
 
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
 
-    const mockAnalysis: BMCAnalysis = {
-      overallScore: 74,
-      boxes: [
-        {
-          id: "key-partners",
-          name: "Key Partners",
-          icon: Handshake,
-          score: 72,
-          content: "Technology vendors, Local incubators, Government agencies",
-          feedback: "Good partner identification but lacking strategic depth.",
-          suggestions: ["Add financial institutions for funding partnerships", "Consider academic partnerships"],
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+      const response = await fetch(`${apiUrl}/api/bmc/analyze`, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) throw new Error("Server error")
+
+      const data = await response.json()
+
+      const sectionOrder = [
+        { key: "KeyPartners",          name: "Key Partners",          icon: Handshake },
+        { key: "KeyActivities",        name: "Key Activities",        icon: Cog },
+        { key: "KeyResources",         name: "Key Resources",         icon: Package },
+        { key: "ValuePropositions",    name: "Value Propositions",    icon: Heart },
+        { key: "CustomerRelationships",name: "Customer Relationships",icon: MessageSquare },
+        { key: "Channels",             name: "Channels",              icon: Truck },
+        { key: "CustomerSegments",     name: "Customer Segments",     icon: Users },
+        { key: "CostStructure",        name: "Cost Structure",        icon: DollarSign },
+        { key: "RevenueStreams",       name: "Revenue Streams",       icon: TrendingUp },
+      ]
+
+      const boxes: BMCBox[] = sectionOrder.map((s, i) => {
+        const section = data.sections?.[s.key] || {}
+        return {
+          id: String(i),
+          name: s.name,
+          icon: s.icon,
+          score: Math.round((section.score || 0) * 20),  // convert 0-5 to 0-100
+          content: section.text || "",
+          feedback: section.feedback || "",
+          suggestions: section.improvement ? [section.improvement] : [],
+        }
+      })
+
+      const scores = boxes.map(b => b.score)
+      const overallScore = Math.round((data.overall?.score || 0) * 20)
+      const coherenceScore = Math.round((data.coherence?.score || 0) * 20)
+
+      const priorities: string[] = data.overall?.priorities || []
+      const weaknesses = priorities.map(
+        (key: string) => sectionOrder.find(s => s.key === key)?.name || key
+      )
+      const strengths = boxes
+        .filter(b => !priorities.includes(sectionOrder[Number(b.id)]?.key))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .map(b => b.name)
+
+      setAnalysis({
+        overallScore,
+        boxes,
+        strengths,
+        weaknesses,
+        coherence: {
+          score: coherenceScore,
+          feedback: data.coherence?.analysis || "",
+          suggestions: [],
         },
-        {
-          id: "key-activities",
-          name: "Key Activities",
-          icon: Cog,
-          score: 68,
-          content: "Platform development, Customer support, Marketing",
-          feedback: "Activities are generic. Need more specificity.",
-          suggestions: ["Define core differentiating activities", "Add quality assurance processes"],
+        sustainability: {
+          feedback: data.sustainability?.advice || "",
+          suggestions: [],
         },
-        {
-          id: "key-resources",
-          name: "Key Resources",
-          icon: Package,
-          score: 75,
-          content: "AI technology, Development team, Brand",
-          feedback: "Resources are identified but intellectual property not mentioned.",
-          suggestions: ["Include IP and proprietary algorithms", "Add human capital details"],
-        },
-        {
-          id: "value-propositions",
-          name: "Value Propositions",
-          icon: Heart,
-          score: 82,
-          content: "AI-powered business validation, Time savings, Expert-level insights",
-          feedback: "Strong value propositions well articulated.",
-          suggestions: ["Quantify the value (e.g., '80% faster')", "Add competitive differentiation"],
-        },
-        {
-          id: "customer-relationships",
-          name: "Customer Relationships",
-          icon: MessageSquare,
-          score: 70,
-          content: "Self-service platform, Email support, Community forum",
-          feedback: "Adequate but could be more personalized.",
-          suggestions: ["Add onboarding assistance", "Consider dedicated success managers for enterprise"],
-        },
-        {
-          id: "channels",
-          name: "Channels",
-          icon: Truck,
-          score: 78,
-          content: "Website, Social media, Partner referrals, Events",
-          feedback: "Multi-channel approach is good.",
-          suggestions: ["Add mobile app channel", "Consider B2B partnerships for distribution"],
-        },
-        {
-          id: "customer-segments",
-          name: "Customer Segments",
-          icon: Users,
-          score: 80,
-          content: "Early-stage startups, Student entrepreneurs, SMEs",
-          feedback: "Well-defined segments with clear focus.",
-          suggestions: ["Define personas for each segment", "Identify highest-value segment"],
-        },
-        {
-          id: "cost-structure",
-          name: "Cost Structure",
-          icon: DollarSign,
-          score: 65,
-          content: "Development costs, Marketing, Infrastructure",
-          feedback: "Cost categories identified but no prioritization.",
-          suggestions: ["Add fixed vs variable cost breakdown", "Include customer acquisition cost"],
-        },
-        {
-          id: "revenue-streams",
-          name: "Revenue Streams",
-          icon: TrendingUp,
-          score: 73,
-          content: "Subscription fees, Enterprise licenses, Premium features",
-          feedback: "Multiple revenue streams identified.",
-          suggestions: ["Add pricing tiers details", "Consider freemium conversion metrics"],
-        },
-      ],
-      strengths: [
-        "Strong value proposition clarity",
-        "Well-defined customer segments",
-        "Multi-channel distribution strategy",
-      ],
-      weaknesses: [
-        "Cost structure needs more detail",
-        "Key activities are too generic",
-        "Customer relationships could be more personalized",
-      ],
-      coherence: {
-        score: 76,
-        feedback: "The BMC shows good internal coherence with aligned value propositions and customer segments. However, some activities don't directly support the stated value propositions.",
-        suggestions: [
-          "Ensure all key activities directly contribute to delivering the value propositions",
-          "Align cost structure with revenue streams for better financial coherence",
-          "Review channels to ensure they effectively reach the defined customer segments"
-        ]
-      },
-      sustainability: {
-        feedback: "The business model has potential for sustainability but lacks explicit environmental and social considerations.",
-        suggestions: [
-          "Incorporate green technology practices in key activities",
-          "Add sustainable sourcing for key resources and partnerships",
-          "Consider social impact metrics in value propositions",
-          "Implement circular economy principles in cost and revenue structures",
-          "Develop long-term partnerships with sustainable suppliers"
-        ]
-      },
+      })
+    } catch (err) {
+      console.error("BMC analysis failed:", err)
+    } finally {
+      setIsAnalyzing(false)
     }
-
-    setAnalysis(mockAnalysis)
-    setIsAnalyzing(false)
   }
 
   const generateBMC = async () => {

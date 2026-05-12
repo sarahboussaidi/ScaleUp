@@ -1,0 +1,15 @@
+{
+  "architecture": "BMCTextLSTM",
+  "num_classes": 2,
+  "class_names": [
+    "typed",
+    "handwritten"
+  ],
+  "img_size": 224,
+  "n_patches": 16,
+  "patch_dim": 9408,
+  "embed_dim": 256,
+  "hidden_size": 256,
+  "val_acc": 0.9366666666666666,
+  "val_loss": 0.2985435274442037
+}

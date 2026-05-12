@@ -30,6 +30,11 @@ load_model = tf.keras.models.load_model
 app = Flask(__name__)
 CORS(app)
 
+#-------
+from bmc_app import bmc_bp
+app.register_blueprint(bmc_bp)
+#-------
+
 # Get the backend directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
