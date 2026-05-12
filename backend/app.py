@@ -18,6 +18,12 @@ import mediapipe as mp
 import librosa
 import io
 import tempfile
+
+# Import BMC modules
+from Bmc_generation.document_classifier_routes import doc_classifier_bp, init_document_classifier
+
+from Bmc_generation.bmc_processor_routes import bmc_processor_bp, init_bmc_processor
+
 from strength_predictor import detect_bad_words, hybrid_strength_predict
 try:
     from speech_strength_app import transcribe_audio
@@ -29,6 +35,11 @@ load_model = tf.keras.models.load_model
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
+# Register document classifier blueprint
+app.register_blueprint(doc_classifier_bp, url_prefix='/api')
+
+# Register BMC processor blueprint
+app.register_blueprint(bmc_processor_bp, url_prefix='/api')
 
 # Get the backend directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -851,6 +862,11 @@ def analyze_speech_strength():
 if __name__ == '__main__':
     # Load models on startup
     load_models()
+
+    #BMC MODELS INITIALIZATION
+    init_document_classifier()
+
+    init_bmc_processor()
     
     # Run Flask app
     app.run(

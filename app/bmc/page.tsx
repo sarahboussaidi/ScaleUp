@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { GlassmorphismNav } from "@/components/glassmorphism-nav"
 import Aurora from "@/components/Aurora"
 import { Footer } from "@/components/footer"
@@ -67,6 +68,7 @@ interface GeneratedBMC {
 }
 
 export default function BMCPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<"analyze" | "generate">("analyze")
 
   // Analysis state
@@ -81,6 +83,10 @@ export default function BMCPage() {
   const [industry, setIndustry] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedBMC, setGeneratedBMC] = useState<GeneratedBMC | null>(null)
+
+  const goToBmcGeneration = () => {
+    router.push("/bmc-generation")
+  }
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -367,7 +373,7 @@ export default function BMCPage() {
                   Analyze BMC
                 </button>
                 <button
-                  onClick={() => setActiveTab("generate")}
+                  onClick={goToBmcGeneration}
                   className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
                     activeTab === "generate"
                       ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white"
@@ -620,7 +626,7 @@ export default function BMCPage() {
                         />
                       </div>
                       <Button
-                        onClick={generateBMC}
+                        onClick={goToBmcGeneration}
                         disabled={isGenerating || !businessIdea.trim()}
                         className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white"
                       >
