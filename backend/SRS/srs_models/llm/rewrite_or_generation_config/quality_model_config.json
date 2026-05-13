@@ -1,0 +1,13 @@
+{
+  "module": "C9",
+  "model_name": "roberta_requirement_quality_model",
+  "model_family": "roberta-base",
+  "task": "requirement_quality_classification",
+  "labels": {
+    "0": "LOW_QUALITY",
+    "1": "MEDIUM_QUALITY",
+    "2": "HIGH_QUALITY"
+  },
+  "input": "requirement text + multimodal/NLP quality signals",
+  "output": "LOW_QUALITY / MEDIUM_QUALITY / HIGH_QUALITY"
+}

@@ -1,0 +1,125 @@
+doc_id,total_pages,avg_vision_confidence,correct_visual_pages,cover_pages_pred,toc_pages_pred,content_pages_pred,appendix_pages_pred,low_text_pages_pred,low_confidence_pages,vision_accuracy_proxy,document_vision_quality_flag
+0000 cctns,19,0.7431,14,1,0,16,2,0,4,0.737,moderate_visual_structure
+0000 cctns scanned,19,0.7966,17,1,1,17,0,0,1,0.895,moderate_visual_structure
+0000 gamma j,44,0.8798,37,1,1,20,12,10,3,0.841,moderate_visual_structure
+0000 gamma j scanned,44,0.8651,28,1,1,20,11,11,3,0.636,moderate_visual_structure
+0000 inventory,31,0.8988,29,1,2,27,1,0,1,0.935,moderate_visual_structure
+0000 inventory scanned,31,0.8942,29,1,2,28,0,0,0,0.935,strong_visual_structure
+1995 gemini,96,0.9702,92,2,2,86,2,4,3,0.958,moderate_visual_structure
+1995 gemini scanned,96,0.9689,92,2,2,86,2,4,2,0.958,moderate_visual_structure
+1998 themas,40,0.9444,39,1,6,29,4,0,1,0.975,moderate_visual_structure
+1998 themas scanned,40,0.9621,39,1,6,29,4,0,0,0.975,strong_visual_structure
+1999 tcs,148,0.8115,117,0,10,122,13,3,19,0.791,moderate_visual_structure
+1999 tcs scanned,148,0.8804,127,0,2,135,7,4,11,0.858,moderate_visual_structure
+2001 beyond,44,0.731,32,1,6,23,10,4,11,0.727,moderate_visual_structure
+2001 beyond scanned,44,0.7206,29,1,6,20,13,4,14,0.659,moderate_visual_structure
+2001 ctc network,32,0.8539,24,1,8,20,2,1,4,0.75,moderate_visual_structure
+2001 ctc network scanned,32,0.8576,23,1,9,19,2,1,3,0.719,moderate_visual_structure
+2001 elsfork,69,0.9026,55,0,0,36,23,10,5,0.797,moderate_visual_structure
+2001 elsfork scanned,69,0.8984,53,0,0,34,25,10,5,0.768,moderate_visual_structure
+2001 esa,17,0.8243,16,1,1,13,2,0,1,0.941,moderate_visual_structure
+2001 esa scanned,17,0.8108,16,1,1,13,2,0,2,0.941,moderate_visual_structure
+2001 hats,56,0.859,46,1,4,19,30,2,3,0.821,moderate_visual_structure
+2001 hats scanned,56,0.851,48,1,4,20,29,2,5,0.857,moderate_visual_structure
+2001 space fractions,9,0.6954,8,0,4,3,2,0,3,0.889,moderate_visual_structure
+2001 space fractions scanned,9,0.6772,8,0,4,3,2,0,4,0.889,moderate_visual_structure
+2001 telescope,107,0.8661,97,1,4,79,19,4,13,0.907,moderate_visual_structure
+2001 telescope scanned,107,0.867,94,1,4,76,22,4,10,0.879,moderate_visual_structure
+2002 evla back,22,0.8582,15,1,3,13,4,1,3,0.682,moderate_visual_structure
+2002 evla back scanned,22,0.8596,16,1,3,14,3,1,2,0.727,moderate_visual_structure
+2002 evla corr,17,0.9229,15,1,4,10,2,0,0,0.882,strong_visual_structure
+2002 evla corr scanned,17,0.9109,14,1,4,10,2,0,0,0.824,strong_visual_structure
+2002 sce api,94,0.846,88,1,6,78,9,0,12,0.936,moderate_visual_structure
+2002 sce api scanned,94,0.8411,86,1,8,76,9,0,11,0.915,moderate_visual_structure
+2003 agentmom,8,0.8978,7,1,1,4,2,0,1,0.875,moderate_visual_structure
+2003 agentmom scanned,8,0.8966,8,1,1,5,1,0,0,1.0,strong_visual_structure
+2003 pnnl,176,0.9767,176,1,1,166,8,0,1,1.0,moderate_visual_structure
+2003 pnnl scanned,176,0.9696,176,1,1,166,8,0,2,1.0,moderate_visual_structure
+2003 qheadache,15,0.9186,11,0,1,13,0,1,0,0.733,strong_visual_structure
+2003 qheadache scanned,15,0.9,12,0,1,13,0,1,0,0.8,strong_visual_structure
+2003 tachonet,56,0.8741,55,0,6,48,2,0,7,0.982,moderate_visual_structure
+2003 tachonet scanned,56,0.873,52,0,6,45,5,0,6,0.929,moderate_visual_structure
+2004 colorcast,18,0.8104,12,1,2,7,8,0,2,0.667,moderate_visual_structure
+2004 colorcast scanned,18,0.8194,13,1,1,7,9,0,2,0.722,moderate_visual_structure
+2004 grid bgc,34,0.7904,28,1,0,18,15,0,4,0.824,moderate_visual_structure
+2004 grid bgc scanned,34,0.8023,29,1,0,19,14,0,5,0.853,moderate_visual_structure
+2004 rlcs,66,0.7978,41,1,0,25,40,0,7,0.621,moderate_visual_structure
+2004 rlcs scanned,66,0.808,43,1,0,28,37,0,8,0.652,moderate_visual_structure
+2004 sprat,33,0.9365,33,1,2,21,9,0,1,1.0,moderate_visual_structure
+2004 sprat scanned,33,0.9372,33,1,2,21,9,0,1,1.0,moderate_visual_structure
+2004 watcom,55,0.9337,53,0,3,49,3,0,2,0.964,moderate_visual_structure
+2004 watcom gui,54,0.9568,53,0,1,53,0,0,2,0.981,moderate_visual_structure
+2004 watcom gui scanned,54,0.9597,52,0,1,52,1,0,1,0.963,moderate_visual_structure
+2004 watcom scanned,55,0.9259,53,0,2,49,4,0,3,0.964,moderate_visual_structure
+2005 clarus low,99,0.862,94,0,1,89,9,0,7,0.949,moderate_visual_structure
+2005 clarus low scanned,99,0.808,89,0,0,91,8,0,17,0.899,moderate_visual_structure
+2005 grid 3d,15,0.8429,11,1,1,10,3,0,2,0.733,moderate_visual_structure
+2005 grid 3d scanned,15,0.8512,12,1,1,10,3,0,2,0.8,moderate_visual_structure
+2005 microcare,33,0.9253,32,1,1,28,3,0,0,0.97,strong_visual_structure
+2005 microcare scanned,33,0.9136,32,1,1,28,3,0,0,0.97,strong_visual_structure
+2005 phin,16,0.9347,14,1,0,14,1,0,0,0.875,strong_visual_structure
+2005 phin scanned,16,0.9264,14,1,0,14,1,0,0,0.875,strong_visual_structure
+2005 pontis,82,0.8828,78,0,1,63,10,8,4,0.951,moderate_visual_structure
+2005 pontis scanned,82,0.8785,79,0,1,64,9,8,5,0.963,moderate_visual_structure
+2005 triangle,23,0.8515,18,1,4,9,8,1,4,0.783,moderate_visual_structure
+2005 triangle scanned,23,0.8494,20,1,4,8,9,1,4,0.87,moderate_visual_structure
+2005 znix,20,0.8007,18,1,1,15,3,0,3,0.9,moderate_visual_structure
+2005 znix scanned,20,0.8438,19,1,1,16,2,0,1,0.95,moderate_visual_structure
+2006 eirene sys 15,138,0.9198,129,1,6,102,13,16,4,0.935,moderate_visual_structure
+2006 eirene sys 15 scanned,138,0.9163,128,1,6,104,11,16,4,0.928,moderate_visual_structure
+2006 stewards,45,0.8836,40,1,3,26,14,1,3,0.889,moderate_visual_structure
+2006 stewards scanned,45,0.8904,39,1,3,26,14,1,2,0.867,moderate_visual_structure
+2007 central trading system,17,0.8453,14,1,1,13,2,0,0,0.824,strong_visual_structure
+2007 central trading system scanned,17,0.8242,16,1,1,14,1,0,1,0.941,moderate_visual_structure
+2007 eirene fun 7,97,0.9441,92,1,3,77,6,10,3,0.948,moderate_visual_structure
+2007 eirene fun 7 scanned,97,0.9396,91,1,3,77,6,10,2,0.938,moderate_visual_structure
+2007 ertms,98,0.8969,85,1,1,59,5,32,5,0.867,moderate_visual_structure
+2007 ertms scanned,98,0.8966,90,1,1,58,6,32,6,0.918,moderate_visual_structure
+2007 get real 0.2,10,0.7182,6,0,1,5,3,1,4,0.6,moderate_visual_structure
+2007 get real 0.2 scanned,10,0.7324,6,0,1,5,3,1,2,0.6,moderate_visual_structure
+2007 mdot,56,0.8432,36,1,1,34,20,0,6,0.643,moderate_visual_structure
+2007 mdot scanned,56,0.846,40,1,1,27,27,0,6,0.714,moderate_visual_structure
+2007 nde,99,0.9428,95,1,2,87,9,0,4,0.96,moderate_visual_structure
+2007 nde scanned,99,0.9376,94,1,2,88,8,0,2,0.949,moderate_visual_structure
+2007 puget sound,14,0.8344,13,1,1,9,3,0,2,0.929,moderate_visual_structure
+2007 puget sound scanned,14,0.8461,13,1,1,9,3,0,2,0.929,moderate_visual_structure
+2007 water use,42,0.8505,42,1,1,37,3,0,3,1.0,moderate_visual_structure
+2007 water use scanned,42,0.8286,42,1,1,37,3,0,5,1.0,moderate_visual_structure
+2008 caiso,11,0.9605,11,0,1,8,1,1,0,1.0,strong_visual_structure
+2008 caiso scanned,11,0.9637,11,0,1,8,1,1,0,1.0,strong_visual_structure
+2008 keepass,29,0.9466,26,1,2,23,3,0,1,0.897,moderate_visual_structure
+2008 keepass scanned,29,0.9483,26,1,3,22,3,0,0,0.897,strong_visual_structure
+2008 peering,17,0.8575,12,1,1,8,7,0,2,0.706,moderate_visual_structure
+2008 peering scanned,17,0.8688,13,1,1,8,7,0,1,0.765,moderate_visual_structure
+2008 vub,40,0.8513,30,0,3,19,11,7,4,0.75,moderate_visual_structure
+2008 vub scanned,40,0.841,30,0,3,19,11,7,6,0.75,moderate_visual_structure
+2009 email,15,0.7844,10,1,0,13,1,0,3,0.667,moderate_visual_structure
+2009 email scanned,15,0.8358,12,1,0,14,0,0,1,0.8,moderate_visual_structure
+2009 gaia,28,0.9336,28,0,2,26,0,0,1,1.0,moderate_visual_structure
+2009 gaia scanned,28,0.93,28,0,2,26,0,0,1,1.0,moderate_visual_structure
+2009 inventory 2.0,62,0.8986,57,1,10,46,5,0,4,0.919,moderate_visual_structure
+2009 inventory 2.0 scanned,62,0.8941,56,1,10,47,4,0,5,0.903,moderate_visual_structure
+2009 library,18,0.8044,14,1,1,14,2,0,3,0.778,moderate_visual_structure
+2009 library scanned,18,0.7848,16,1,0,16,1,0,4,0.889,moderate_visual_structure
+2009 model manager,13,0.9,13,0,1,10,1,1,2,1.0,moderate_visual_structure
+2009 model manager scanned,13,0.8942,11,0,1,9,2,1,2,0.846,moderate_visual_structure
+2009 peazip,34,0.87,29,1,7,18,8,0,4,0.853,moderate_visual_structure
+2009 peazip scanned,34,0.8724,31,1,7,19,7,0,2,0.912,moderate_visual_structure
+2009 peppol,127,0.7382,71,1,61,49,16,0,37,0.559,moderate_visual_structure
+2009 peppol scanned,127,0.7416,71,1,62,48,16,0,32,0.559,moderate_visual_structure
+2009 video search,14,0.8671,12,1,1,6,6,0,0,0.857,strong_visual_structure
+2009 video search scanned,14,0.8666,13,1,1,6,6,0,2,0.929,moderate_visual_structure
+2009 warc iii,10,0.7822,9,1,2,7,0,0,1,0.9,moderate_visual_structure
+2009 warc iii scanned,10,0.7913,9,1,1,8,0,0,0,0.9,moderate_visual_structure
+2010 blit draft,12,0.8712,12,1,3,7,1,0,1,1.0,moderate_visual_structure
+2010 blit draft scanned,12,0.9048,11,1,3,7,1,0,0,0.917,strong_visual_structure
+2010 fishing,49,0.8854,44,1,4,41,3,0,4,0.898,moderate_visual_structure
+2010 fishing scanned,49,0.9325,47,1,3,43,2,0,2,0.959,moderate_visual_structure
+2010 gparted,26,0.9144,25,1,1,22,1,1,1,0.962,moderate_visual_structure
+2010 gparted scanned,26,0.9127,24,1,1,21,2,1,2,0.923,moderate_visual_structure
+2010 home 1.3,15,0.7776,13,1,1,8,5,0,3,0.867,moderate_visual_structure
+2010 home 1.3 scanned,15,0.7842,11,1,1,10,3,0,3,0.733,moderate_visual_structure
+2010 mashboot,15,0.8,13,0,2,8,1,4,3,0.867,moderate_visual_structure
+2010 mashboot scanned,15,0.8012,10,0,2,8,1,4,3,0.667,moderate_visual_structure
+2010 split merge,34,0.8584,28,1,1,28,4,0,2,0.824,moderate_visual_structure
+2010 split merge scanned,34,0.8326,29,1,2,27,4,0,4,0.853,moderate_visual_structure

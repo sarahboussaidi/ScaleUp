@@ -23,3 +23,27 @@ venv/
 npm-debug.log*
 yarn-debug.log*
 
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+SRS/srs_outputs/
+artifacts/
+
+*.zip
+*.pdf
+*.h5
+*.keras
+*.pkl
+*.joblib
+*.safetensors
+*.bin
+*.pt
+*.task
+*.model
+
+
+

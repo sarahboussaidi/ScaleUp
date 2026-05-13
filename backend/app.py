@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify
 from flask import send_file, send_from_directory
 from flask_cors import CORS
 import cv2
+import re
 import numpy as np
 import json
 import os
@@ -54,6 +55,10 @@ except Exception as exc:
         return None
 
 from strength_predictor import detect_bad_words, hybrid_strength_predict
+from SRS.srs_engine.document_parser import extract_text_from_file
+from SRS.srs_engine.generator import generate_srs_document
+from SRS.srs_engine.xai import get_generation_xai_summary
+from SRS.srs_engine.model_based_evaluator import evaluate_srs_with_models, save_evaluation_report
 try:
     from speech_strength_app import transcribe_audio
 except Exception:
@@ -88,6 +93,289 @@ if bmc_processor_bp is not None:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 VOICE_EMOTION_MODEL_PATH = os.path.join(MODELS_DIR, "best_cnn2d_v2.keras")
+
+# -----------------------------
+# SRS uploaded document vision
+# -----------------------------
+SRS_PAGE_CLASSES = [
+    "appendix_page",
+    "content_page",
+    "cover_page",
+    "low_text_page",
+    "toc_page",
+]
+
+SRS_RESNET_CACHE = {
+    "loaded": False,
+    "model": None,
+    "transform": None,
+    "classes": SRS_PAGE_CLASSES,
+    "status": "not_loaded",
+    "error": None,
+}
+
+
+def _humanize_page_type(label):
+    label = str(label or "unknown_page").replace("_", " ").strip()
+    return label[:1].upper() + label[1:]
+
+
+def _heuristic_srs_page_type(text, filename=""):
+    """Fallback only when the trained ResNet checkpoint cannot be loaded."""
+    combined = f"{filename}\n{text or ''}".lower()
+
+    if len(combined.strip()) < 40:
+        return "low_text_page", 0.55, "Very little OCR/text was detected, so the page is considered low-text."
+
+    if "table of contents" in combined or "contents" in combined or "toc" in combined:
+        return "toc_page", 0.72, "OCR/text contains table-of-contents indicators."
+
+    if "appendix" in combined or "annex" in combined:
+        return "appendix_page", 0.70, "OCR/text contains appendix or annex indicators."
+
+    cover_keywords = [
+        "software requirements specification",
+        "prepared by",
+        "project title",
+        "version",
+        "author",
+        "submitted",
+    ]
+    if any(keyword in combined for keyword in cover_keywords):
+        return "cover_page", 0.68, "OCR/text contains cover-page metadata indicators."
+
+    return "content_page", 0.62, "The page contains normal requirement/content text."
+
+
+def _load_srs_resnet_classifier():
+    """
+    Load the trained ResNet18 page classifier when the checkpoint exists.
+    If it cannot be loaded, the evaluator still returns a clear fallback status.
+    """
+    if SRS_RESNET_CACHE["loaded"]:
+        return SRS_RESNET_CACHE
+
+    model_path = os.path.join(
+        BASE_DIR,
+        "SRS",
+        "srs_models",
+        "cv",
+        "v4_resnet18_page_classifier.pt",
+    )
+
+    if not os.path.exists(model_path):
+        SRS_RESNET_CACHE.update({
+            "loaded": True,
+            "status": "model_not_found",
+            "error": f"ResNet checkpoint not found at {model_path}",
+        })
+        return SRS_RESNET_CACHE
+
+    try:
+        import torch
+        from torchvision import models, transforms
+
+        checkpoint = torch.load(model_path, map_location="cpu")
+        class_names = None
+        state_dict = checkpoint
+
+        if isinstance(checkpoint, dict):
+            for key in ["class_names", "classes", "labels"]:
+                if key in checkpoint and checkpoint[key]:
+                    class_names = list(checkpoint[key])
+                    break
+
+            if class_names is None and "class_to_idx" in checkpoint:
+                class_to_idx = checkpoint["class_to_idx"]
+                class_names = [name for name, _ in sorted(class_to_idx.items(), key=lambda item: item[1])]
+
+            for key in ["model_state_dict", "state_dict", "model"]:
+                if key in checkpoint:
+                    state_dict = checkpoint[key]
+                    break
+
+        if hasattr(state_dict, "state_dict"):
+            state_dict = state_dict.state_dict()
+
+        if isinstance(state_dict, dict):
+            state_dict = {
+                str(k).replace("module.", "", 1): v
+                for k, v in state_dict.items()
+            }
+
+        num_classes = len(class_names or SRS_PAGE_CLASSES)
+        if isinstance(state_dict, dict) and "fc.weight" in state_dict:
+            num_classes = int(state_dict["fc.weight"].shape[0])
+
+        if class_names is None:
+            class_names = SRS_PAGE_CLASSES[:num_classes]
+            if len(class_names) < num_classes:
+                class_names = [f"page_type_{i}" for i in range(num_classes)]
+
+        model = models.resnet18(weights=None)
+        model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+        model.load_state_dict(state_dict, strict=False)
+        model.eval()
+
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225],
+            ),
+        ])
+
+        SRS_RESNET_CACHE.update({
+            "loaded": True,
+            "model": model,
+            "transform": transform,
+            "classes": class_names,
+            "status": "trained_resnet_loaded",
+            "error": None,
+        })
+        return SRS_RESNET_CACHE
+
+    except Exception as e:
+        SRS_RESNET_CACHE.update({
+            "loaded": True,
+            "status": "resnet_load_failed",
+            "error": str(e),
+        })
+        return SRS_RESNET_CACHE
+
+
+def _predict_srs_page_with_resnet(image, fallback_text="", filename=""):
+    cache = _load_srs_resnet_classifier()
+
+    if cache.get("model") is not None and cache.get("transform") is not None:
+        try:
+            import torch
+
+            image = image.convert("RGB")
+            tensor = cache["transform"](image).unsqueeze(0)
+
+            with torch.no_grad():
+                logits = cache["model"](tensor)
+                probs = torch.softmax(logits, dim=1)[0]
+                index = int(torch.argmax(probs).item())
+                confidence = round(float(probs[index].item()), 4)
+
+            classes = cache.get("classes") or SRS_PAGE_CLASSES
+            predicted_label = classes[index] if index < len(classes) else f"page_type_{index}"
+
+            return {
+                "predicted_page_type": predicted_label,
+                "display_page_type": _humanize_page_type(predicted_label),
+                "confidence": confidence,
+                "source": "trained_resnet18_checkpoint",
+                "resnet_status": cache.get("status"),
+                "explanation": "Prediction produced by the deployed ResNet18 page classifier checkpoint.",
+            }
+
+        except Exception as e:
+            fallback_label, fallback_conf, explanation = _heuristic_srs_page_type(fallback_text, filename)
+            return {
+                "predicted_page_type": fallback_label,
+                "display_page_type": _humanize_page_type(fallback_label),
+                "confidence": fallback_conf,
+                "source": "fallback_after_resnet_prediction_error",
+                "resnet_status": "resnet_prediction_failed",
+                "resnet_error": str(e),
+                "explanation": explanation,
+            }
+
+    fallback_label, fallback_conf, explanation = _heuristic_srs_page_type(fallback_text, filename)
+    return {
+        "predicted_page_type": fallback_label,
+        "display_page_type": _humanize_page_type(fallback_label),
+        "confidence": fallback_conf,
+        "source": "fallback_text_heuristic",
+        "resnet_status": cache.get("status"),
+        "resnet_error": cache.get("error"),
+        "explanation": explanation,
+    }
+
+
+def classify_uploaded_srs_visual(file_path, extracted_text="", original_filename=""):
+    """
+    Classify the uploaded image/PDF page type for the current evaluation.
+    This is different from the notebook summary: it gives a prediction for the user's file.
+    """
+    ext = os.path.splitext(file_path)[1].lower()
+    visual_exts = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".pdf"}
+
+    if ext not in visual_exts:
+        return None
+
+    page_predictions = []
+
+    try:
+        if ext == ".pdf":
+            import fitz
+            from SRS.srs_engine.document_parser import render_pdf_page_to_image
+
+            doc = fitz.open(file_path)
+            max_pages = min(len(doc), 5)
+            doc.close()
+
+            for page_index in range(max_pages):
+                image = render_pdf_page_to_image(file_path, page_index, zoom=2.0)
+                prediction = _predict_srs_page_with_resnet(
+                    image,
+                    fallback_text=extracted_text,
+                    filename=original_filename,
+                )
+                prediction["page_number"] = page_index + 1
+                page_predictions.append(prediction)
+
+        else:
+            from PIL import Image
+
+            image = Image.open(file_path).convert("RGB")
+            prediction = _predict_srs_page_with_resnet(
+                image,
+                fallback_text=extracted_text,
+                filename=original_filename,
+            )
+            prediction["page_number"] = 1
+            page_predictions.append(prediction)
+
+    except Exception as e:
+        fallback_label, fallback_conf, explanation = _heuristic_srs_page_type(extracted_text, original_filename)
+        page_predictions.append({
+            "page_number": 1,
+            "predicted_page_type": fallback_label,
+            "display_page_type": _humanize_page_type(fallback_label),
+            "confidence": fallback_conf,
+            "source": "fallback_after_visual_processing_error",
+            "resnet_status": "visual_processing_failed",
+            "resnet_error": str(e),
+            "explanation": explanation,
+        })
+
+    page_type_distribution = {}
+    for prediction in page_predictions:
+        label = prediction.get("predicted_page_type", "unknown")
+        page_type_distribution[label] = page_type_distribution.get(label, 0) + 1
+
+    main_prediction = page_predictions[0] if page_predictions else {}
+
+    return {
+        "available": True,
+        "model": "ResNet18 / CV page classifier",
+        "description": "Classification of the currently uploaded image or PDF pages.",
+        "input_file": original_filename or os.path.basename(file_path),
+        "input_type": "pdf" if ext == ".pdf" else "image",
+        "overall_uploaded_document_type": main_prediction.get("predicted_page_type"),
+        "overall_uploaded_document_type_display": main_prediction.get("display_page_type"),
+        "confidence": main_prediction.get("confidence"),
+        "source": main_prediction.get("source"),
+        "resnet_status": main_prediction.get("resnet_status"),
+        "resnet_error": main_prediction.get("resnet_error"),
+        "page_type_distribution": page_type_distribution,
+        "page_predictions": page_predictions,
+    }
 
 # Labels for predictions
 EMOTION_LABELS = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
@@ -1690,6 +1978,440 @@ def detect_signature_api():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+# ========================
+# SRS API ENDPOINTS
+# ========================
+
+@app.route("/api/srs/health", methods=["GET"])
+def srs_health():
+    return jsonify({
+        "status": "success",
+        "message": "SRS backend is running.",
+        "modules": [
+            "SRS Evaluation",
+            "Model-aware Evaluation",
+            "DistilBERT FR/NFR outputs",
+            "RoBERTa NFR subtype outputs",
+            "RoBERTa ambiguity outputs",
+            "RoBERTa quality outputs",
+            "ResNet/CV page outputs",
+            "Uploaded image/PDF page classification",
+            "LIME / Grad-CAM XAI summaries",
+            "SRS Generation",
+            "RAG references",
+            "DOCX/Markdown/ZIP export"
+        ]
+    })
+
+
+@app.route("/api/srs/evaluate", methods=["POST"])
+def srs_evaluate():
+    try:
+        text = ""
+        uploaded_file_path = None
+        uploaded_filename = None
+
+        if "file" in request.files:
+            uploaded_file = request.files["file"]
+            uploaded_filename = os.path.basename(uploaded_file.filename or "uploaded_srs_file")
+            temp_dir = tempfile.mkdtemp()
+            uploaded_file_path = os.path.join(temp_dir, uploaded_filename)
+            uploaded_file.save(uploaded_file_path)
+            text = extract_text_from_file(uploaded_file_path)
+
+        if not text:
+            data = request.get_json(silent=True) or {}
+            text = data.get("text", "")
+
+        uploaded_ext = os.path.splitext(uploaded_file_path or "")[1].lower()
+        is_visual_upload = uploaded_ext in {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".pdf"}
+
+        if not text or len(text.strip()) < 20:
+            if not is_visual_upload:
+                return jsonify({
+                    "status": "error",
+                    "message": "No valid SRS text found. Please upload a PDF/TXT/MD/image file or paste SRS content."
+                }), 400
+
+            text = f"Visual SRS page uploaded: {uploaded_filename or 'uploaded image'}. OCR text was limited."
+
+        result = evaluate_srs_with_models(text)
+        result["input_text"] = text
+
+        if is_visual_upload and len(text.strip()) < 90:
+            result["ocr_warning"] = (
+                "OCR extracted limited text from this visual upload; "
+                "the ResNet/CV classification is more reliable than the textual SRS quality score for this file."
+            )
+
+        if uploaded_file_path:
+            uploaded_visual = classify_uploaded_srs_visual(
+                uploaded_file_path,
+                extracted_text=text,
+                original_filename=uploaded_filename or os.path.basename(uploaded_file_path),
+            )
+
+            if uploaded_visual:
+                result["uploaded_visual_classification"] = uploaded_visual
+                result.setdefault("model_based_evaluation", {})["uploaded_vision"] = uploaded_visual
+
+                # Re-save report after adding uploaded image/PDF classification.
+                result["report_files"] = save_evaluation_report(result)
+
+        return jsonify(result)
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    
+@app.route("/api/srs/rewrite", methods=["POST"])
+def srs_rewrite_requirements():
+    try:
+        import re
+        import traceback
+
+        data = request.get_json(silent=True) or {}
+        text = data.get("text", "")
+
+        if not text or len(text.strip()) < 20:
+            return jsonify({
+                "status": "error",
+                "message": "No valid SRS text received for rewriting."
+            }), 400
+
+        def clean_line(value):
+            value = str(value or "")
+            value = value.replace("\u200b", " ")
+            value = value.replace("\ufeff", " ")
+            value = value.replace("●", " ")
+            value = value.replace("○", " ")
+            value = value.replace("•", " ")
+            value = re.sub(r"^\s*[\-\*\d\.\)\(]+", "", value)
+            value = re.sub(r"\s+", " ", value)
+            value = value.strip(" -:\t\r\n.")
+            return value
+
+        def is_fragment(line):
+            if not line:
+                return True
+
+            words = line.split()
+            lower = line.lower()
+
+            if len(words) < 4:
+                return True
+
+            # Bad OCR continuation fragments.
+            if re.match(r"^[a-z]", line) and not any(
+                key in lower
+                for key in [
+                    "users can",
+                    "users must",
+                    "the system",
+                    "the platform",
+                    "must",
+                    "shall",
+                    "should",
+                    "can",
+                ]
+            ):
+                return True
+
+            # Half sentence ending with weak continuation.
+            if lower.endswith(("will be", "and", "or", "for", "to", "with")):
+                return True
+
+            return False
+
+        def extract_candidates(raw_text):
+            normalized = raw_text.replace("\u200b", " ")
+            raw_parts = re.split(r"[\n\r]+|(?<=[.!?])\s+", normalized)
+
+            candidates = []
+
+            for part in raw_parts:
+                line = clean_line(part)
+                if not line:
+                    continue
+
+                # If OCR gives: "pushed. Users can modify..."
+                # keep only the useful actor phrase.
+                actor_match = re.search(
+                    r"(Users?\s+(?:can|must|should|shall)\s+.+|The\s+(?:system|platform|application)\s+(?:must|should|shall|will)\s+.+)",
+                    line,
+                    flags=re.IGNORECASE,
+                )
+                if actor_match:
+                    line = clean_line(actor_match.group(1))
+
+                # Keep feature title with parenthesized behavior.
+                if re.search(r"\(.+users?\s+(can|must|should|shall).+\)", line, flags=re.IGNORECASE):
+                    candidates.append(line)
+                    continue
+
+                lower = line.lower()
+                useful = any(key in lower for key in [
+                    "users can",
+                    "users must",
+                    "users should",
+                    "the system shall",
+                    "the system must",
+                    "the system should",
+                    "the platform shall",
+                    "the platform must",
+                    "the platform should",
+                    "downtime",
+                    "response time",
+                    "scalable",
+                    "security",
+                    "preferences",
+                    "report posts",
+                    "feedback",
+                    "delete their accounts",
+                    "search posts",
+                ])
+
+                if useful and not is_fragment(line):
+                    candidates.append(line)
+
+            # Deduplicate.
+            unique = []
+            seen = set()
+
+            for item in candidates:
+                key = item.lower().strip()
+                if key not in seen:
+                    seen.add(key)
+                    unique.append(item)
+
+            return unique[:15]
+
+        def rewrite_requirement(original):
+            original = clean_line(original)
+            lower = original.lower()
+            reason = []
+
+            # Pattern: Report System (Users can report posts)
+            feature_match = re.match(
+                r"^(.*?)\s*\((Users?\s+(?:can|must|should|shall)\s+.+?)\)$",
+                original,
+                flags=re.IGNORECASE,
+            )
+
+            if feature_match:
+                feature = clean_line(feature_match.group(1))
+                behavior = clean_line(feature_match.group(2))
+
+                action = re.sub(
+                    r"^users?\s+(can|must|should|shall)\s+",
+                    "",
+                    behavior,
+                    flags=re.IGNORECASE,
+                )
+
+                rewritten = f"The system shall allow users to {action} through the {feature}."
+                reason.append("Converted feature label and user action into a complete functional requirement.")
+
+                return {
+                    "original": original,
+                    "rewritten": rewritten,
+                    "reason": " ".join(reason),
+                    "source": "current_uploaded_document_smart_rewrite",
+                }
+
+            # Users can update preferences.
+            user_can = re.match(r"^users?\s+can\s+(.+)$", original, flags=re.IGNORECASE)
+            if user_can:
+                action = clean_line(user_can.group(1))
+                rewritten = f"The system shall allow users to {action}."
+                return {
+                    "original": original,
+                    "rewritten": rewritten,
+                    "reason": "Converted informal user capability into a clear system requirement.",
+                    "source": "current_uploaded_document_smart_rewrite",
+                }
+
+            # Users must sign up.
+            user_must = re.match(r"^users?\s+must\s+(.+)$", original, flags=re.IGNORECASE)
+            if user_must:
+                action = clean_line(user_must.group(1))
+                rewritten = f"The system shall require users to {action}."
+                return {
+                    "original": original,
+                    "rewritten": rewritten,
+                    "reason": "Converted user obligation into a testable system requirement.",
+                    "source": "current_uploaded_document_smart_rewrite",
+                }
+
+            # Platform must not allow content outside preferences.
+            if "not allow content outside of user preferences" in lower:
+                rewritten = (
+                    "The platform shall prevent content that does not match the user's configured preferences "
+                    "from appearing in the user's content feed."
+                )
+                return {
+                    "original": original,
+                    "rewritten": rewritten,
+                    "reason": "Clarified the preference-filtering rule and expressed it as enforceable platform behavior.",
+                    "source": "current_uploaded_document_smart_rewrite",
+                }
+
+            # Search posts.
+            if "search" in lower and "posts" in lower:
+                rewritten = (
+                    "The system shall allow users to search posts by title, body content, and relevant metadata."
+                )
+                return {
+                    "original": original,
+                    "rewritten": rewritten,
+                    "reason": "Completed the incomplete search requirement and made the searchable fields explicit.",
+                    "source": "current_uploaded_document_smart_rewrite",
+                }
+
+            # Scalability.
+            if "scalable" in lower or "high traffic" in lower:
+                rewritten = (
+                    "The system shall support high traffic by defining measurable limits for concurrent users, "
+                    "request throughput, response time, and resource utilization."
+                )
+                return {
+                    "original": original,
+                    "rewritten": rewritten,
+                    "reason": "Rewrote vague scalability wording into measurable non-functional criteria.",
+                    "source": "current_uploaded_document_smart_rewrite",
+                }
+
+            # Downtime.
+            if "downtime" in lower:
+                rewritten = (
+                    "The system shall limit unplanned downtime to the maximum duration defined in the availability "
+                    "acceptance criteria for the applicable reporting period."
+                )
+                return {
+                    "original": original,
+                    "rewritten": rewritten,
+                    "reason": "Converted downtime wording into a measurable availability requirement.",
+                    "source": "current_uploaded_document_smart_rewrite",
+                }
+
+            # Generic cleanup only if it already has a real actor.
+            rewritten = original
+            rewritten = re.sub(r"\bshould\b", "shall", rewritten, flags=re.IGNORECASE)
+            rewritten = re.sub(r"\bmust\b", "shall", rewritten, flags=re.IGNORECASE)
+            rewritten = re.sub(r"\bwill\b", "shall", rewritten, flags=re.IGNORECASE)
+
+            vague_replacements = {
+                "easy": "requiring no more than the defined number of user steps",
+                "quickly": "within the defined maximum response time",
+                "fast": "within the defined maximum response time",
+                "user-friendly": "with clear navigation, accessible UI components, and validation messages",
+                "efficient": "within defined processing-time and resource-usage limits",
+                "secure": "using authentication, authorization, encrypted communication, and audit logging",
+                "robust": "with validation, exception handling, recovery, and monitoring mechanisms",
+            }
+
+            for vague, precise in vague_replacements.items():
+                rewritten = re.sub(
+                    rf"\b{re.escape(vague)}\b",
+                    precise,
+                    rewritten,
+                    flags=re.IGNORECASE,
+                )
+
+            if rewritten.lower().startswith("the system shall") or rewritten.lower().startswith("the platform shall"):
+                pass
+            elif rewritten.lower().startswith("the system "):
+                rewritten = re.sub(r"^the system\s+", "The system shall ", rewritten, flags=re.IGNORECASE)
+            elif rewritten.lower().startswith("the platform "):
+                rewritten = re.sub(r"^the platform\s+", "The platform shall ", rewritten, flags=re.IGNORECASE)
+            else:
+                rewritten = f"The system shall {rewritten[0].lower() + rewritten[1:]}"
+
+            rewritten = re.sub(r"\s+", " ", rewritten).strip()
+            rewritten = rewritten.replace("The system shall The system", "The system")
+            rewritten = rewritten.replace("The platform shall The platform", "The platform")
+            rewritten = rewritten.rstrip(".") + "."
+
+            return {
+                "original": original,
+                "rewritten": rewritten,
+                "reason": "Normalized the requirement and replaced weak or vague wording where possible.",
+                "source": "current_uploaded_document_smart_rewrite",
+            }
+
+        candidates = extract_candidates(text)
+
+        if not candidates:
+            return jsonify({
+                "status": "success",
+                "message": "No clear weak requirements were found in the uploaded document.",
+                "rewrite_count": 0,
+                "rewrites": []
+            })
+
+        rewrites = [rewrite_requirement(item) for item in candidates]
+
+        return jsonify({
+            "status": "success",
+            "message": "Requirement rewriting completed using the currently uploaded document.",
+            "rewrite_count": len(rewrites),
+            "rewrites": rewrites,
+        })
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    
+@app.route("/api/srs/generate", methods=["POST"])
+def srs_generate():
+    try:
+        data = request.get_json(silent=True) or {}
+
+        result = generate_srs_document(data)
+        result["xai"] = get_generation_xai_summary()
+
+        return jsonify(result)
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+
+@app.route("/api/srs/download", methods=["GET"])
+def srs_download():
+    file_path = request.args.get("file")
+
+    if not file_path or not os.path.exists(file_path):
+        return jsonify({
+            "status": "error",
+            "message": "File not found."
+        }), 404
+
+    return send_file(file_path, as_attachment=True)
+
+
+@app.route("/api/srs/download-report", methods=["GET"])
+def srs_download_report():
+    file_path = request.args.get("file")
+
+    if not file_path or not os.path.exists(file_path):
+        return jsonify({
+            "status": "error",
+            "message": "Report file not found."
+        }), 404
+
+    return send_file(file_path, as_attachment=True)
+
+
 
 if __name__ == '__main__':
     # Load models on startup
