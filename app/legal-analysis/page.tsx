@@ -48,6 +48,7 @@ interface DocumentTemplate {
   description: string
   fields: DocumentField[]
   template: string
+  file_name?: string
 }
 
 interface DocumentField {
@@ -57,6 +58,9 @@ interface DocumentField {
   placeholder?: string
   options?: string[]
   required?: boolean
+  sourceToken?: string
+  question?: string
+  suggestions?: string[]
 }
 
 interface UploadedDocument {
@@ -65,10 +69,26 @@ interface UploadedDocument {
 }
 
 interface AnalysisResult {
+  sourceName?: string
+  documentKind?: string
   extractedText: string
   summary: string
-  keyClauses: { title: string; content: string; importance: "high" | "medium" | "low" }[]
+  summarySources?: string[]
+  extractiveSummary?: string
+  domainTags?: string[]
+  riskFlags?: string[]
+  openQuestions?: string[]
+  startupSignals?: { title?: string; snippet?: string; category?: string; score?: number }[]
+  keyClauses: {
+    title: string
+    content: string
+    importance: "high" | "medium" | "low"
+    category?: string
+    score?: number
+  }[]
   signatures: { location: string; status: "genuine" | "suspicious" | "unverified"; confidence: number }[]
+  ocrAnnotatedImageUrl?: string
+  signatureAnnotatedImageUrl?: string
 }
 
 const documentTemplates: DocumentTemplate[] = [
@@ -419,12 +439,92 @@ These Terms are governed by Tunisian law.`,
   },
 ]
 
+const getTemplateIcon = (name: string): React.ElementType => {
+  const lowerName = name.toLowerCase()
+  if (lowerName.includes("employment")) return Briefcase
+  if (lowerName.includes("service") || lowerName.includes("advisor")) return Handshake
+  if (lowerName.includes("nda") || lowerName.includes("non-disclosure")) return Shield
+  if (lowerName.includes("founder") || lowerName.includes("partnership")) return Users
+  if (lowerName.includes("lease") || lowerName.includes("office")) return Building
+  if (lowerName.includes("terms") || lowerName.includes("policy")) return ScrollText
+  if (lowerName.includes("assignment") || lowerName.includes("license")) return FileSignature
+  return FileText
+}
+
+const mapBackendTemplate = (template: any): DocumentTemplate => {
+  const fields = Array.isArray(template.fields) && template.fields.length > 0
+    ? template.fields
+    : Array.isArray(template.placeholders)
+      ? template.placeholders.map((placeholder: string) => ({
+          name: placeholder.replace(/[^A-Za-z0-9]+/g, "_").toLowerCase(),
+          label: placeholder,
+          type: placeholder.length > 30 ? "textarea" : "text",
+          required: true,
+        }))
+      : []
+
+  return {
+    id: String(template.id || template.file_name || template.name),
+    name: String(template.name || template.file_name || template.id),
+    icon: getTemplateIcon(String(template.name || template.file_name || template.id)),
+    description: String(template.description || `Template loaded from ${template.file_name || template.id}`),
+    fields,
+    template: String(template.template || template.content || ""),
+    file_name: String(template.file_name || ""),
+  }
+}
+
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+const replaceAllOccurrences = (text: string, token: string, value: string): string => {
+  if (!token) return text
+  return text.replace(new RegExp(escapeRegExp(token), "g"), value)
+}
+
+const extractClauseBlocks = (text: string): { number: number; title: string }[] => {
+  const clauses: { number: number; title: string }[] = []
+  const seen = new Set<number>()
+  for (const line of text.split(/\r?\n/)) {
+    const match = line.match(/^\s*(\d+)\.\s+(.+?)\s*$/)
+    if (!match) continue
+    const number = Number(match[1])
+    if (seen.has(number)) continue
+    seen.add(number)
+    clauses.push({ number, title: match[2].replace(/[:.]+$/, "") })
+  }
+  return clauses
+}
+
+const removeClauseBlockFromText = (text: string, clauseNumber: number): string => {
+  const lines = text.split(/\r?\n/)
+  const startIndex = lines.findIndex((line) => new RegExp(`^\\s*${clauseNumber}\\.\\s+`).test(line))
+  if (startIndex < 0) return text
+
+  let endIndex = lines.length
+  for (let i = startIndex + 1; i < lines.length; i += 1) {
+    if (/^\s*\d+\.\s+/.test(lines[i]) || /^\s*signatures?:?\s*$/i.test(lines[i])) {
+      endIndex = i
+      break
+    }
+  }
+
+  const next = [...lines]
+  next.splice(startIndex, endIndex - startIndex)
+  return next.join("\n")
+}
+
 export default function LegalAnalysisPage() {
   const [activeTab, setActiveTab] = useState<"generate" | "analyze">("generate")
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null)
+  const [templateCatalog, setTemplateCatalog] = useState<DocumentTemplate[]>(documentTemplates)
   const [messages, setMessages] = useState<Message[]>([])
   const [currentFieldIndex, setCurrentFieldIndex] = useState(0)
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
+  const [predictedValues, setPredictedValues] = useState<Record<string, string>>({})
+  const [workingTemplateText, setWorkingTemplateText] = useState<string>("")
+  const [clauseReviewIndex, setClauseReviewIndex] = useState(0)
+  const [clauseItems, setClauseItems] = useState<{ number: number; title: string }[]>([])
+  const [removedClauseNumbers, setRemovedClauseNumbers] = useState<number[]>([])
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [generatedDocument, setGeneratedDocument] = useState<string | null>(null)
@@ -439,52 +539,144 @@ export default function LegalAnalysisPage() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const currentField = selectedTemplate?.fields[currentFieldIndex]
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
+  useEffect(() => {
+    let isCancelled = false
+
+    const loadTemplates = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/legal/templates")
+        if (!response.ok) return
+
+        const payload = await response.json()
+        const backendTemplates = Array.isArray(payload.templates)
+          ? payload.templates.map(mapBackendTemplate)
+          : []
+
+        if (!isCancelled && backendTemplates.length > 0) {
+          setTemplateCatalog(backendTemplates)
+        }
+      } catch {
+        if (!isCancelled) {
+          setTemplateCatalog(documentTemplates)
+        }
+      }
+    }
+
+    void loadTemplates()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [])
+
   const selectTemplate = (template: DocumentTemplate) => {
     setSelectedTemplate(template)
     setCurrentFieldIndex(0)
     setFieldValues({})
+    setPredictedValues({})
+    setWorkingTemplateText(template.template || "")
+    setClauseItems([])
+    setClauseReviewIndex(0)
+    setRemovedClauseNumbers([])
     setGeneratedDocument(null)
-    
-    // Start the conversation
-    setMessages([
+
+    if (!template.fields.length) {
+      setGeneratedDocument(template.template || "")
+      setMessages([
+        {
+          id: "welcome",
+          role: "assistant",
+          content: `I found **${template.name}** in your templates folder, but it does not expose placeholders yet. Please select a different template.`,
+          timestamp: new Date(),
+        },
+      ])
+      setInput("")
+      return
+    }
+
+    const firstField = template.fields[0]
+    const startMessages: Message[] = [
       {
         id: "welcome",
         role: "assistant",
-        content: `Great! Let's create your **${template.name}**.\n\nI'll ask you a few questions to fill in the document. You can type your answers below.`,
+        content: `Great! Let's create your **${template.name}**.\n\nI'll ask you for the placeholders one by one.`,
         timestamp: new Date(),
       },
       {
         id: "question-0",
         role: "assistant",
-        content: `**${template.fields[0].label}**${template.fields[0].required ? " *" : ""}\n\n${template.fields[0].placeholder ? `Example: ${template.fields[0].placeholder}` : ""}`,
+        content: `${(firstField as any).question || `**${firstField.label}**${firstField.required ? " *" : ""}`}${firstField.placeholder ? `\n\nExample: ${firstField.placeholder}` : ""}${(firstField as any).suggestions && (firstField as any).suggestions.length > 0 ? `\n\nSuggested: ${(firstField as any).suggestions.join(", ")}` : ""}`,
         timestamp: new Date(),
         isQuestion: true,
-        fieldName: template.fields[0].name,
+        fieldName: firstField.name,
       },
-    ])
+    ]
+
+    setMessages(startMessages)
+
+    if ((template as any).file_name) {
+      ;(async () => {
+        try {
+          const resp = await fetch("http://localhost:5000/api/legal/infer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ file_name: (template as any).file_name, brief_text: "" }),
+          })
+          if (!resp.ok) throw new Error("infer-failed")
+          const payload = await resp.json()
+          const report = payload.report || {}
+          const placeholderData = report.placeholder_data || {}
+
+          const prefilled: Record<string, string> = {}
+          for (const field of template.fields) {
+            const token = (field as any).sourceToken
+            if (!token) continue
+            const sourceVal = placeholderData[token]
+            if (sourceVal === undefined) continue
+
+            if (Array.isArray(sourceVal)) {
+              const m = field.name.match(/_(\d+)$/)
+              const idx = m ? parseInt(m[1], 10) - 1 : 0
+              const chosen = sourceVal[idx] ?? sourceVal[0]
+              if (chosen && typeof chosen === "string") prefilled[field.name] = chosen
+            } else if (typeof sourceVal === "string") {
+              prefilled[field.name] = sourceVal
+            }
+          }
+
+          setFieldValues((prev) => ({ ...prev, ...prefilled }))
+          setPredictedValues(prefilled)
+        } catch (e) {
+          // keep the local questions even if inference fails
+        }
+      })()
+    }
   }
 
   const handleSend = async () => {
-    if (!input.trim() || !selectedTemplate) return
+    if (!input.trim() || !selectedTemplate || selectedTemplate.fields.length === 0) return
 
+    const trimmedInput = input.trim()
     const currentField = selectedTemplate.fields[currentFieldIndex]
-    
+    if (!currentField) return
+
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input.trim(),
+      content: trimmedInput,
       timestamp: new Date(),
     }
     setMessages((prev) => [...prev, userMessage])
     
     // Save field value
-    setFieldValues((prev) => ({ ...prev, [currentField.name]: input.trim() }))
+    setFieldValues((prev) => ({ ...prev, [currentField.name]: trimmedInput }))
     setInput("")
     setIsTyping(true)
 
@@ -497,10 +689,17 @@ export default function LegalAnalysisPage() {
       const nextField = selectedTemplate.fields[nextIndex]
       setCurrentFieldIndex(nextIndex)
       
+      const qText = (nextField as any).question || `**${nextField.label}**${nextField.required ? " *" : ""}`
+      const example = (nextField as any).placeholder ? `\n\nExample: ${(nextField as any).placeholder}` : ""
+      const optionText = nextField.options ? `\n\nOptions:\n${nextField.options.map((o, i) => `${i + 1}. ${o}`).join("\n")}` : ""
+      const suggestionText = (nextField as any).suggestions && (nextField as any).suggestions.length > 0
+        ? `\n\nSuggested: ${(nextField as any).suggestions.join(", ")}`
+        : ""
+
       const questionMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `Got it! Next question:\n\n**${nextField.label}**${nextField.required ? " *" : ""}\n\n${nextField.placeholder ? `Example: ${nextField.placeholder}` : ""}${nextField.options ? `\n\nOptions:\n${nextField.options.map((o, i) => `${i + 1}. ${o}`).join("\n")}` : ""}`,
+        content: `Got it! Next question:\n\n${qText}${example}${optionText}${suggestionText}`,
         timestamp: new Date(),
         isQuestion: true,
         fieldName: nextField.name,
@@ -508,14 +707,14 @@ export default function LegalAnalysisPage() {
       setMessages((prev) => [...prev, questionMessage])
     } else {
       // Generate document
-      const allValues = { ...fieldValues, [currentField.name]: input.trim() }
+      const allValues = { ...predictedValues, ...fieldValues, [currentField.name]: trimmedInput }
       const document = generateDocument(selectedTemplate, allValues)
       setGeneratedDocument(document)
       
       const completeMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `Your **${selectedTemplate.name}** is ready! You can preview it below, copy it, or download it as a text file.\n\nWould you like to create another document or make changes to this one?`,
+        content: `Your **${selectedTemplate.name}** is ready! You can preview it below, copy it, or download it as Word/PDF.\n\nWould you like to create another document or make changes to this one?`,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, completeMessage])
@@ -525,11 +724,123 @@ export default function LegalAnalysisPage() {
   }
 
   const generateDocument = (template: DocumentTemplate, values: Record<string, string>): string => {
-    let doc = template.template
-    Object.entries(values).forEach(([key, value]) => {
-      doc = doc.replace(new RegExp(`{${key}}`, "g"), value)
+    let doc = workingTemplateText || template.template
+    template.fields.forEach((field) => {
+      const value = values[field.name]
+      if (typeof value !== "string") return
+
+      doc = doc.replace(new RegExp(`{${field.name}}`, "g"), value)
+
+      if (field.sourceToken) {
+        doc = replaceAllOccurrences(doc, field.sourceToken, value)
+      }
     })
     return doc
+  }
+
+  const getResolvedFieldValues = (): Record<string, string> => ({
+    ...predictedValues,
+    ...fieldValues,
+  })
+
+  const editDocumentDraft = (documentText: string, command: string): string => {
+    const lines = documentText.split(/\r?\n/)
+    const lowerCommand = command.toLowerCase()
+
+    const getLastClauseNumber = () => {
+      let maxClause = 0
+      for (const line of lines) {
+        const match = line.match(/^\s*(\d+)\.\s+/)
+        if (match) {
+          maxClause = Math.max(maxClause, Number(match[1]))
+        }
+      }
+      return maxClause
+    }
+
+    const insertBeforeSignatures = (text: string) => {
+      const signatureIndex = lines.findIndex((line) => /^\s*signatures?:?\s*$/i.test(line))
+      const insertionIndex = signatureIndex >= 0 ? signatureIndex : lines.length
+      const block = ["", text, ""]
+      lines.splice(insertionIndex, 0, ...block)
+      return lines.join("\n")
+    }
+
+    const removeMatchingClause = (keyword: string) => {
+      const normalizedKeyword = keyword.trim().toLowerCase()
+      if (!normalizedKeyword) return documentText
+
+      const clauseStartIndexes = lines
+        .map((line, index) => ({ line, index }))
+        .filter(({ line }) => /^\s*\d+\.\s+/.test(line))
+
+      for (const { line, index } of clauseStartIndexes) {
+        if (!line.toLowerCase().includes(normalizedKeyword)) continue
+
+        let endIndex = lines.length
+        for (let i = index + 1; i < lines.length; i += 1) {
+          if (/^\s*\d+\.\s+/.test(lines[i]) || /^\s*signatures?:?\s*$/i.test(lines[i])) {
+            endIndex = i
+            break
+          }
+        }
+
+        lines.splice(index, endIndex - index)
+        return lines.join("\n")
+      }
+
+      return documentText
+    }
+
+    if (/^add\s+clause\b/i.test(command)) {
+      const clauseText = command.replace(/^add\s+clause(?:\s+about)?[:\-]?\s*/i, "").trim()
+      const nextClauseNumber = getLastClauseNumber() + 1
+      const addition = `${nextClauseNumber}. ${clauseText || "Additional clause to be agreed by the parties."}`
+      return insertBeforeSignatures(addition)
+    }
+
+    if (/^(remove|delete)\s+clause\b/i.test(command)) {
+      const keyword = command.replace(/^(remove|delete)\s+clause(?:\s+about)?[:\-]?\s*/i, "").trim()
+      return removeMatchingClause(keyword)
+    }
+
+    if (/^replace\s+clause\b/i.test(command)) {
+      const replacement = command.replace(/^replace\s+clause(?:\s+with)?[:\-]?\s*/i, "").trim()
+      if (!replacement) return documentText
+      const nextClauseNumber = getLastClauseNumber() + 1
+      return insertBeforeSignatures(`${nextClauseNumber}. ${replacement}`)
+    }
+
+    return documentText
+  }
+
+  const getSuggestedAnswers = (field: DocumentField): string[] => {
+    const label = field.label.toLowerCase()
+    if (field.options?.length) return field.options
+    if ((field as any).suggestions && (field as any).suggestions.length > 0) return (field as any).suggestions
+    if (predictedValues[field.name]) return [predictedValues[field.name]]
+    if (label.includes("date")) return [new Date().toISOString().slice(0, 10)]
+    if (label.includes("jurisdiction") || label.includes("governing law")) return ["Tunisia", "Estonia", "France"]
+    if (label.includes("registry code") || label.includes("identification code")) return ["12345678", "87654321"]
+    if (label.includes("email")) return ["legal@northstar.com", "founder@company.com"]
+    if (label.includes("address")) return ["Tunis, Tunisia", "Tallinn, Estonia"]
+    if (label.includes("company") || label.includes("party") || label.includes("provider") || label.includes("client")) {
+      return ["North Star LLC", "Acme OÜ"]
+    }
+    if (label.includes("salary") || label.includes("rent") || label.includes("fee") || label.includes("capital") || label.includes("amount") || label.includes("eur")) {
+      return ["10000", "25000"]
+    }
+    if (label.includes("share") || label.includes("percentage") || label.includes("%")) return ["10", "20", "50"]
+    if (label.includes("duration") || label.includes("months") || label.includes("years")) return ["12", "24", "36"]
+    if (label.includes("purpose") || label.includes("services") || label.includes("responsibilities")) {
+      return ["Advisory services for product and fundraising", "Software development and support"]
+    }
+    return []
+  }
+
+  const applySuggestedAnswer = (suggestion: string) => {
+    setInput(suggestion)
+    inputRef.current?.focus()
   }
 
   const resetGenerator = () => {
@@ -537,6 +848,11 @@ export default function LegalAnalysisPage() {
     setMessages([])
     setCurrentFieldIndex(0)
     setFieldValues({})
+    setPredictedValues({})
+    setWorkingTemplateText("")
+    setClauseReviewIndex(0)
+    setClauseItems([])
+    setRemovedClauseNumbers([])
     setGeneratedDocument(null)
   }
 
@@ -548,16 +864,37 @@ export default function LegalAnalysisPage() {
     }
   }
 
-  const downloadDocument = () => {
-    if (generatedDocument && selectedTemplate) {
-      const blob = new Blob([generatedDocument], { type: "text/plain" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `${selectedTemplate.name.replace(/\s+/g, "_")}.txt`
-      a.click()
-      URL.revokeObjectURL(url)
+  const downloadDocumentAs = async (format: "docx" | "pdf") => {
+    if (!generatedDocument || !selectedTemplate) return
+
+    const response = await fetch("http://localhost:5000/api/legal/export", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: selectedTemplate.name,
+        file_name: selectedTemplate.file_name,
+        content: generatedDocument,
+        values: getResolvedFieldValues(),
+        remove_clause_numbers: removedClauseNumbers,
+        format,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to export ${format.toUpperCase()}`)
     }
+
+    const payload = await response.json()
+    const fileResponse = await fetch(`http://localhost:5000${payload.download_url}`)
+    const blob = await fileResponse.blob()
+    const blobUrl = URL.createObjectURL(blob)
+    const anchor = document.createElement("a")
+    anchor.href = blobUrl
+    anchor.download = payload.file_name || `${selectedTemplate.name.replace(/\s+/g, "_")}.${format}`
+    anchor.click()
+    URL.revokeObjectURL(blobUrl)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -600,66 +937,120 @@ export default function LegalAnalysisPage() {
     if (!uploadedDoc) return
     setIsAnalyzing(true)
 
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    try {
+      const formData = new FormData()
+      formData.append('file', uploadedDoc.file)
+      formData.append('question', '')
 
-    const mockResult: AnalysisResult = {
-      extractedText: `CONTRACT FOR SERVICES
+      const response = await fetch('http://localhost:5000/api/document/intel-upload', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to analyze document')
+      }
+      
+      const data = await response.json()
+      const sourceName = data.source_name || uploadedDoc.file.name
+      
+      // Transform backend signature format to frontend format
+      const backendSignatures = data.signatures || []
+      const signatures: AnalysisResult["signatures"] = backendSignatures
+        .slice(0, 5) // Limit to top 5 signatures to avoid clutter
+        .map((sig: any) => {
+          // Backend returns: box, confidence, class_name, class_id
+          // Frontend expects: location, status, confidence
+          const box = sig.box || sig.bbox || []
+          const location = box.length >= 4 
+            ? `Position (${Math.round(box[0])}, ${Math.round(box[1])})` 
+            : 'Unknown location'
+          
+          // Handle confidence as either decimal (0-1) or percentage (0-100)
+          let confidence = sig.confidence || 0
+          if (confidence <= 1) {
+            confidence = Math.round(confidence * 100)
+          } else {
+            confidence = Math.round(confidence)
+          }
+          
+          // Determine status based on class_name or confidence
+          let status: "genuine" | "suspicious" | "unverified" = "unverified"
+          if (sig.class_name) {
+            const className = sig.class_name.toLowerCase()
+            if (className.includes('genuine') || className.includes('real')) {
+              status = "genuine"
+            } else if (className.includes('fake') || className.includes('forged')) {
+              status = "suspicious"
+            }
+          }
+          
+          return {
+            location,
+            status,
+            confidence,
+          }
+        })
+      
+      const signatureAnnotatedImageUrl = data.signature_annotated_image_url || undefined
+      const ocrAnnotatedImageUrl = data.annotated_image_url || undefined
 
-This Agreement is entered into as of [Date] between:
-Party A: [Company Name], a company incorporated under the laws of Tunisia
-Party B: [Service Provider Name]
+      // Transform key clauses with better formatting
+      const keyClauses = (data.key_clauses || [])
+        .slice(0, 10) // Limit to top 10 clauses
+        .map((clause: any) => ({
+          title: clause.title || clause.category || 'Clause',
+          content: clause.snippet || clause.content || `${clause.category || 'Clause'} found in document`,
+          importance:
+            clause.importance ||
+            (typeof clause.score === 'number' && clause.score >= 7
+              ? 'high'
+              : typeof clause.score === 'number' && clause.score >= 5
+                ? 'medium'
+                : 'low'),
+          category: clause.category,
+          score: clause.score,
+        }))
 
-WHEREAS, Party A desires to engage Party B to provide certain services;
-NOW, THEREFORE, in consideration of the mutual covenants herein contained, the parties agree as follows:
+      // Transform backend response to frontend format
+      const transformedResult: AnalysisResult = {
+        extractedText: data.extractedText || data.text || data.content || 'No text extracted',
+        summary: data.summary || data.extractive_summary || data.extractiveSummary || 'Analysis completed',
+        sourceName,
+        documentKind: data.document_kind || 'legal document',
+        summarySources: data.summary_sources || [],
+        extractiveSummary: data.extractive_summary || data.extractiveSummary || '',
+        domainTags: data.domain_tags || data.domainTags || [],
+        riskFlags: data.risk_flags || data.riskFlags || [],
+        openQuestions: data.open_questions || data.openQuestions || [],
+        startupSignals: data.startup_signals || data.startupSignals || [],
+        keyClauses,
+        signatures,
+        ocrAnnotatedImageUrl,
+        signatureAnnotatedImageUrl,
+      }
 
-1. SERVICES
-Party B shall provide the following services to Party A: [Description of services]
-
-2. COMPENSATION
-Party A agrees to pay Party B the sum of [Amount] TND for the services rendered.
-
-3. TERM
-This Agreement shall commence on [Start Date] and continue until [End Date].
-
-4. CONFIDENTIALITY
-Both parties agree to maintain the confidentiality of all proprietary information.
-
-5. TERMINATION
-Either party may terminate this Agreement with 30 days written notice.
-
-IN WITNESS WHEREOF, the parties have executed this Agreement.`,
-      summary:
-        "This is a standard service agreement between two parties operating under Tunisian law. The contract establishes terms for service provision, compensation, duration, confidentiality obligations, and termination procedures. Key obligations include service delivery by Party B and payment by Party A, with mutual confidentiality requirements.",
-      keyClauses: [
-        {
-          title: "Compensation Clause",
-          content: "Party A agrees to pay Party B the sum of [Amount] TND for the services rendered.",
-          importance: "high",
-        },
-        {
-          title: "Confidentiality Clause",
-          content: "Both parties agree to maintain the confidentiality of all proprietary information.",
-          importance: "high",
-        },
-        {
-          title: "Termination Clause",
-          content: "Either party may terminate this Agreement with 30 days written notice.",
-          importance: "medium",
-        },
-        {
-          title: "Term Duration",
-          content: "This Agreement shall commence on [Start Date] and continue until [End Date].",
-          importance: "medium",
-        },
-      ],
-      signatures: [
-        { location: "Page 2, Bottom Left", status: "genuine", confidence: 94 },
-        { location: "Page 2, Bottom Right", status: "suspicious", confidence: 67 },
-      ],
+      setAnalysisResult(transformedResult)
+    } catch (error) {
+      console.error('Analysis error:', error)
+      // Fallback to mock data if analysis fails
+      const mockResult: AnalysisResult = {
+        extractedText: `Failed to analyze document. Please try again or contact support.`,
+        summary: "Error during analysis",
+        sourceName: uploadedDoc.file.name,
+        summarySources: [],
+        extractiveSummary: '',
+        domainTags: [],
+        riskFlags: [],
+        openQuestions: [],
+        startupSignals: [],
+        keyClauses: [],
+        signatures: [],
+      }
+      setAnalysisResult(mockResult)
+    } finally {
+      setIsAnalyzing(false)
     }
-
-    setAnalysisResult(mockResult)
-    setIsAnalyzing(false)
   }
 
   const clearUpload = () => {
@@ -738,7 +1129,7 @@ IN WITNESS WHEREOF, the parties have executed this Agreement.`,
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        {documentTemplates.map((template) => (
+                        {templateCatalog.map((template) => (
                           <button
                             key={template.id}
                             onClick={() => selectTemplate(template)}
@@ -888,6 +1279,23 @@ IN WITNESS WHEREOF, the parties have executed this Agreement.`,
                             {/* Input */}
                             {!generatedDocument && (
                               <div className="border-t border-white/10 p-4">
+                                {currentField && getSuggestedAnswers(currentField).length > 0 && (
+                                  <div className="mb-3">
+                                    <p className="text-xs uppercase tracking-wide text-white/40 mb-2">Suggested answers</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {getSuggestedAnswers(currentField).map((suggestion) => (
+                                        <button
+                                          key={suggestion}
+                                          type="button"
+                                          onClick={() => applySuggestedAnswer(suggestion)}
+                                          className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs hover:bg-white/10 hover:text-white transition-colors"
+                                        >
+                                          {suggestion}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                                 <div className="flex items-center gap-3">
                                   <input
                                     ref={inputRef}
@@ -933,11 +1341,20 @@ IN WITNESS WHEREOF, the parties have executed this Agreement.`,
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={downloadDocument}
+                                    onClick={() => void downloadDocumentAs("docx")}
                                     className="bg-white/5 border-white/20 text-white hover:bg-white/10"
                                   >
                                     <Download className="w-4 h-4 mr-2" />
-                                    Download
+                                    Word
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => void downloadDocumentAs("pdf")}
+                                    className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+                                  >
+                                    <Download className="w-4 h-4 mr-2" />
+                                    PDF
                                   </Button>
                                 </div>
                               </div>
@@ -1069,8 +1486,73 @@ IN WITNESS WHEREOF, the parties have executed this Agreement.`,
                         <CardContent className="p-6">
                           {analysisTab === "summary" && (
                             <div>
+                              <div className="mb-5 grid gap-3 sm:grid-cols-2 text-sm">
+                                <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-white/70">
+                                  <p className="text-white/40 text-xs uppercase tracking-wide mb-1">Document kind</p>
+                                  <p className="text-white">{analysisResult.documentKind || "legal document"}</p>
+                                </div>
+                                <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-white/70">
+                                  <p className="text-white/40 text-xs uppercase tracking-wide mb-1">Source</p>
+                                  <p className="text-white">{analysisResult.sourceName || uploadedDoc?.file.name || "Unknown"}</p>
+                                </div>
+                              </div>
                               <h3 className="text-xl font-bold text-white mb-4">Document Summary</h3>
                               <p className="text-white/80 leading-relaxed">{analysisResult.summary}</p>
+                              {analysisResult.domainTags && analysisResult.domainTags.length > 0 && (
+                                <div className="mt-5 flex flex-wrap gap-2">
+                                  {analysisResult.domainTags.map((tag) => (
+                                    <span key={tag} className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white/70 text-xs">
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              {analysisResult.extractiveSummary && analysisResult.extractiveSummary !== analysisResult.summary && (
+                                <div className="mt-4 p-4 rounded-lg border border-white/10 bg-white/5">
+                                  <p className="text-xs uppercase tracking-wide text-white/40 mb-2">Extractive Summary</p>
+                                  <p className="text-white/70 text-sm leading-relaxed">{analysisResult.extractiveSummary}</p>
+                                </div>
+                              )}
+                              {analysisResult.summarySources && analysisResult.summarySources.length > 0 && (
+                                <p className="mt-4 text-xs text-white/40">Summary sources: {analysisResult.summarySources.join(', ')}</p>
+                              )}
+                              {analysisResult.riskFlags && analysisResult.riskFlags.length > 0 && (
+                                <div className="mt-6">
+                                  <h4 className="text-sm font-semibold text-white mb-3">Important Issues to Review</h4>
+                                  <div className="space-y-2">
+                                    {analysisResult.riskFlags.map((flag, index) => (
+                                      <div key={index} className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-100 text-sm">
+                                        {flag}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {analysisResult.startupSignals && analysisResult.startupSignals.length > 0 && (
+                                <div className="mt-6">
+                                  <h4 className="text-sm font-semibold text-white mb-3">Startup Signals</h4>
+                                  <div className="space-y-2">
+                                    {analysisResult.startupSignals.map((signal: any, index) => (
+                                      <div key={index} className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-100 text-sm">
+                                        <div className="font-medium">{signal.title || signal.category || `Signal ${index + 1}`}</div>
+                                        {signal.snippet && <div className="mt-1 text-emerald-50/80">{signal.snippet}</div>}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {analysisResult.openQuestions && analysisResult.openQuestions.length > 0 && (
+                                <div className="mt-6">
+                                  <h4 className="text-sm font-semibold text-white mb-3">Questions to Ask</h4>
+                                  <div className="space-y-2">
+                                    {analysisResult.openQuestions.map((question, index) => (
+                                      <div key={index} className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-100 text-sm">
+                                        {question}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
 
@@ -1112,6 +1594,13 @@ IN WITNESS WHEREOF, the parties have executed this Agreement.`,
                                         {clause.importance} importance
                                       </span>
                                     </div>
+                                    {(clause.category || typeof clause.score === "number") && (
+                                      <p className="mb-2 text-xs text-white/40">
+                                        {clause.category ? `Category: ${clause.category}` : ''}
+                                        {clause.category && typeof clause.score === 'number' ? ' • ' : ''}
+                                        {typeof clause.score === 'number' ? `Score: ${clause.score.toFixed(2)}` : ''}
+                                      </p>
+                                    )}
                                     <p className="text-white/70 text-sm">{clause.content}</p>
                                   </div>
                                 ))}
@@ -1122,51 +1611,71 @@ IN WITNESS WHEREOF, the parties have executed this Agreement.`,
                           {analysisTab === "signatures" && (
                             <div>
                               <h3 className="text-xl font-bold text-white mb-4">Signature Analysis</h3>
+                              <div className="grid gap-4 md:grid-cols-2 mb-5">
+                                {analysisResult.ocrAnnotatedImageUrl && (
+                                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                    <p className="text-white/70 text-sm mb-2">OCR bounding boxes</p>
+                                    <img src={`http://localhost:5000${analysisResult.ocrAnnotatedImageUrl}`} alt="OCR annotated preview" className="w-full rounded-lg border border-white/10" />
+                                  </div>
+                                )}
+                                {analysisResult.signatureAnnotatedImageUrl && (
+                                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                    <p className="text-white/70 text-sm mb-2">Signature detection boxes</p>
+                                    <img src={`http://localhost:5000${analysisResult.signatureAnnotatedImageUrl}`} alt="Signature detection preview" className="w-full rounded-lg border border-white/10" />
+                                  </div>
+                                )}
+                              </div>
                               <div className="space-y-4">
-                                {analysisResult.signatures.map((sig, index) => (
-                                  <div
-                                    key={index}
-                                    className={`p-4 rounded-lg border flex items-center justify-between ${
-                                      sig.status === "genuine"
-                                        ? "bg-green-500/10 border-green-500/30"
-                                        : sig.status === "suspicious"
-                                          ? "bg-red-500/10 border-red-500/30"
-                                          : "bg-yellow-500/10 border-yellow-500/30"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-4">
-                                      {sig.status === "genuine" ? (
-                                        <CheckCircle className="w-8 h-8 text-green-400" />
-                                      ) : sig.status === "suspicious" ? (
-                                        <AlertTriangle className="w-8 h-8 text-red-400" />
-                                      ) : (
-                                        <Shield className="w-8 h-8 text-yellow-400" />
-                                      )}
-                                      <div>
-                                        <p className="text-white font-medium">Signature #{index + 1}</p>
-                                        <p className="text-white/60 text-sm">{sig.location}</p>
+                                {analysisResult.signatures.length > 0 ? (
+                                  analysisResult.signatures.map((sig, index) => (
+                                    <div
+                                      key={index}
+                                      className={`p-4 rounded-lg border flex items-center justify-between ${
+                                        sig.status === "genuine"
+                                          ? "bg-green-500/10 border-green-500/30"
+                                          : sig.status === "suspicious"
+                                            ? "bg-red-500/10 border-red-500/30"
+                                            : "bg-yellow-500/10 border-yellow-500/30"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-4">
+                                        {sig.status === "genuine" ? (
+                                          <CheckCircle className="w-8 h-8 text-green-400" />
+                                        ) : sig.status === "suspicious" ? (
+                                          <AlertTriangle className="w-8 h-8 text-red-400" />
+                                        ) : (
+                                          <Shield className="w-8 h-8 text-yellow-400" />
+                                        )}
+                                        <div>
+                                          <p className="text-white font-medium">Signature #{index + 1}</p>
+                                          <p className="text-white/60 text-sm">{sig.location}</p>
+                                        </div>
+                                      </div>
+                                      <div className="text-right">
+                                        <p
+                                          className={`font-semibold ${
+                                            sig.status === "genuine"
+                                              ? "text-green-400"
+                                              : sig.status === "suspicious"
+                                                ? "text-red-400"
+                                                : "text-yellow-400"
+                                          }`}
+                                        >
+                                          {sig.status === "genuine"
+                                            ? "Likely Genuine"
+                                            : sig.status === "suspicious"
+                                              ? "Potentially Forged"
+                                              : "Unverified"}
+                                        </p>
+                                        <p className="text-white/60 text-sm">Confidence: {sig.confidence}%</p>
                                       </div>
                                     </div>
-                                    <div className="text-right">
-                                      <p
-                                        className={`font-semibold ${
-                                          sig.status === "genuine"
-                                            ? "text-green-400"
-                                            : sig.status === "suspicious"
-                                              ? "text-red-400"
-                                              : "text-yellow-400"
-                                        }`}
-                                      >
-                                        {sig.status === "genuine"
-                                          ? "Likely Genuine"
-                                          : sig.status === "suspicious"
-                                            ? "Potentially Forged"
-                                            : "Unverified"}
-                                      </p>
-                                      <p className="text-white/60 text-sm">Confidence: {sig.confidence}%</p>
-                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="p-4 rounded-lg border border-white/10 bg-white/5 text-white/60 text-sm">
+                                    No signature was detected for this upload.
                                   </div>
-                                ))}
+                                )}
                               </div>
                             </div>
                           )}

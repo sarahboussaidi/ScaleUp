@@ -56,15 +56,16 @@ if [ -f "backend/app.py" ]; then
         echo "[*] Creating Python virtual environment..."
         cd backend
         python3 -m venv venv
-        source venv/bin/activate
-        echo "[*] Installing dependencies..."
-        pip install -r requirements.txt -q
         cd ..
     fi
     
     # Start backend
     cd backend
     source venv/bin/activate
+    if ! python -c "import flask, flask_cors, cv2, numpy, tensorflow, mediapipe, librosa, joblib" >/dev/null 2>&1; then
+        echo "[*] Installing backend dependencies..."
+        python -m pip install -r requirements.txt -q
+    fi
     python app.py &
     BACKEND_PID=$!
     cd ..

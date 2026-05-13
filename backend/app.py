@@ -4,12 +4,16 @@ Simplified for Next.js integration
 """
 
 from flask import Flask, request, jsonify
-from flask import send_file
+from flask import send_file, send_from_directory
 from flask_cors import CORS
 import cv2
 import numpy as np
+import json
 import os
 import base64
+import re
+import shutil
+import subprocess
 import tensorflow as tf
 import traceback
 import importlib
@@ -18,11 +22,36 @@ import mediapipe as mp
 import librosa
 import io
 import tempfile
+import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
-# Import BMC modules
-from Bmc_generation.document_classifier_routes import doc_classifier_bp, init_document_classifier
+from docx import Document
 
-from Bmc_generation.bmc_processor_routes import bmc_processor_bp, init_bmc_processor
+try:
+    from pypdf import PdfReader
+except Exception:
+    PdfReader = None
+
+try:
+    from Bmc_generation.document_classifier_routes import doc_classifier_bp, init_document_classifier
+except Exception as exc:
+    print(f"[WARN] Document classifier routes unavailable: {exc}")
+    doc_classifier_bp = None
+
+    def init_document_classifier():
+        return None
+
+
+try:
+    from Bmc_generation.bmc_processor_routes import bmc_processor_bp, init_bmc_processor
+except Exception as exc:
+    print(f"[WARN] BMC processor routes unavailable: {exc}")
+    bmc_processor_bp = None
+
+    def init_bmc_processor():
+        return None
 
 from strength_predictor import detect_bad_words, hybrid_strength_predict
 try:
@@ -30,16 +59,30 @@ try:
 except Exception:
     transcribe_audio = None
 
+try:
+    from legal_document_intelligence import LegalDocumentIntelligence
+    from intelligent_nda_filler import IntelligentNDAFiller
+    from template_generator import TemplateDocumentGenerator
+    LEGAL_FEATURES_AVAILABLE = True
+except Exception as exc:
+    print(f"[WARN] Legal feature modules unavailable: {exc}")
+    LegalDocumentIntelligence = None
+    IntelligentNDAFiller = None
+    TemplateDocumentGenerator = None
+    LEGAL_FEATURES_AVAILABLE = False
+
 load_model = tf.keras.models.load_model
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 # Register document classifier blueprint
-app.register_blueprint(doc_classifier_bp, url_prefix='/api')
+if doc_classifier_bp is not None:
+    app.register_blueprint(doc_classifier_bp, url_prefix='/api')
 
 # Register BMC processor blueprint
-app.register_blueprint(bmc_processor_bp, url_prefix='/api')
+if bmc_processor_bp is not None:
+    app.register_blueprint(bmc_processor_bp, url_prefix='/api')
 
 # Get the backend directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -50,6 +93,13 @@ VOICE_EMOTION_MODEL_PATH = os.path.join(MODELS_DIR, "best_cnn2d_v2.keras")
 EMOTION_LABELS = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
 STRESS_LABELS = ["not_stress", "stress"]
 VOICE_EMOTION_LABELS = ["angry", "calm", "disgust", "fear", "happy", "neutral", "sad", "surprise"]  # 8-class audio emotion model
+
+LEGAL_TEMPLATES_DIR = Path(BASE_DIR) / "templates"
+LEGAL_OUTPUT_DIR = Path(BASE_DIR) / "generated" / "legal"
+LEGAL_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+_legal_intelligence = LegalDocumentIntelligence() if LEGAL_FEATURES_AVAILABLE else None
+_template_generator = TemplateDocumentGenerator() if LEGAL_FEATURES_AVAILABLE else None
 
 NUMERIC_POSTURE_COLS = [
     "eye_shoulder_y_ratio",
@@ -116,6 +166,311 @@ def find_model_path(*relative_paths):
         if os.path.exists(candidate_path):
             return candidate_path
     return None
+
+
+def _humanize_filename(stem: str) -> str:
+    cleaned = re.sub(r"_updated.*$", "", stem, flags=re.IGNORECASE)
+    cleaned = cleaned.replace("_", " ").replace("-", " ")
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned.title() if cleaned else stem
+
+
+def _legal_template_items() -> list[dict[str, Any]]:
+    if not LEGAL_TEMPLATES_DIR.exists():
+        return []
+
+    items: list[dict[str, Any]] = []
+    for template_path in sorted(LEGAL_TEMPLATES_DIR.iterdir()):
+        if not template_path.is_file():
+            continue
+        if template_path.suffix.lower() not in {".docx", ".txt", ".md", ".pdf", ".xlsx"}:
+            continue
+
+        template_text = _read_legal_document_text(template_path)
+        placeholders = []
+        seen_tokens: dict[str, int] = {}
+        for match in re.finditer(r"\{([^{}]{2,80})\}|\[([^\[\]]{2,80})\]", template_text):
+            raw = (match.group(1) or match.group(2) or "").strip()
+            if not raw:
+                continue
+            cleaned = re.sub(r"\s+", " ", raw).strip(" .:-")
+            if not cleaned or re.fullmatch(r"[\d\s.,%€$+-]+", cleaned):
+                continue
+            token = f"{{{match.group(1)}}}" if match.group(1) else f"[{match.group(2)}]"
+            seen_tokens[token] = seen_tokens.get(token, 0) + 1
+            occurrence_index = seen_tokens[token]
+            label = cleaned.title() if cleaned.islower() else cleaned
+            placeholders.append(
+                {
+                    "label": label,
+                    "token": token,
+                    "occurrence": occurrence_index,
+                    "name": f"{re.sub(r'[^A-Za-z0-9]+', '_', label).strip('_').lower()}_{occurrence_index}",
+                }
+            )
+
+        items.append(
+            {
+                "id": template_path.stem,
+                "name": _humanize_filename(template_path.stem),
+                "file_name": template_path.name,
+                "extension": template_path.suffix.lower().lstrip("."),
+                "path": str(template_path),
+                "template": template_text,
+                "placeholders": [item["label"] for item in placeholders],
+                "fields": [
+                    {
+                        "name": item["name"],
+                        "label": item["label"],
+                        "type": "textarea" if len(item["label"]) > 30 else "text",
+                        "required": True,
+                        "sourceToken": item["token"],
+                    }
+                    for item in placeholders
+                ],
+            }
+        )
+
+    return items
+
+
+def _read_legal_document_text(document_path: Path) -> str:
+    suffix = document_path.suffix.lower()
+    if suffix in {".txt", ".md"}:
+        return document_path.read_text(encoding="utf-8", errors="ignore")
+    if suffix == ".docx":
+        document = Document(str(document_path))
+        parts: list[str] = []
+        for paragraph in document.paragraphs:
+            if paragraph.text.strip():
+                parts.append(paragraph.text.strip())
+        for table in document.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        if paragraph.text.strip():
+                            parts.append(paragraph.text.strip())
+        return "\n".join(parts).strip()
+    if suffix == ".pdf":
+        extracted_text = ""
+        parts: list[str] = []
+
+        if PdfReader is not None:
+            try:
+                reader = PdfReader(str(document_path))
+                for page in reader.pages:
+                    try:
+                        text = page.extract_text() or ""
+                    except Exception:
+                        text = ""
+                    if text.strip():
+                        parts.append(text)
+            except Exception:
+                parts = []
+
+        extracted_text = "\n".join(parts).strip()
+
+        if not extracted_text:
+            try:
+                import fitz
+
+                pdf_doc = fitz.open(str(document_path))
+                fitz_parts: list[str] = []
+                for page in pdf_doc:
+                    try:
+                        page_text = page.get_text("text") or ""
+                    except Exception:
+                        page_text = ""
+                    if page_text.strip():
+                        fitz_parts.append(page_text)
+                extracted_text = "\n".join(fitz_parts).strip()
+            except Exception:
+                extracted_text = extracted_text or ""
+
+        # If text extraction still failed, try OCR as a last resort.
+        if not extracted_text and _legal_intelligence is not None:
+            try:
+                import fitz
+                from PIL import Image
+
+                pdf_doc = fitz.open(str(document_path))
+                ocr_parts: list[str] = []
+                for page_num, page in enumerate(pdf_doc):
+                    if page_num > 10:  # Limit to first 10 pages for performance
+                        break
+                    pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x zoom for better OCR
+                    img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+                    img_path = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
+                    img.save(img_path)
+                    try:
+                        page_text = _legal_intelligence._load_image_text(img_path)  # noqa: SLF001
+                        if page_text:
+                            ocr_parts.append(page_text)
+                    finally:
+                        try:
+                            os.unlink(img_path)
+                        except Exception:
+                            pass
+                if ocr_parts:
+                    extracted_text = "\n".join(ocr_parts).strip()
+            except Exception:
+                pass
+
+        return extracted_text
+    if suffix in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"} and _legal_intelligence is not None:
+        return _legal_intelligence._load_image_text(str(document_path))  # noqa: SLF001
+    return document_path.read_text(encoding="utf-8", errors="ignore")
+
+
+def _build_template_value_map(template_name: str, values: dict[str, object]) -> tuple[Path, dict[str, object]]:
+    """Build template value map matching integ's approach.
+    
+    Maps frontend field-name keyed `values` to template token-keyed dict.
+    Handles list values and properly merges multiple occurrences of the same token.
+    Only includes tokens that have actual values (not empty/None).
+    """
+    templates_dir = LEGAL_TEMPLATES_DIR
+    template_path = templates_dir / template_name
+    if not template_path.exists():
+        raise FileNotFoundError(f"Template not found: {template_name}")
+
+    templates = _legal_template_items()
+    template_meta = next((item for item in templates if item.get("file_name") == template_name or item.get("id") == template_name), None)
+    if template_meta is None:
+        raise FileNotFoundError(f"Template metadata not found for: {template_name}")
+
+    field_lookup = {field["name"]: field for field in template_meta.get("fields", []) if isinstance(field, dict)}
+    token_values: dict[str, list[str] | str] = {}
+
+    for field_name, field_value in values.items():
+        field = field_lookup.get(field_name)
+        if not field:
+            continue
+        token = field.get("sourceToken")
+        if not token:
+            continue
+        
+        # Skip empty/None values - don't add them to the map
+        if field_value is None or (isinstance(field_value, str) and not field_value.strip()):
+            continue
+
+        if isinstance(field_value, list):
+            current = token_values.get(token)
+            if not isinstance(current, list):
+                current = []
+            current.extend([str(item) for item in field_value if item is not None])
+            token_values[token] = current
+        else:
+            current = token_values.get(token)
+            if isinstance(current, list):
+                current.append(str(field_value))
+            elif current is None:
+                token_values[token] = str(field_value)
+            else:
+                token_values[token] = [str(current), str(field_value)]
+
+    return template_path, token_values
+
+
+def _build_docx_from_text(content: str, output_path: Path, title: str | None = None) -> Path:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    document = Document()
+
+    if title:
+        document.add_heading(title, level=1)
+
+    paragraphs = [paragraph for paragraph in content.splitlines()]
+    if not paragraphs:
+        document.add_paragraph("")
+    else:
+        for paragraph in paragraphs:
+            document.add_paragraph(paragraph)
+
+    document.save(str(output_path))
+    return output_path
+
+
+def _convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> Path:
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if soffice is None:
+        raise RuntimeError("LibreOffice is required to export PDF files")
+
+    pdf_path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        subprocess.run(
+            [soffice, "--headless", "--convert-to", "pdf", "--outdir", tmp_dir, str(docx_path)],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        converted_pdf = Path(tmp_dir) / f"{docx_path.stem}.pdf"
+        if not converted_pdf.exists():
+            raise RuntimeError("PDF export failed")
+        pdf_path.write_bytes(converted_pdf.read_bytes())
+
+    return pdf_path
+
+
+def _extract_request_text(default_name: str = "uploaded document") -> tuple[str, str | None, dict | None]:
+    if request.content_type and request.content_type.startswith("multipart"):
+        uploaded_file = request.files.get("file")
+        if uploaded_file is None:
+            raise ValueError("No file uploaded")
+
+        suffix = Path(uploaded_file.filename or "").suffix or ".txt"
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+        try:
+            uploaded_file.save(temp_file.name)
+            source_path = Path(temp_file.name)
+            # If the uploaded file is an image, run OCR and save annotated images
+            ocr_result = None
+            if suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"}:
+                try:
+                    from ocr.document_analyzer import DocumentAnalyzer
+
+                    analyzer = DocumentAnalyzer()
+                    annotated_path = LEGAL_OUTPUT_DIR / f"{source_path.stem}_ocr_annotated.png"
+                    ocr_result = analyzer.analyze(str(source_path), save_annotated_to=str(annotated_path))
+
+                    # If signatures detected, produce a signature-only annotated image
+                    sigs = ocr_result.get("signatures") or []
+                    if sigs:
+                        try:
+                            import cv2 as _cv2
+
+                            img = _cv2.imread(str(source_path))
+                            if img is not None:
+                                for s in sigs:
+                                    box = s.get("box") or s.get("bbox") or None
+                                    if not box or len(box) < 4:
+                                        continue
+                                    x, y, w, h = map(int, box[:4])
+                                    _cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 3)
+                                sig_path = LEGAL_OUTPUT_DIR / f"{source_path.stem}_signatures.png"
+                                _cv2.imwrite(str(sig_path), img)
+                                ocr_result["signature_annotated_image_path"] = str(sig_path)
+                        except Exception:
+                            pass
+
+                except Exception:
+                    ocr_result = None
+
+            # Read text content from the uploaded file (text/pdf/docx/image->ocr text)
+            text = _read_legal_document_text(source_path)
+            return text, uploaded_file.filename or default_name, ocr_result
+        finally:
+            temp_file.close()
+            try:
+                os.unlink(temp_file.name)
+            except Exception:
+                pass
+
+    payload = request.get_json(silent=True) or {}
+    text = str(payload.get("text") or payload.get("content") or "").strip()
+    source_name = str(payload.get("source_name") or payload.get("name") or default_name).strip() or default_name
+    if not text:
+        raise ValueError("No text provided")
+    return text, source_name, None
 
 
 def dist(a, b):
@@ -858,6 +1213,483 @@ def analyze_speech_strength():
     except Exception as e:
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/legal/templates', methods=['GET'])
+def legal_templates():
+    if not LEGAL_FEATURES_AVAILABLE:
+        return jsonify({'error': 'Legal features are unavailable'}), 503
+
+    return jsonify({'templates': _legal_template_items()})
+
+
+@app.route('/api/legal/infer', methods=['POST'])
+def legal_infer_template_fields():
+    if not LEGAL_FEATURES_AVAILABLE or IntelligentNDAFiller is None:
+        return jsonify({'error': 'NDA inference is unavailable'}), 503
+
+    try:
+        payload = request.get_json(silent=True) or {}
+        template_name = str(payload.get('file_name') or payload.get('template_name') or '').strip()
+        brief_text = str(payload.get('brief_text') or payload.get('text') or '').strip()
+
+        if not template_name:
+            return jsonify({'error': 'No file_name provided'}), 400
+
+        template_path = LEGAL_TEMPLATES_DIR / template_name
+        if not template_path.exists():
+            return jsonify({'error': f'Template not found: {template_name}'}), 404
+
+        filler = IntelligentNDAFiller(str(template_path))
+        hints = payload.get('hints') if isinstance(payload.get('hints'), dict) else {}
+        report = filler.infer(brief_text, hints=hints)
+        return jsonify({'report': report})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/legal/analyze', methods=['POST'])
+def legal_analyze_document():
+    if not LEGAL_FEATURES_AVAILABLE or _legal_intelligence is None:
+        return jsonify({'error': 'Legal analysis is unavailable'}), 503
+
+    try:
+        text, source_name, ocr_result = _extract_request_text()
+        question = None
+        payload = request.get_json(silent=True) or {}
+        if payload:
+            question = str(payload.get('question') or '').strip() or None
+
+        result = _legal_intelligence.analyze_text(text, source_name=source_name, question=question)
+
+        # If OCR analysis was performed on an uploaded image, merge signatures and annotated images
+        if ocr_result:
+            # merge signatures from OCR (prefer analyzer signatures but append OCR if missing)
+            ocr_sigs = ocr_result.get('signatures') or []
+            if ocr_sigs:
+                existing = result.get('signatures') or []
+                # avoid duplicates by bounding box
+                boxes = {tuple(s.get('box') or s.get('bbox') or []): True for s in existing}
+                for s in ocr_sigs:
+                    key = tuple(s.get('box') or s.get('bbox') or [])
+                    if key and key not in boxes:
+                        existing.append(s)
+                result['signatures'] = existing
+
+            # annotated images
+            ann = ocr_result.get('annotated_image_path') or ocr_result.get('annotated_image')
+            if ann:
+                name = Path(str(ann)).name
+                result['annotated_image_url'] = f"/generated/legal/{name}"
+            sig_ann = ocr_result.get('signature_annotated_image_path')
+            if sig_ann:
+                name = Path(str(sig_ann)).name
+                result['signature_annotated_image_url'] = f"/generated/legal/{name}"
+        return jsonify(result)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/document/intel-upload', methods=['POST'])
+def document_intel_upload():
+    if not LEGAL_FEATURES_AVAILABLE or _legal_intelligence is None:
+        return jsonify({'error': 'Document intelligence is unavailable'}), 503
+
+    try:
+        text, source_name, ocr_result = _extract_request_text()
+        question = str((request.form or {}).get('question') or '').strip() or None
+        result = _legal_intelligence.analyze_text(text, source_name=source_name, question=question)
+        result['source_name'] = source_name
+        result['text'] = result.get('extractedText') or result.get('text') or text
+        result['extractedText'] = result.get('text') or text
+        result['document_kind'] = result.get('documentKind') or result.get('document_kind')
+        result['summary_sources'] = result.get('summary_sources') or result.get('summarySources') or []
+        result['extractive_summary'] = result.get('extractive_summary') or result.get('extractiveSummary') or ''
+        result['domain_tags'] = result.get('domain_tags') or result.get('domainTags') or []
+        result['risk_flags'] = result.get('risk_flags') or result.get('riskFlags') or []
+        result['open_questions'] = result.get('open_questions') or result.get('openQuestions') or []
+        # Normalize summary key(s)
+        result['summary'] = (
+            result.get('summary')
+            or result.get('summary_text')
+            or result.get('summaryText')
+            or result.get('extractive_summary')
+            or result.get('extractiveSummary')
+            or ''
+        )
+        # Normalize detected signatures to a common key
+        result['signatures'] = (
+            result.get('signatures')
+            or result.get('detected_signatures')
+            or result.get('signature_rows')
+            or result.get('signaturesDetected')
+            or []
+        )
+        result['startup_signals'] = result.get('startup_signals') or result.get('startupSignals') or []
+        result['key_clauses'] = result.get('key_clauses') or result.get('keyClauses') or []
+        result['annotated_image_url'] = (
+            result.get('annotated_image_url')
+            or result.get('signature_annotated_image_url')
+            or result.get('ocrAnnotatedImageUrl')
+            or result.get('signatureAnnotatedImageUrl')
+            or None
+        )
+
+        # merge OCR image results if we performed OCR during upload
+        if ocr_result:
+            ocr_sigs = ocr_result.get('signatures') or []
+            if ocr_sigs:
+                existing = result.get('signatures') or []
+                boxes = {tuple(s.get('box') or s.get('bbox') or []): True for s in existing}
+                for s in ocr_sigs:
+                    key = tuple(s.get('box') or s.get('bbox') or [])
+                    if key and key not in boxes:
+                        existing.append(s)
+                result['signatures'] = existing
+
+            ann = ocr_result.get('annotated_image_path') or ocr_result.get('annotated_image')
+            if ann and not result.get('annotated_image_url'):
+                name = Path(str(ann)).name
+                result['annotated_image_url'] = f"/generated/legal/{name}"
+            sig_ann = ocr_result.get('signature_annotated_image_path')
+            if sig_ann:
+                name = Path(str(sig_ann)).name
+                result['signature_annotated_image_url'] = f"/generated/legal/{name}"
+        return jsonify(result)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/legal/nda/infer', methods=['POST'])
+def legal_infer_nda():
+    if not LEGAL_FEATURES_AVAILABLE or IntelligentNDAFiller is None:
+        return jsonify({'error': 'NDA inference is unavailable'}), 503
+
+    try:
+        payload = request.get_json(silent=True) or {}
+        brief_text = str(payload.get('brief_text') or payload.get('text') or '').strip()
+        if not brief_text:
+            return jsonify({'error': 'No brief_text provided'}), 400
+
+        template_name = str(payload.get('template_name') or '').strip()
+        template_path = Path(payload.get('template_path') or '') if payload.get('template_path') else None
+        if template_path is None and template_name:
+            candidate = LEGAL_TEMPLATES_DIR / template_name
+            if candidate.exists():
+                template_path = candidate
+
+        filler_template = template_path if template_path is not None and template_path.is_file() else (LEGAL_TEMPLATES_DIR / '__missing_template__.docx')
+        filler = IntelligentNDAFiller(str(filler_template))
+        hints = payload.get('hints') if isinstance(payload.get('hints'), dict) else {}
+        result = filler.infer(brief_text, hints=hints)
+        return jsonify(result)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/legal/generate', methods=['POST'])
+def legal_generate_document():
+    if not LEGAL_FEATURES_AVAILABLE or _template_generator is None:
+        return jsonify({'error': 'Legal generation is unavailable'}), 503
+
+    try:
+        payload = request.get_json(silent=True) or {}
+        template_name = str(payload.get('template_name') or '').strip()
+        values = payload.get('values') if isinstance(payload.get('values'), dict) else {}
+        if not template_name:
+            return jsonify({'error': 'No template_name provided'}), 400
+
+        template_path = LEGAL_TEMPLATES_DIR / template_name
+        if not template_path.exists():
+            return jsonify({'error': f'Template not found: {template_name}'}), 404
+
+        output_name = payload.get('output_name') or f"{template_path.stem}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')}.docx"
+        output_path = LEGAL_OUTPUT_DIR / str(output_name)
+        remove_clause_numbers = payload.get('remove_clause_numbers')
+
+        # Build template value map using integ's approach
+        if values:
+            try:
+                _, token_values = _build_template_value_map(template_path.name, values)
+            except Exception:
+                token_values = {}
+        else:
+            token_values = {}
+
+        generated_path = _template_generator.generate(
+            str(template_path),
+            str(output_path),
+            token_values,
+            strict=bool(payload.get('strict', False)),  # Default to False to allow partial fills
+            strip_bracket_artifacts=bool(payload.get('strip_bracket_artifacts', True)),
+            remove_clause_numbers=remove_clause_numbers,
+        )
+
+        if payload.get('download', True):
+            return send_file(str(generated_path), as_attachment=True, download_name=Path(generated_path).name)
+
+        return jsonify({'path': str(generated_path), 'file_name': Path(generated_path).name})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/legal/export', methods=['POST'])
+def legal_export_document():
+    if not LEGAL_FEATURES_AVAILABLE:
+        return jsonify({'error': 'Legal generation is unavailable'}), 503
+
+    try:
+        payload = request.get_json(silent=True) or {}
+        title = str(payload.get('title') or payload.get('file_name') or 'document').strip() or 'document'
+        format_name = str(payload.get('format') or 'docx').strip().lower()
+        file_name = str(payload.get('file_name') or '').strip()
+        values = payload.get('values') if isinstance(payload.get('values'), dict) else {}
+        remove_clause_numbers = payload.get('remove_clause_numbers')
+
+        if format_name not in {'docx', 'pdf'}:
+            return jsonify({'error': 'Unsupported export format'}), 400
+
+        safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_", title).strip("_") or 'document'
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')
+        export_dir = LEGAL_OUTPUT_DIR / 'exports'
+        export_dir.mkdir(parents=True, exist_ok=True)
+
+        if file_name and values:
+            try:
+                template_path, token_values = _build_template_value_map(file_name, values)
+            except Exception as e:
+                return jsonify({'error': f'Template mapping failed: {str(e)}'}), 400
+
+            docx_output = export_dir / f"{safe_name}_{timestamp}.docx"
+            generated_docx = _template_generator.generate(
+                str(template_path),
+                str(docx_output),
+                token_values,
+                strict=False,  # Allow partial fills
+                strip_bracket_artifacts=True,
+                remove_clause_numbers=remove_clause_numbers,
+            )
+
+            if format_name == 'pdf':
+                generated_path = _convert_docx_to_pdf(Path(generated_docx), Path(generated_docx).with_suffix('.pdf'))
+            else:
+                generated_path = Path(generated_docx)
+        else:
+            content = str(payload.get('content') or '').strip()
+            if format_name == 'pdf':
+                docx_output = export_dir / f"{safe_name}_{timestamp}.docx"
+                generated_docx = _build_docx_from_text(content, docx_output, title=title)
+                generated_path = _convert_docx_to_pdf(generated_docx, generated_docx.with_suffix('.pdf'))
+            else:
+                generated_path = _build_docx_from_text(content, export_dir / f"{safe_name}_{timestamp}.docx", title=title)
+
+        download_url = f"/generated/legal/{generated_path.name}"
+        return jsonify({'download_url': download_url, 'file_name': Path(generated_path).name})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/generated/legal/<path:filename>', methods=['GET'])
+def serve_generated_legal_file(filename: str):
+    candidates = [LEGAL_OUTPUT_DIR / filename, LEGAL_OUTPUT_DIR / 'exports' / filename]
+    for candidate in candidates:
+        if candidate.exists():
+            return send_file(str(candidate), as_attachment=True, download_name=candidate.name)
+    return jsonify({'error': 'File not found'}), 404
+
+
+def _load_signature_model_torch(selection_key: str = ""):
+    """Load PyTorch signature classification model."""
+    try:
+        import torch
+        import torch.nn as nn
+        from torchvision import models, transforms
+        
+        scripted_candidates = [
+            Path(BASE_DIR) / "signature_best_script.pt",
+            Path(BASE_DIR) / "signature_resnet18_script.pt",
+            Path(BASE_DIR) / "signature_cnn_script.pt",
+            Path(BASE_DIR) / "models/legal/signature_best_script.pt",
+            Path(BASE_DIR) / "models/legal/signature_resnet18_script.pt",
+            Path(BASE_DIR) / "models/legal/signature_cnn_script.pt",
+        ]
+        
+        for model_path in scripted_candidates:
+            if model_path.exists():
+                try:
+                    model = torch.jit.load(str(model_path), map_location="cpu")
+                    model.eval()
+                    if "cnn" in model_path.name.lower():
+                        transform = transforms.Compose([
+                            transforms.Grayscale(num_output_channels=1),
+                            transforms.Resize((128, 256)),
+                            transforms.ToTensor(),
+                            transforms.Normalize([0.5], [0.5])
+                        ])
+                    else:
+                        transform = transforms.Compose([
+                            transforms.Resize((224, 224)),
+                            transforms.ToTensor(),
+                            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                        ])
+                    return model, transform, model_path
+                except Exception:
+                    continue
+    except Exception:
+        pass
+    
+    return None, None, None
+
+
+def _load_signature_detector_yolo(selection_key: str = ""):
+    """Load YOLO signature detection model."""
+    try:
+        from ultralytics import YOLO
+        
+        candidates = [
+            Path(BASE_DIR) / "data2/chekpoint_last.pt",
+            Path(BASE_DIR) / "runs/detect/signature_yolo_clean/weights/best.pt",
+        ]
+        
+        for model_path in candidates:
+            if model_path.exists():
+                try:
+                    return YOLO(str(model_path)), model_path
+                except Exception:
+                    continue
+    except Exception:
+        pass
+    
+    return None, None
+
+
+@app.route('/api/signature/predict', methods=['POST'])
+def predict_signature_api():
+    """Predict whether signature is fake or real using torch model."""
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "Missing file"}), 400
+
+        file = request.files['file']
+        if not file.filename:
+            return jsonify({"error": "Missing uploaded filename"}), 400
+
+        try:
+            import torch
+            from PIL import Image as PILImage
+        except ImportError:
+            return jsonify({"error": "PyTorch not available"}), 503
+
+        model, transform, model_path = _load_signature_model_torch()
+        if model is None or transform is None:
+            return jsonify({"error": "Signature model not found"}), 503
+
+        contents = file.read()
+        img = PILImage.open(io.BytesIO(contents)).convert('RGB')
+        img_tensor = transform(img).unsqueeze(0)
+        
+        with torch.no_grad():
+            out = model(img_tensor)
+            probs = torch.softmax(out, dim=1)[0].cpu().numpy().tolist()
+            pred = out.argmax(1).item()
+        
+        label = 'fake' if pred == 0 else 'real'
+        return jsonify({
+            "prediction": label,
+            "prediction_confidence": float(probs[pred]),
+            "class_probabilities": {
+                "fake": float(probs[0]),
+                "real": float(probs[1]),
+            },
+            "model": model_path.name if model_path else "unknown",
+        })
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/signature/detect', methods=['POST'])
+def detect_signature_api():
+    """Detect signature bounding boxes using YOLO model."""
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "Missing file"}), 400
+
+        file = request.files['file']
+        if not file.filename:
+            return jsonify({"error": "Missing uploaded filename"}), 400
+
+        conf = float(request.form.get('conf', 0.25))
+        iou = float(request.form.get('iou', 0.45))
+        
+        model, model_path = _load_signature_detector_yolo()
+        if model is None:
+            return jsonify({"error": "YOLO model not found"}), 503
+
+        try:
+            from PIL import Image as PILImage
+        except ImportError:
+            return jsonify({"error": "PIL not available"}), 503
+
+        contents = file.read()
+        image = PILImage.open(io.BytesIO(contents)).convert("RGB")
+        image_np = np.array(image)
+
+        results = model.predict(source=image_np, conf=conf, iou=iou, verbose=False)
+        if not results:
+            return jsonify({
+                "model": model_path.name if model_path else "unknown",
+                "count": 0,
+                "detections": [],
+                "annotated_image_url": None,
+            })
+
+        result = results[0]
+        detections: list[dict[str, Any]] = []
+        names = result.names or {}
+
+        if result.boxes is not None and len(result.boxes) > 0:
+            xyxy_list = result.boxes.xyxy.cpu().tolist() if hasattr(result.boxes.xyxy, 'cpu') else result.boxes.xyxy.tolist()
+            conf_list = result.boxes.conf.cpu().tolist() if hasattr(result.boxes.conf, 'cpu') else result.boxes.conf.tolist()
+            cls_list = result.boxes.cls.cpu().tolist() if hasattr(result.boxes.cls, 'cpu') else result.boxes.cls.tolist()
+
+            for xyxy, score, cls_idx in zip(xyxy_list, conf_list, cls_list):
+                idx = int(cls_idx)
+                detections.append({
+                    "class_id": idx,
+                    "class_name": str(names.get(idx, idx)),
+                    "confidence": round(float(score), 4),
+                    "box_xyxy": [round(float(v), 2) for v in xyxy],
+                })
+
+        stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        annotated_name = f"signature_detect_{stamp}_{uuid.uuid4().hex[:8]}.png"
+        annotated_path = LEGAL_OUTPUT_DIR / annotated_name
+        
+        try:
+            plotted_bgr = result.plot()
+            plotted_rgb = plotted_bgr[:, :, ::-1]
+            from PIL import Image as PILImage
+            PILImage.fromarray(plotted_rgb).save(annotated_path)
+            annotated_url = f"/generated/legal/{annotated_name}"
+        except Exception:
+            annotated_url = None
+
+        return jsonify({
+            "model": model_path.name if model_path else "unknown",
+            "count": len(detections),
+            "detections": detections,
+            "annotated_image_url": annotated_url,
+        })
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     # Load models on startup
