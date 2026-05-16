@@ -42,15 +42,117 @@ interface AnalysisResult {
   }
   suggestions: string[]
   platform: string
+  raw: any
 }
 
 export default function MarketingAnalysisPage() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [fileInputKey, setFileInputKey] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [selectedPlatform, setSelectedPlatform] = useState<string>("instagram")
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
+
+  const marketingApiBase = (process.env.NEXT_PUBLIC_MARKETING_API_URL || "http://127.0.0.1:5000").replace(/\/$/, "")
+  const marketingEvaluateEndpoint = `${marketingApiBase}/api/marketing/analyze`
+
+  const formatFeatureValue = (value: unknown) => {
+    if (typeof value === "number") {
+      return Number.isInteger(value) ? value.toString() : value.toFixed(1)
+    }
+
+    if (typeof value === "string") {
+      return value
+    }
+
+    if (typeof value === "boolean") {
+      return value ? "Yes" : "No"
+    }
+
+    if (value && typeof value === "object") {
+      const objectValue = value as Record<string, unknown>
+      const score = objectValue.score ?? objectValue.value ?? objectValue.overall_score
+
+      if (typeof score === "number") {
+        return Number.isInteger(score) ? score.toString() : score.toFixed(1)
+      }
+
+      if (typeof score === "string") {
+        return score
+      }
+
+      return "Available"
+    }
+
+    return "N/A"
+  }
+
+  const mapBackendResultToUi = (result: any): AnalysisResult => {
+    const textEvaluation = result?.text_evaluation || {}
+    const visualEvaluation = result?.visual_evaluation || {}
+    const textXai = result?.text_xai || {}
+    const visualXai = result?.visual_xai || {}
+    const overallEngagement = result?.overall_engagement || {}
+
+    const textScore = Number(textEvaluation.overall_score ?? textXai.overall_score ?? 0)
+    const visualScore = Number(visualEvaluation.overall_score ?? result?.visual_features?.score_0_10 ?? visualXai.visual_prediction?.score_0_10 ?? 0)
+    const overallScore = Number(overallEngagement.score ?? overallEngagement.overall_score_0_10 ?? ((textScore + visualScore) / 2))
+
+    const featureMetrics = textXai.feature_metrics || {}
+    const hasCta = Boolean(featureMetrics.has_cta)
+    const issues = textEvaluation.issues || textXai.issues_detected || {}
+    const dimensionScores = textEvaluation.dimensions || textEvaluation.dimension_scores || textXai.dimension_scores || {}
+
+    const textLabel = textXai.interpretation || textEvaluation.overall_label || "unknown"
+    const visualLabel = visualEvaluation.class_label || result?.visual_features?.class_label || visualXai.visual_prediction?.class_label || "unknown"
+    const engagementLabel = overallEngagement.verdict || "Mixed"
+
+    const textSummary = `Text quality rated as "${textLabel}". ` +
+      (textScore >= 7 ? "Strong copywriting with good structure." : textScore >= 5 ? "Moderate text quality." : "Text could be improved for better engagement.")
+
+    const visualSummary = `Visual quality rated as "${visualLabel}". ` +
+      (visualScore >= 9 ? "Excellent visual composition and design." : visualScore >= 7 ? "Good visual appeal." : "Visual could benefit from better composition.")
+
+    const suggestions = [
+      issues.low_readability ? "Simplify the text for better readability. Consider shorter sentences and clearer language." : null,
+      issues.too_short ? "The text is too short. Add more context to improve engagement." : null,
+      issues.too_long ? "The text is quite long. Consider breaking it into shorter, punchier segments." : null,
+      issues.too_many_hashtags ? "Too many hashtags detected. Consider reducing to 5-10 most relevant ones." : null,
+      issues.weak_cta ? "Strengthen the call-to-action to make it more compelling." : null,
+      !hasCta ? "Consider adding a clear call-to-action to guide audience engagement." : null,
+      dimensionScores.readability < 3 ? "Improve readability by using simpler vocabulary and shorter sentences." : null,
+      dimensionScores.sentiment && dimensionScores.sentiment < 4 ? "Consider adding more positive sentiment to the copy." : null,
+      visualScore < 7 ? "Enhance visual composition: improve contrast, balance, and focal points." : null,
+      visualScore >= 9 && textScore >= 7 ? "Excellent balance! Keep this format for future posts." : null,
+    ].filter((item): item is string => Boolean(item))
+
+    return {
+      overallScore: Math.round(overallScore),
+      engagement: {
+        score: Math.round(overallScore),
+        feedback: `Engagement outlook: ${engagementLabel}. ${textSummary}`,
+      },
+      visualAppeal: {
+        score: Number(visualScore.toFixed(1)),
+        feedback: visualSummary,
+      },
+      copywriting: {
+        score: Number(textScore.toFixed(1)),
+        feedback: textSummary,
+      },
+      callToAction: {
+        score: hasCta ? 8.5 : 4,
+        feedback: hasCta
+          ? "A call-to-action is present in the text."
+          : "No clear call-to-action detected. Consider adding one.",
+      },
+      suggestions: suggestions.length > 0 ? suggestions : ["The post looks great! Continue testing variations to maintain engagement."],
+      platform: result?.platform_selected || result?.platform || selectedPlatform,
+      raw: result,
+    }
+  }
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -70,6 +172,7 @@ export default function MarketingAnalysisPage() {
       setFile(droppedFile)
       setPreview(URL.createObjectURL(droppedFile))
       setAnalysisResult(null)
+      setAnalysisError(null)
     }
   }, [])
 
@@ -79,68 +182,75 @@ export default function MarketingAnalysisPage() {
       setFile(selectedFile)
       setPreview(URL.createObjectURL(selectedFile))
       setAnalysisResult(null)
+      setAnalysisError(null)
+      setFileInputKey((value) => value + 1)
     }
   }
 
   const analyzePost = async () => {
     if (!file) return
     setIsAnalyzing(true)
+    setAnalysisError(null)
 
-    // Simulate AI analysis
-    await new Promise((resolve) => setTimeout(resolve, 2500))
+    try {
+      const formData = new FormData()
+      formData.append("screenshot", file)
+      formData.append("platform", selectedPlatform)
 
-    const mockResult: AnalysisResult = {
-      overallScore: 78,
-      engagement: {
-        score: 82,
-        feedback:
-          "Good use of engaging elements. The visual hierarchy draws attention effectively. Consider adding more interactive elements like polls or questions in your caption.",
-      },
-      visualAppeal: {
-        score: 85,
-        feedback:
-          "Strong color contrast and composition. The image is well-lit and professionally edited. Consider using more brand-consistent colors for better recognition.",
-      },
-      copywriting: {
-        score: 72,
-        feedback:
-          "Caption is decent but could be more compelling. Try starting with a hook or question. Use more action verbs and emotional triggers.",
-      },
-      callToAction: {
-        score: 65,
-        feedback:
-          "CTA is present but could be stronger. Consider using urgency words like 'now' or 'today'. Make the action clear and specific.",
-      },
-      suggestions: [
-        "Add relevant hashtags (8-15 recommended for Instagram)",
-        "Include a clear call-to-action in the first line",
-        "Consider using carousel format for higher engagement",
-        "Add location tag to increase discoverability",
-        "Post during peak hours (6-9 PM for your audience)",
-        "Use brand colors consistently across all posts",
-      ],
-      platform: selectedPlatform,
+      const response = await fetch(marketingEvaluateEndpoint, {
+        method: "POST",
+        body: formData,
+      })
+
+      const contentType = response.headers.get("content-type") || ""
+      const responseText = await response.text()
+      const payload = contentType.includes("application/json")
+        ? JSON.parse(responseText)
+        : null
+
+      if (!response.ok || payload?.success === false) {
+        throw new Error(payload?.error || responseText || "Marketing analysis failed")
+      }
+
+      setAnalysisResult(mapBackendResultToUi(payload))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Marketing analysis failed"
+      
+      // Check if it's a connection error
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        setAnalysisError(
+          "⚠️ Cannot connect to backend. Please ensure:\n" +
+          "1. The ScaleUp backend is running: python backend/app.py\n" +
+          "2. Backend is accessible at http://127.0.0.1:5000\n" +
+          "3. The evaluation route exists at /evaluate\n" +
+          "4. Check browser console for more details"
+        )
+      } else {
+        setAnalysisError(message)
+      }
+      setAnalysisResult(null)
+    } finally {
+      setIsAnalyzing(false)
     }
-
-    setAnalysisResult(mockResult)
-    setIsAnalyzing(false)
   }
 
   const clearFile = () => {
     setFile(null)
     setPreview(null)
     setAnalysisResult(null)
+    setAnalysisError(null)
+    setFileInputKey((value) => value + 1)
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-400"
-    if (score >= 60) return "text-yellow-400"
+    if (score >= 8) return "text-green-400"
+    if (score >= 6) return "text-yellow-400"
     return "text-red-400"
   }
 
   const getScoreBg = (score: number) => {
-    if (score >= 80) return "bg-green-500/20 border-green-500/30"
-    if (score >= 60) return "bg-yellow-500/20 border-yellow-500/30"
+    if (score >= 8) return "bg-green-500/20 border-green-500/30"
+    if (score >= 6) return "bg-yellow-500/20 border-yellow-500/30"
     return "bg-red-500/20 border-red-500/30"
   }
 
@@ -150,6 +260,8 @@ export default function MarketingAnalysisPage() {
     { id: "twitter", name: "Twitter/X", icon: Twitter },
     { id: "linkedin", name: "LinkedIn", icon: Linkedin },
   ]
+
+  const textFeatureEntries = Object.entries(analysisResult?.raw?.text_evaluation?.dimensions || {})
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
@@ -178,6 +290,20 @@ export default function MarketingAnalysisPage() {
                   Upload screenshots of your social media posts and get instant AI feedback on engagement potential,
                   visual appeal, copywriting, and more.
                 </p>
+                {analysisError ? (
+                  <div className="mt-4 text-sm text-red-300 max-w-2xl mx-auto bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 whitespace-pre-wrap">
+                    {analysisError}
+                  </div>
+                ) : null}
+
+                {/* Brand Guidelines CTA */}
+                <div className="mt-8 flex justify-center">
+                  <a href="/branding-generator">
+                    <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-8 py-3 rounded-lg transition-all">
+                      ✨ Create Brand Guidelines
+                    </Button>
+                  </a>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -244,6 +370,7 @@ export default function MarketingAnalysisPage() {
                           <p className="text-white/70 mb-4">Drag and drop your screenshot here, or</p>
                           <label className="cursor-pointer">
                             <input
+                              key={fileInputKey}
                               type="file"
                               accept="image/*"
                               onChange={handleFileSelect}
@@ -303,19 +430,19 @@ export default function MarketingAnalysisPage() {
                             <div>
                               <p className="text-white/60 text-sm mb-1">Overall Score</p>
                               <p className={`text-4xl font-bold ${getScoreColor(analysisResult.overallScore)}`}>
-                                {analysisResult.overallScore}/100
+                                {analysisResult.overallScore}/10
                               </p>
                             </div>
                             <div
                               className={`w-20 h-20 rounded-full border-4 flex items-center justify-center ${
-                                analysisResult.overallScore >= 80
+                                analysisResult.overallScore >= 8
                                   ? "border-green-400"
-                                  : analysisResult.overallScore >= 60
+                                  : analysisResult.overallScore >= 6
                                     ? "border-yellow-400"
                                     : "border-red-400"
                               }`}
                             >
-                              {analysisResult.overallScore >= 70 ? (
+                              {analysisResult.overallScore >= 7 ? (
                                 <ThumbsUp className={`w-8 h-8 ${getScoreColor(analysisResult.overallScore)}`} />
                               ) : (
                                 <ThumbsDown className={`w-8 h-8 ${getScoreColor(analysisResult.overallScore)}`} />
@@ -341,19 +468,19 @@ export default function MarketingAnalysisPage() {
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-white font-medium">{item.label}</span>
                                 <span className={`font-bold ${getScoreColor(item.data.score)}`}>
-                                  {item.data.score}/100
+                                  {item.data.score}/10
                                 </span>
                               </div>
                               <div className="w-full bg-white/10 rounded-full h-2 mb-3">
                                 <div
                                   className={`h-2 rounded-full transition-all duration-500 ${
-                                    item.data.score >= 80
+                                    item.data.score >= 8
                                       ? "bg-green-400"
-                                      : item.data.score >= 60
+                                      : item.data.score >= 6
                                         ? "bg-yellow-400"
                                         : "bg-red-400"
                                   }`}
-                                  style={{ width: `${item.data.score}%` }}
+                                    style={{ width: `${Math.min(Number(item.data.score) * 10, 100)}%` }}
                                 />
                               </div>
                               <p className="text-white/60 text-sm">{item.data.feedback}</p>
@@ -361,6 +488,38 @@ export default function MarketingAnalysisPage() {
                           ))}
                         </CardContent>
                       </Card>
+
+                      {/* Dimension Scores */}
+                      {Object.keys(analysisResult.raw?.text_evaluation?.dimension_scores || {}).length > 0 && (
+                        <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+                          <CardHeader>
+                            <CardTitle className="text-white">Text Analysis Dimensions</CardTitle>
+                            <CardDescription className="text-white/60">
+                              Detailed breakdown of text quality metrics
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {Object.entries(analysisResult.raw?.text_evaluation?.dimension_scores || {}).map(([dimension, score]: [string, any], index) => (
+                              <div key={index} className="p-3 bg-white/5 rounded-lg border border-white/10">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-white/80 capitalize text-sm font-medium">{dimension}</span>
+                                  <span className={`text-sm font-bold ${Number(score) >= 7 ? 'text-green-400' : Number(score) >= 5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                    {Number(score).toFixed(1)}/10
+                                  </span>
+                                </div>
+                                <div className="w-full bg-white/10 rounded-full h-1.5">
+                                  <div
+                                    className={`h-1.5 rounded-full transition-all ${
+                                      Number(score) >= 7 ? 'bg-green-400' : Number(score) >= 5 ? 'bg-yellow-400' : 'bg-red-400'
+                                    }`}
+                                    style={{ width: `${Math.min(Number(score), 10)}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </CardContent>
+                        </Card>
+                      )}
 
                       {/* Suggestions */}
                       <Card className="bg-white/5 backdrop-blur-xl border-white/10">
@@ -381,6 +540,61 @@ export default function MarketingAnalysisPage() {
                               </li>
                             ))}
                           </ul>
+                        </CardContent>
+                      </Card>
+
+                      {/* Notebook Output Details */}
+                      <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+                        <CardHeader>
+                          <CardTitle className="text-white">Notebook Output Details</CardTitle>
+                          <CardDescription className="text-white/60">
+                            Full outputs from the original notebooks marketing pipeline
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          <div className="grid grid-cols-1 gap-4">
+                            <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                              <h4 className="text-white font-medium mb-2">Extracted Text</h4>
+                              <p className="text-white/70 text-sm whitespace-pre-wrap">
+                                {analysisResult.raw?.text_evaluation?.ocr_text_full || analysisResult.raw?.text_evaluation?.ocr_text || "No OCR text returned."}
+                              </p>
+                            </div>
+
+                            <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                              <h4 className="text-white font-medium mb-2">Backend Extracted Image</h4>
+                              {analysisResult.raw?.visual_evaluation?.extracted_image ? (
+                                <img
+                                  src={`data:image/png;base64,${analysisResult.raw?.visual_evaluation?.extracted_image}`}
+                                  alt="Extracted visual content"
+                                  className="w-full rounded-lg border border-white/10 bg-black/20"
+                                />
+                              ) : (
+                                <p className="text-white/50 text-sm">No extracted crop was returned by the backend.</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="p-4 bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+                              <h4 className="text-white font-medium mb-3">Text Feature Scores</h4>
+                              {textFeatureEntries.length > 0 ? (
+                                <div className="space-y-3">
+                                  {textFeatureEntries.map(([feature, value]) => (
+                                    <div key={feature} className="flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-black/20 px-4 py-3">
+                                      <span className="text-sm text-white/80 capitalize">
+                                        {feature.replace(/_/g, " ")}
+                                      </span>
+                                      <span className="text-sm font-medium text-indigo-300">
+                                        {formatFeatureValue(value)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-white/50">No text feature scores available.</p>
+                              )}
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
                     </>

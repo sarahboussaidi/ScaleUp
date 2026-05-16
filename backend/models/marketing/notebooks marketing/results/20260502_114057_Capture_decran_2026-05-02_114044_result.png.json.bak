@@ -1,0 +1,428 @@
+{
+  "extracted_text": "Fusion CXO\n+ Suivre\n309 102 abonnes\nPromu\nFusion CX is Hiring!\nOpen Role:\nCustomer Support Executives\nWhat We're Looking For:\nExcellent communication skills\nstrong willingness to learn and grow\nFollow our page to stay updated on the latest\npportunities_\nAfficher Ia traduction\nFUSION\nAi-First Cr\nIMMEDIATE\nHIRyNG\nAcRoss MULTIPLE ROLES\nFollow Us On Linkedln\n6381\n799 commentaires\n130 republications",
+  "platform_detection": {
+    "platform": "instagram",
+    "confidence": 0.776,
+    "scores": {
+      "instagram": 7.6,
+      "facebook": 0.8,
+      "linkedin": 0.0,
+      "tiktok": 0.0,
+      "x": 0.0,
+      "twitter": 0.0,
+      "pinterest": 0.0
+    },
+    "top_signals": [
+      "instagram",
+      "facebook"
+    ],
+    "reason": "Detected instagram from OCR cues: instagram, facebook",
+    "selected_platform": "instagram",
+    "selection_source": "ocr_heuristic"
+  },
+  "platform_used_for_text_evaluation": "instagram",
+  "text_features": {
+    "raw_text": "Fusion CXO\n+ Suivre\n309 102 abonnes\nPromu\nFusion CX is Hiring!\nOpen Role:\nCustomer Support Executives\nWhat We're Looking For:\nExcellent communication skills\nstrong willingness to learn and grow\nFollow our page to stay updated on the latest\npportunities_\nAfficher Ia traduction\nFUSION\nAi-First Cr\nIMMEDIATE\nHIRyNG\nAcRoss MULTIPLE ROLES\nFollow Us On Linkedln\n6381\n799 commentaires\n130 republications",
+    "word_count": 61,
+    "char_count": 397,
+    "hashtag_count": 0,
+    "mention_count": 0,
+    "exclaim_count": 1,
+    "question_count": 0,
+    "emoji_count": 0,
+    "has_cta": 1,
+    "has_url": 0,
+    "readability_flesch": 28.867663934426247,
+    "avg_word_length": 5.442622950819672,
+    "sentence_count": 2,
+    "caps_ratio": 0.08928571428571429,
+    "unique_hashtag_ratio": 0.0
+  },
+  "text_evaluation": {
+    "overall_score": 3.23,
+    "overall_label": "bad",
+    "universal_score": 3.23,
+    "target_match_score": null,
+    "dimension_scores": {
+      "readability": 1.5,
+      "sentiment": 5.0,
+      "structure": 5.5,
+      "hashtags": 1.0
+    },
+    "sentiment_detail": {
+      "label": "neutral",
+      "positive": 0.0,
+      "neutral": 1.0,
+      "negative": 0.0,
+      "sentiment_score": 0.0
+    },
+    "issues": {
+      "too_short": false,
+      "too_long": false,
+      "weak_cta": false,
+      "low_readability": true,
+      "too_many_hashtags": false,
+      "caps_heavy": false
+    },
+    "startup_profile": {
+      "platform": "instagram",
+      "audience": "",
+      "goal": "",
+      "tone": "",
+      "preferred_sentiment": "neutral",
+      "target_len_min": 113,
+      "target_len_max": 127,
+      "target_hashtag_min": 6,
+      "target_hashtag_max": 10,
+      "keywords": []
+    },
+    "feature_values": {
+      "raw_text": "Fusion CXO\n+ Suivre\n309 102 abonnes\nPromu\nFusion CX is Hiring!\nOpen Role:\nCustomer Support Executives\nWhat We're Looking For:\nExcellent communication skills\nstrong willingness to learn and grow\nFollow our page to stay updated on the latest\npportunities_\nAfficher Ia traduction\nFUSION\nAi-First Cr\nIMMEDIATE\nHIRyNG\nAcRoss MULTIPLE ROLES\nFollow Us On Linkedln\n6381\n799 commentaires\n130 republications",
+      "word_count": 61,
+      "char_count": 397,
+      "hashtag_count": 0,
+      "mention_count": 0,
+      "exclaim_count": 1,
+      "question_count": 0,
+      "emoji_count": 0,
+      "has_cta": 1,
+      "has_url": 0,
+      "readability_flesch": 28.867663934426247,
+      "avg_word_length": 5.442622950819672,
+      "sentence_count": 2,
+      "caps_ratio": 0.08928571428571429,
+      "unique_hashtag_ratio": 0.0
+    },
+    "text_model_source": "notebook_config_scoring"
+  },
+  "text_xai": {
+    "source": "raw_text",
+    "image_path": null,
+    "image_composition": null,
+    "raw_text_full": "Fusion CXO\n+ Suivre\n309 102 abonnes\nPromu\nFusion CX is Hiring!\nOpen Role:\nCustomer Support Executives\nWhat We're Looking For:\nExcellent communication skills\nstrong willingness to learn and grow\nFollow our page to stay updated on the latest\npportunities_\nAfficher Ia traduction\nFUSION\nAi-First Cr\nIMMEDIATE\nHIRyNG\nAcRoss MULTIPLE ROLES\nFollow Us On Linkedln\n6381\n799 commentaires\n130 republications",
+    "raw_text_preview": "Fusion CXO\n+ Suivre\n309 102 abonnes\nPromu\nFusion CX is Hiring!\nOpen Role:\nCustomer Support Executives\nWhat We're Looking For:\nExcellent communication skills\nstrong willingness to learn and grow\nFollow our page to stay updated on the latest\npportunities_\nAfficher Ia traduction\nFUSION\nAi-First Cr\nIMMEDIATE\nHIRyNG\nAcRoss MULTIPLE ROLES\nFollow Us On Linkedln\n6381\n799 commentaires\n130 republications",
+    "text_length": 397,
+    "platform": "instagram",
+    "overall_score": 3.23,
+    "overall_label": "bad",
+    "dimension_scores": {
+      "readability": 1.5,
+      "sentiment": 5.0,
+      "structure": 5.5,
+      "hashtags": 1.0
+    },
+    "dimension_contribution": {
+      "readability": {
+        "score": 1.5,
+        "weight": 0.25,
+        "contribution": 0.375,
+        "percent_of_total": 11.538461538461538
+      },
+      "sentiment": {
+        "score": 5.0,
+        "weight": 0.25,
+        "contribution": 1.25,
+        "percent_of_total": 38.46153846153847
+      },
+      "structure": {
+        "score": 5.5,
+        "weight": 0.25,
+        "contribution": 1.375,
+        "percent_of_total": 42.30769230769231
+      },
+      "hashtags": {
+        "score": 1.0,
+        "weight": 0.25,
+        "contribution": 0.25,
+        "percent_of_total": 7.6923076923076925
+      }
+    },
+    "ranked_dimensions": [
+      {
+        "dimension": "structure",
+        "score": 5.5,
+        "contribution_percent": 42.30769230769231
+      },
+      {
+        "dimension": "sentiment",
+        "score": 5.0,
+        "contribution_percent": 38.46153846153847
+      },
+      {
+        "dimension": "readability",
+        "score": 1.5,
+        "contribution_percent": 11.538461538461538
+      },
+      {
+        "dimension": "hashtags",
+        "score": 1.0,
+        "contribution_percent": 7.6923076923076925
+      }
+    ],
+    "feature_metrics": {
+      "raw_text": "Fusion CXO\n+ Suivre\n309 102 abonnes\nPromu\nFusion CX is Hiring!\nOpen Role:\nCustomer Support Executives\nWhat We're Looking For:\nExcellent communication skills\nstrong willingness to learn and grow\nFollow our page to stay updated on the latest\npportunities_\nAfficher Ia traduction\nFUSION\nAi-First Cr\nIMMEDIATE\nHIRyNG\nAcRoss MULTIPLE ROLES\nFollow Us On Linkedln\n6381\n799 commentaires\n130 republications",
+      "word_count": 61,
+      "char_count": 397,
+      "hashtag_count": 0,
+      "mention_count": 0,
+      "exclaim_count": 1,
+      "question_count": 0,
+      "emoji_count": 0,
+      "has_cta": 1,
+      "has_url": 0,
+      "readability_flesch": 28.867663934426247,
+      "avg_word_length": 5.442622950819672,
+      "sentence_count": 2,
+      "caps_ratio": 0.08928571428571429,
+      "unique_hashtag_ratio": 0.0
+    },
+    "top_features": {
+      "readability_flesch": {
+        "value": 28.867663934426247,
+        "impact": "Flesch reading ease (higher=easier, better for engagement)",
+        "importance": 0.25
+      },
+      "word_count": {
+        "value": 61.0,
+        "impact": "Word count (optimal: 10-150 words)",
+        "importance": 0.15
+      },
+      "char_count": {
+        "value": 397.0,
+        "impact": "Character count (optimal: 100-2200)",
+        "importance": 0.15
+      },
+      "hashtag_count": {
+        "value": 0.0,
+        "impact": "Hashtag count (optimal: 3-7 for Instagram)",
+        "importance": 0.15
+      },
+      "has_cta": {
+        "value": 1.0,
+        "impact": "Call-to-action present (binary: buy, click, link, etc.)",
+        "importance": 0.1
+      }
+    },
+    "issues_detected": {
+      "too_short": false,
+      "too_long": false,
+      "weak_cta": false,
+      "low_readability": true,
+      "too_many_hashtags": false,
+      "caps_heavy": false
+    },
+    "interpretation": "Low engagement risk (score 3.2/10). Weaknesses: readability, hashtags. Issues detected: Low Readability. Recommendations: Simplify text (lower Flesch score).",
+    "report_save_path": "./outputs/text_xai_report.json"
+  },
+  "visual_features": {
+    "score_0_10": 5.49,
+    "class_label": "average",
+    "feature_scores": {
+      "Content": 3.77,
+      "ColorHarmony": 5.72,
+      "Object": 2.73,
+      "VividColor": 6.88,
+      "Light": 6.06,
+      "DoF": 1.0,
+      "RuleOfThirds": 6.03,
+      "BalacingElements": 9.14,
+      "Repetition": 6.67,
+      "MotionBlur": 10.0,
+      "Symmetry": 8.66,
+      "Contrast": 3.31
+    },
+    "feature_weights": {
+      "Content": 0.13,
+      "ColorHarmony": 0.12,
+      "Object": 0.1,
+      "VividColor": 0.09,
+      "Light": 0.09,
+      "DoF": 0.09,
+      "RuleOfThirds": 0.08,
+      "BalacingElements": 0.07,
+      "Repetition": 0.05,
+      "MotionBlur": 0.07,
+      "Symmetry": 0.05,
+      "Contrast": 0.06
+    },
+    "top_contributions": [
+      {
+        "feature": "Content",
+        "score_0_10": 3.77,
+        "weight": 0.13,
+        "contribution": 0.49
+      },
+      {
+        "feature": "ColorHarmony",
+        "score_0_10": 5.72,
+        "weight": 0.12,
+        "contribution": 0.686
+      },
+      {
+        "feature": "Object",
+        "score_0_10": 2.73,
+        "weight": 0.1,
+        "contribution": 0.273
+      },
+      {
+        "feature": "VividColor",
+        "score_0_10": 6.88,
+        "weight": 0.09,
+        "contribution": 0.619
+      },
+      {
+        "feature": "Light",
+        "score_0_10": 6.06,
+        "weight": 0.09,
+        "contribution": 0.545
+      }
+    ],
+    "bottom_features": [
+      {
+        "feature": "DoF",
+        "score_0_10": 1.0,
+        "weight": 0.09,
+        "contribution": 0.09
+      },
+      {
+        "feature": "Object",
+        "score_0_10": 2.73,
+        "weight": 0.1,
+        "contribution": 0.273
+      },
+      {
+        "feature": "Contrast",
+        "score_0_10": 3.31,
+        "weight": 0.06,
+        "contribution": 0.199
+      }
+    ],
+    "debug_metrics": {
+      "brightness_0_255": 84.89,
+      "contrast_std": 92.17,
+      "vividness_0_1": 0.2597,
+      "edge_density_0_1": 0.2379,
+      "laplacian_variance": 3861.28,
+      "saliency_center_mass": 0.2734
+    }
+  },
+  "visual_xai": {
+    "image": "./uploads\\20260502_114057_Capture_decran_2026-05-02_114044_crop.png",
+    "image_composition": {
+      "file_path": "./uploads\\20260502_114057_Capture_decran_2026-05-02_114044_crop.png",
+      "dimensions": {
+        "width": 546,
+        "height": 546
+      },
+      "aspect_ratio": 1.0,
+      "color_space": "RGB",
+      "file_size_kb": 237.8681640625,
+      "average_color": {
+        "red": 109.4,
+        "green": 66.3,
+        "blue": 117.0
+      },
+      "brightness_0_255": 85.0,
+      "brightness_label": "dark",
+      "contrast_std": 93.8,
+      "contrast_label": "high",
+      "color_saturation_0_1": 0.261,
+      "saturation_label": "normal"
+    },
+    "extracted_text": "FUSION\nAi-First CX\nIMMEDIATE\nHIRWNG\nAcRoss MULTIPLE ROLES\nFollow Us On Linkedln",
+    "visual_prediction": {
+      "class": "good",
+      "score_0_10": 9.99652624130249
+    },
+    "grad_cam": {
+      "heatmap_save": "./outputs/gradcam_20260502_114057_Capture_decran_2026-05-02_114044_crop.png",
+      "top_regions": [
+        "Region 1: row=0/1, col=0/1 (intensity=0.000)"
+      ]
+    },
+    "attribute_importance_inference": {
+      "top_3": [
+        [
+          "Object",
+          0.9999999913852842
+        ],
+        [
+          "Light",
+          0.9384484675201858
+        ],
+        [
+          "VividColor",
+          0.8767239018810071
+        ]
+      ],
+      "full": {
+        "BalacingElements": 0.6181065520547622,
+        "ColorHarmony": 0.6043840826316674,
+        "Content": 0.5261126669215366,
+        "DoF": 0.7562510377691214,
+        "Light": 0.9384484675201858,
+        "MotionBlur": 0.7411442341533853,
+        "Object": 0.9999999913852842,
+        "Repetition": 0.0,
+        "RuleOfThirds": 0.4150453903632885,
+        "Symmetry": 0.0,
+        "VividColor": 0.8767239018810071
+      }
+    },
+    "attribute_importance_training": {
+      "Content": 0.6808642017202233,
+      "Light": 0.5693554032653336,
+      "ColorHarmony": 0.5619543730650818,
+      "Object": 0.5418692003813564,
+      "VividColor": 0.5144203182980835,
+      "DoF": 0.4373044485203855,
+      "RuleOfThirds": 0.3530456447115033,
+      "BalacingElements": 0.33214858063586367,
+      "MotionBlur": 0.21686219788450856,
+      "Symmetry": 0.1290828079344685,
+      "Repetition": 0.10040885388955621
+    },
+    "interpretation": "The model predicts 'good' (score 10.0/10). Image: 546x546 (1.0:1), dark with high contrast. Image regions with highest activation shown in Grad-CAM heatmap. Top influencing attributes: Object(1.00), Light(0.94), VividColor(0.88)",
+    "report_save_path": "./outputs/xai_report.json"
+  },
+  "overall_evaluation": {
+    "overall_score_0_10": 4.473000000000001,
+    "engagement_label": "low",
+    "engagement_confidence": 0.5527,
+    "decision_threshold": 6.0
+  },
+  "feature_columns": [
+    "follower_count",
+    "post_hour",
+    "has_call_to_action",
+    "comments",
+    "shares",
+    "saves",
+    "month",
+    "is_weekend",
+    "hour_sin",
+    "hour_cos",
+    "log_follower_count",
+    "content_category_Beauty",
+    "content_category_Comedy",
+    "content_category_Fashion",
+    "content_category_Fitness",
+    "content_category_Food",
+    "content_category_Lifestyle",
+    "content_category_Music",
+    "content_category_Photography",
+    "content_category_Technology",
+    "content_category_Travel",
+    "account_type_brand",
+    "account_type_creator",
+    "day_of_week_Friday",
+    "day_of_week_Monday",
+    "day_of_week_Saturday",
+    "day_of_week_Sunday",
+    "day_of_week_Thursday",
+    "day_of_week_Tuesday",
+    "day_of_week_Wednesday"
+  ],
+  "engagement_pred_raw": 0.0,
+  "engagement_confidence": 0.5527
+}

@@ -18,17 +18,20 @@ import subprocess
 import tensorflow as tf
 import traceback
 import importlib
+import importlib.util
 import joblib
 import mediapipe as mp
 import librosa
 import io
 import tempfile
+import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from docx import Document
+from werkzeug.utils import secure_filename
 
 try:
     from pypdf import PdfReader
@@ -93,6 +96,23 @@ if bmc_processor_bp is not None:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 VOICE_EMOTION_MODEL_PATH = os.path.join(MODELS_DIR, "best_cnn2d_v2.keras")
+_MARKETING_DIR_CANDIDATES = [
+    Path(MODELS_DIR) / "marketing" / "notebooks marketing",
+    Path(MODELS_DIR) / "marketing models" / "notebooks marketing",
+]
+MARKETING_NOTEBOOK_DIR = next((candidate for candidate in _MARKETING_DIR_CANDIDATES if candidate.exists()), _MARKETING_DIR_CANDIDATES[0])
+MARKETING_MODELS_DIR = MARKETING_NOTEBOOK_DIR.parent
+MARKETING_OUTPUTS_DIR = os.path.join(MARKETING_NOTEBOOK_DIR, "outputs")
+
+for search_path in (MARKETING_MODELS_DIR, MARKETING_NOTEBOOK_DIR):
+    search_path_str = str(search_path)
+    if search_path_str not in sys.path:
+        sys.path.insert(0, search_path_str)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+OUTPUT_DIR = MARKETING_OUTPUTS_DIR
+
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # -----------------------------
 # SRS uploaded document vision
@@ -1351,6 +1371,172 @@ def detect_voice_emotion(audio_base64):
         traceback.print_exc()
         return {"error": str(e)}
 
+
+# --- Marketing notebook helper functions ---
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def encode_image_to_base64(image_path):
+    try:
+        with open(image_path, 'rb') as handle:
+            return base64.b64encode(handle.read()).decode('utf-8')
+    except Exception as exc:
+        print(f"Error encoding image: {exc}")
+        return None
+
+
+def format_evaluation_for_display(eval_result):
+    try:
+        text_xai = eval_result.get('text_xai', {})
+        full_ocr_text = (
+            text_xai.get('raw_text_full')
+            or eval_result.get('extracted_text')
+            or eval_result.get('text_features', {}).get('raw_text', '')
+            or eval_result.get('ocr_regions', {}).get('full_text', '')
+            or ''
+        )
+        preview_ocr_text = text_xai.get('raw_text_preview') or full_ocr_text[:500]
+
+        selected_platform = eval_result.get('platform_used_for_text_evaluation') or eval_result.get('platform') or 'unknown'
+        platform_display = (selected_platform or 'unknown').upper()
+
+        def safe_score(val, default=0):
+            if val is None:
+                return float(default)
+            return float(val)
+
+        text_score = safe_score(eval_result.get('text_evaluation', {}).get('overall_score', 0))
+        visual_features = eval_result.get('visual_features', {})
+        visual_xai = eval_result.get('visual_xai', {})
+        visual_score = safe_score(
+            visual_features.get('score_0_10', visual_xai.get('visual_prediction', {}).get('score_0_10', 0))
+        )
+        overall_score = safe_score(eval_result.get('overall_evaluation', {}).get('overall_score_0_10', 0))
+
+        if visual_score < 3.33:
+            fallback_visual_class = 'bad'
+        elif visual_score < 6.67:
+            fallback_visual_class = 'average'
+        else:
+            fallback_visual_class = 'good'
+
+        result = {
+            'success': True,
+            'timestamp': datetime.now().isoformat(),
+            'platform_selected': platform_display,
+            'text_evaluation': {
+                'overall_score': round(text_score, 1),
+                'penalized_overall_score': round(text_xai.get('penalized_overall_score', text_score), 1),
+                'dimensions': eval_result.get('text_evaluation', {}).get('dimension_scores', {}),
+                'ocr_text': preview_ocr_text,
+                'ocr_text_full': full_ocr_text,
+                'text_length': len(full_ocr_text),
+                'sentiment': eval_result.get('text_evaluation', {}).get('sentiment_detail', {}),
+                'issues': eval_result.get('text_evaluation', {}).get('issues', {}),
+            },
+            'visual_evaluation': {
+                'overall_score': round(visual_score, 1),
+                'class_label': visual_features.get('class_label') or fallback_visual_class,
+                'score_band': visual_features.get('class_label') or fallback_visual_class,
+                'confidence': visual_features.get('confidence', 0.0),
+                'class_probs': visual_features.get('class_probs', {}),
+                'model_source': visual_features.get('model_source', '') or visual_xai.get('score_source', ''),
+                'visual_features': visual_features.get('visual_features', {}),
+                'xai_summary': eval_result.get('visual_xai', {}).get('interpretation', ''),
+                'composition': eval_result.get('visual_xai', {}).get('image_composition', {}),
+                'extracted_image': eval_result.get('extracted_image_b64', None),
+            },
+            'text_xai': {
+                'interpretation': text_xai.get('interpretation', ''),
+                'overall_score': text_xai.get('overall_score', 0.0),
+                'penalized_overall_score': text_xai.get('penalized_overall_score', 0.0),
+                'universal_score': text_xai.get('universal_score', 0.0),
+                'penalty_applied': text_xai.get('penalty_applied', 0.0),
+                'dimension_scores': text_xai.get('dimension_scores', {}),
+                'ranked_dimensions': text_xai.get('ranked_dimensions', []),
+                'top_features': text_xai.get('top_features', {}),
+                'issues_detected': text_xai.get('issues_detected', {}),
+                'feature_metrics': text_xai.get('feature_metrics', {}),
+            },
+            'visual_xai': {
+                'interpretation': visual_xai.get('interpretation', ''),
+                'grad_cam': visual_xai.get('grad_cam', {}),
+                'attribute_importance': visual_xai.get('attribute_importance_inference', {}),
+                'visual_prediction': visual_xai.get('visual_prediction', {}),
+                'image_composition': visual_xai.get('image_composition', {}),
+            },
+            'overall_engagement': {
+                'score': round(overall_score, 1),
+                'verdict': eval_result.get('overall_evaluation', {}).get('verdict', 'Unknown'),
+                'breakdown': eval_result.get('overall_evaluation', {}).get('breakdown', {}),
+            },
+        }
+        return result
+    except Exception as exc:
+        print(f"Error formatting evaluation: {exc}")
+        traceback.print_exc()
+        return {'success': False, 'error': str(exc)}
+
+
+def get_verdict_color(score):
+    if score is None:
+        score = 0.0
+    try:
+        score = float(score)
+    except (TypeError, ValueError):
+        score = 0.0
+
+    if score >= 8.0:
+        return 'verdict-excellent'
+    if score >= 6.0:
+        return 'verdict-good'
+    if score >= 4.0:
+        return 'verdict-mid'
+    if score >= 2.0:
+        return 'verdict-poor'
+    return 'verdict-bad'
+
+
+def _load_json_from_marketing_outputs(filename):
+    path = Path(MARKETING_OUTPUTS_DIR) / filename
+    if not path.exists():
+        return {}
+    try:
+        with path.open('r', encoding='utf-8') as handle:
+            return json.load(handle)
+    except Exception:
+        return {}
+
+
+def analyze_marketing_screenshot(image_path, platform=None):
+    """Notebook-style marketing analysis adapted into the backend."""
+    outputs_dir = MARKETING_OUTPUTS_DIR
+    platform_key = (platform or 'linkedin').lower()
+
+    try:
+        engagement_pipeline_path = os.path.join(MARKETING_NOTEBOOK_DIR, 'engagement_pipeline.py')
+        pipeline_spec = importlib.util.spec_from_file_location('scaleup_marketing_engagement_pipeline', engagement_pipeline_path)
+        if pipeline_spec is None or pipeline_spec.loader is None:
+            raise ImportError(f'Could not load marketing pipeline from {engagement_pipeline_path}')
+
+        pipeline_module = importlib.util.module_from_spec(pipeline_spec)
+        pipeline_spec.loader.exec_module(pipeline_module)
+        predict_engagement_from_screenshot = pipeline_module.predict_engagement_from_screenshot
+
+        result = predict_engagement_from_screenshot(
+            screenshot_path=image_path,
+            outputs_dir=outputs_dir,
+            metadata={'platform': platform_key},
+            do_extract_image=True,
+            include_legacy_model=False,
+        )
+        result['platform'] = result.get('platform') or platform_key
+        result['timestamp'] = datetime.now().isoformat()
+        return result
+    except Exception as exc:
+        raise RuntimeError(f"Live marketing pipeline failed: {exc}") from exc
+
 # ========================
 # API ENDPOINTS
 # ========================
@@ -1501,6 +1687,58 @@ def analyze_speech_strength():
     except Exception as e:
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/marketing/analyze', methods=['POST'])
+def analyze_marketing():
+    """Analyze a marketing screenshot and return notebook-style outputs."""
+    try:
+        if 'screenshot' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
+
+        file = request.files['screenshot']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+
+        filename = secure_filename(file.filename)
+        temp_dir = os.path.join(BASE_DIR, 'uploads')
+        os.makedirs(temp_dir, exist_ok=True)
+        saved_path = os.path.join(temp_dir, f"marketing_{filename}")
+        file.save(saved_path)
+
+        platform = (request.form.get('platform') or '').strip().lower() or None
+        result = analyze_marketing_screenshot(saved_path, platform=platform)
+        img_base64 = encode_image_to_base64(saved_path)
+
+        try:
+            os.remove(saved_path)
+        except Exception:
+            pass
+
+        if result is None:
+            return jsonify({'success': False, 'error': 'No result from marketing service'}), 500
+
+        if 'success' not in result:
+            try:
+                formatted_result = format_evaluation_for_display(result)
+                if not formatted_result.get('success'):
+                    return jsonify({'success': False, 'error': formatted_result.get('error', 'Formatting failed')}), 500
+
+                if img_base64:
+                    formatted_result['image_base64'] = img_base64
+
+                formatted_result['result_id'] = os.path.splitext(os.path.basename(saved_path))[0] + '_result'
+                formatted_result['timestamp'] = datetime.now().isoformat()
+                return jsonify(formatted_result), 200
+            except Exception as exc:
+                traceback.print_exc()
+                return jsonify({'success': False, 'error': str(exc)}), 500
+
+        status_code = 200 if result.get('success') else 500
+        return jsonify(result), status_code
+    except Exception as exc:
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(exc)}), 500
 
 
 @app.route('/api/legal/templates', methods=['GET'])

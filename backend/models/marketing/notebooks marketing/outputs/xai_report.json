@@ -1,0 +1,86 @@
+{
+  "image": "C:\\Users\\MSI\\Documents\\3ia\\AI_project_Consulting\\integration+\\ScaleUp\\backend\\uploads\\marketing_Capture_decran_2026-04-29_003204_crop.png",
+  "image_composition": {
+    "file_path": "C:\\Users\\MSI\\Documents\\3ia\\AI_project_Consulting\\integration+\\ScaleUp\\backend\\uploads\\marketing_Capture_decran_2026-04-29_003204_crop.png",
+    "dimensions": {
+      "width": 990,
+      "height": 704
+    },
+    "aspect_ratio": 1.41,
+    "color_space": "RGB",
+    "file_size_kb": 635.40234375,
+    "average_color": {
+      "red": 149.1,
+      "green": 162.4,
+      "blue": 160.5
+    },
+    "brightness_0_255": 158.2,
+    "brightness_label": "medium",
+    "contrast_std": 63.9,
+    "contrast_label": "medium",
+    "color_saturation_0_1": 0.228,
+    "saturation_label": "normal"
+  },
+  "extracted_text": "certitic\nTalan\nrespon:\nCette\nTalan\nTunisie\nLim\nL'en\nCERTIFIEE ISO 14001\nimpact\nIS0\nCert\n1 400\nChez\nNotre engagement environnemental,\ninnovati\nencore une fois reconnu\nconstrui\nMPA\n#Talan\nTUVRheinland\n#Environ\nGenau: Richtig:\n12 sem\ncomm\n55 J'aime\nDAN\n29 janvier\nAjouter\nERIIFZ\nEWAN\nntoreton\nPorttt 5",
+  "visual_prediction": {
+    "class": "good",
+    "score_0_10": 6.63,
+    "class_id": 2,
+    "source": "notebook_visual_evaluation"
+  },
+  "grad_cam": {
+    "heatmap_save": "C:\\Users\\MSI\\Documents\\3ia\\AI_project_Consulting\\integration+\\ScaleUp\\backend\\models\\marketing\\notebooks marketing\\outputs\\gradcam_marketing_Capture_decran_2026-04-29_003204_crop.png",
+    "top_regions_save": "C:\\Users\\MSI\\Documents\\3ia\\AI_project_Consulting\\integration+\\ScaleUp\\backend\\models\\marketing\\notebooks marketing\\outputs\\gradcam_marketing_Capture_decran_2026-04-29_003204_crop_top_regions.png",
+    "top_regions": [
+      "Region 1: row=0/8, col=0/8 (intensity=1.000)",
+      "Region 2: row=7/8, col=3/8 (intensity=0.264)",
+      "Region 3: row=3/8, col=5/8 (intensity=0.115)",
+      "Region 4: row=5/8, col=1/8 (intensity=0.114)",
+      "Region 5: row=2/8, col=5/8 (intensity=0.110)"
+    ]
+  },
+  "attribute_importance_inference": {
+    "top_3": [
+      [
+        "Object",
+        0.9999999913852842
+      ],
+      [
+        "Light",
+        0.9384484675201858
+      ],
+      [
+        "VividColor",
+        0.8767239018810071
+      ]
+    ],
+    "full": {
+      "BalacingElements": 0.6181065520547622,
+      "ColorHarmony": 0.6043840826316674,
+      "Content": 0.5261126669215366,
+      "DoF": 0.7562510377691214,
+      "Light": 0.9384484675201858,
+      "MotionBlur": 0.7411442341533853,
+      "Object": 0.9999999913852842,
+      "Repetition": 0.0,
+      "RuleOfThirds": 0.4150453903632885,
+      "Symmetry": 0.0,
+      "VividColor": 0.8767239018810071
+    }
+  },
+  "attribute_importance_training": {
+    "Content": 0.6808642017202233,
+    "Light": 0.5693554032653336,
+    "ColorHarmony": 0.5619543730650818,
+    "Object": 0.5418692003813564,
+    "VividColor": 0.5144203182980835,
+    "DoF": 0.4373044485203855,
+    "RuleOfThirds": 0.3530456447115033,
+    "BalacingElements": 0.33214858063586367,
+    "MotionBlur": 0.21686219788450856,
+    "Symmetry": 0.1290828079344685,
+    "Repetition": 0.10040885388955621
+  },
+  "interpretation": "The notebook-trained visual score is 6.6/10, which falls in the 'good' band. Image: 990x704 (1.41:1), medium with medium contrast. Image regions with highest activation shown in Grad-CAM heatmap. Top influencing attributes: Object(1.00), Light(0.94), VividColor(0.88)",
+  "score_source": "notebook_visual_evaluation"
+}
