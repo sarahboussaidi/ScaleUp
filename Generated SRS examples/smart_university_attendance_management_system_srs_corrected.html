@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Corrected Smart University Attendance Management System SRS</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 50px;
+    line-height: 1.65;
+    color: #222;
+}
+h1 {
+    color: #12355b;
+    border-bottom: 2px solid #12355b;
+    padding-bottom: 6px;
+}
+h2 {
+    color: #1f5f8b;
+    margin-top: 28px;
+}
+h3 {
+    color: #2a6f97;
+}
+strong {
+    color: #111;
+}
+</style>
+</head>
+<body>
+<br>
+<h1>Software Requirements Specification</h1><br>
+<br>
+<h2>Smart University Attendance Management System</h2><br>
+<br>
+<strong>Prepared by:</strong> Sarah Boussaidi  <br>
+<strong>Generated on:</strong> 2026-05-10 21:35  <br>
+<strong>Generation method:</strong> LLM + RAG + Quality Validation  <br>
+<strong>Knowledge base:</strong> Previous SRS requirements analyzed by NLP, Computer Vision, XAI, and quality scoring<br>
+<br>
+---<br>
+<br>
+<h1>Table of Contents</h1><br>
+<br>
+1. Introduction<br>
+2. General Description<br>
+3. Functional Requirements<br>
+4. Non-Functional Requirements<br>
+5. Interface Requirements<br>
+6. Performance Requirements<br>
+7. Security Requirements<br>
+8. Acceptance Criteria<br>
+9. Risks and Assumptions<br>
+10. Conclusion<br>
+<br>
+---<br>
+<br>
+<h1>1. Introduction</h1><br>
+<br>
+<h1>1. Introduction</h1><br>
+<br>
+<h2>1.1 Purpose</h2><br>
+The Smart University Attendance Management System aims to enhance university operations by providing a comprehensive solution for managing student attendance, course scheduling, and administrative tasks. This system integrates seamlessly into existing university infrastructures, ensuring accessibility through web browsers while maintaining high levels of security, performance, and usability.<br>
+<br>
+<h2>1.2 Scope</h2><br>
+This document outlines the functional and non-functional requirements for the Smart University Attendance Management System. It covers key functionalities such as student registration and authentication, teacher authentication, course and class management, attendance session creation, student check-in, attendance report generation, and admin dashboard. Additionally, it addresses security, performance, availability, usability, reliability, and maintainability constraints.<br>
+<br>
+<h2>1.3 Target Users</h2><br>
+- <strong>Students</strong>: Users who need to register, check in, and view their attendance records.<br>
+- <strong>Teachers</strong>: Administrators responsible for creating sessions, managing courses, and overseeing student attendance.<br>
+- <strong>Administrators</strong>: Managers tasked with course administration, reporting, and system maintenance.<br>
+<br>
+---<br>
+<br>
+<h3>1.5 Non-Functional Requirements</h3><br>
+<br>
+<h4>1.5.1 Security</h4><br>
+- <strong>Authentication</strong>: Implement robust multi-factor authentication mechanisms to ensure secure access to the system.<br>
+- <strong>Data Encryption</strong>: Encrypt sensitive data both in transit and at rest to protect against unauthorized access.<br>
+- <strong>Access Control</strong>: Implement role-based access control to restrict access based on user roles and permissions.<br>
+<br>
+<h4>1.5.2 Performance</h4><br>
+- <strong>Scalability</strong>: Design the system to scale horizontally to accommodate increasing numbers of concurrent users.<br>
+- <strong>Latency Reduction</strong>: Minimize response times for critical operations such as student check-in and attendance report generation.<br>
+- <strong>Load Balancing</strong>: Utilize load balancers to distribute traffic evenly across multiple servers to improve overall system performance.<br>
+<br>
+<h4>1.5.3 Availability</h4><br>
+- <strong>High Availability</strong>: Ensure the system remains operational 99.999% of the time to minimize downtime.<br>
+- <strong>Redundancy</strong>: Implement redundant systems and backup solutions to prevent data loss or service disruption.<br>
+<br>
+<h4>1.5.4 Usability</h4><br>
+- <strong>User Interface</strong>: Design intuitive and responsive user interfaces for seamless navigation and interaction.<br>
+- <strong>Accessibility</strong>: Ensure the system is accessible to users with disabilities, including those with visual impairments.<br>
+- <strong>Training Materials</strong>: Provide comprehensive training materials and resources for new users.<br>
+<br>
+<h4>1.5.5 Reliability</h4><br>
+- <strong>Failover Mechanisms</strong>: Implement failover mechanisms to automatically switch to alternative systems if primary services fail.<br>
+- <strong>Monitoring and Alerts</strong>: Continuously monitor system performance and alert administrators of potential issues before they impact user experience.<br>
+<br>
+<h4>1.5.6 Maintainability</h4><br>
+- <strong>Modular Architecture</strong>: Develop a modular architecture that allows for easy updates and modifications without affecting other parts of the system.<br>
+- <strong>Documentation</strong>: Maintain detailed documentation to facilitate understanding and troubleshooting of the system.<br>
+- <strong>Version Control</strong>: Use version control systems to track changes and ensure consistency across different versions of the system.<br>
+<br>
+---<br>
+<br>
+<h3>1.6 Conclusion</h3><br>
+This section provides a comprehensive overview of the Smart University Attendance Management System, detailing its purpose, scope, target users, and outlining the functional and non-functional requirements that guide its development. These requirements are designed to ensure a robust, scalable, and reliable system capable of meeting the diverse needs of students, teachers, and administrators.<br>
+<br>
+---<br>
+<br>
+<h1>2. General Description</h1><br>
+<br>
+<h1>2. General Description</h1><br>
+<br>
+<h2>2.1 Introduction</h2><br>
+<br>
+<h3>2.1.1 Context</h3><br>
+The Smart University Attendance Management System aims to enhance university operations by providing an integrated solution for managing student attendance. This system combines web-based functionalities with mobile applications to facilitate seamless communication between teachers, students, and administrators.<br>
+<br>
+<h3>2.1.2 Users</h3><br>
+- <strong>Students</strong>: Manage their attendance records and receive notifications about upcoming classes.<br>
+- <strong>Teachers</strong>: Create and manage sessions, monitor student attendance, and generate attendance reports.<br>
+- <strong>Administrators</strong>: Oversee course schedules, manage student enrollments, and generate comprehensive attendance reports.<br>
+<br>
+<h3>2.1.3 Assumptions</h3><br>
+- The system will operate within a secure network environment.<br>
+- Web browsers will be used for accessing the system.<br>
+- The system will handle multiple concurrent users efficiently.<br>
+<br>
+<h3>2.1.4 Constraints</h3><br>
+- Accessibility: The system must be accessible via web browsers.<br>
+- Scalability: The system should support high traffic volumes without compromising performance.<br>
+- Data Security: User data protection is paramount.<br>
+<br>
+<h2>2.2 Functional Requirements</h2><br>
+<br>
+<h3>2.2.1 Student Registration and Authentication</h3><br>
+<strong>Requirement:</strong> Students must be able to register and authenticate themselves using a unique identifier and password.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> A valid student ID and password.<br>
+- <strong>Expected Output:</strong> Successful registration and login confirmation.<br>
+<br>
+<h3>2.2.2 Teacher Authentication</h3><br>
+<strong>Requirement:</strong> Teachers must be authenticated before they can access the teacher dashboard.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> A valid username and password provided by the administrator.<br>
+- <strong>Expected Output:</strong> Successful authentication and access to the teacher dashboard.<br>
+<br>
+<h3>2.2.3 Course and Class Management</h3><br>
+<strong>Requirement:</strong> Administrators must be able to create new courses and classes, assign instructors, and manage course schedules.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> Valid course details including instructor name and schedule.<br>
+- <strong>Expected Output:</strong> Course created successfully and displayed in the admin dashboard.<br>
+<br>
+<h3>2.2.4 Attendance Session Creation</h3><br>
+<strong>Requirement:</strong> Teachers must be able to create attendance sessions for specific classes or events.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> Details of the session, including date, time, and location.<br>
+- <strong>Expected Output:</strong> Attendance session created and available for students to check in.<br>
+<br>
+<h3>2.2.5 Student Check-In</h3><br>
+<strong>Requirement:</strong> Students must be able to check in during the specified session.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> Valid session details and personal identification.<br>
+- <strong>Expected Output:</strong> Student checked in successfully and marked as present.<br>
+<br>
+<h3>2.2.6 Attendance Report Generation</h3><br>
+<strong>Requirement:</strong> Administrators must be able to generate detailed attendance reports for each class or event.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> Date range for which the report is requested.<br>
+- <strong>Expected Output:</strong> Comprehensive attendance report generated and accessible via the admin dashboard.<br>
+<br>
+<h3>2.2.7 Admin Dashboard</h3><br>
+<strong>Requirement:</strong> Administrators must have a dedicated dashboard to view all managed courses, check attendance reports, and manage other administrative tasks.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> No input.<br>
+- <strong>Expected Output:</strong> Access granted to the admin dashboard and ability to navigate through various sections.<br>
+<br>
+<h2>2.3 Non-Functional Requirements</h2><br>
+<br>
+<h3>2.3.1 Security</h3><br>
+<strong>Requirement:</strong> All user data must be protected against unauthorized access and breaches.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> Attempting to log in with incorrect credentials.<br>
+- <strong>Expected Output:</strong> Unauthorized access message and failure to log in.<br>
+<br>
+<h3>2.3.2 Performance</h3><br>
+<strong>Requirement:</strong> The system must perform well under heavy load conditions without significant degradation in response times.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> Simulating high user activity during peak hours.<br>
+- <strong>Expected Output:</strong> System remains responsive and does not crash.<br>
+<br>
+<h3>2.3.3 Availability</h3><br>
+<strong>Requirement:</strong> The system must be available 24/7 without any downtime.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> No input.<br>
+- <strong>Expected Output:</strong> Continuous operation without interruptions.<br>
+<br>
+<h3>2.3.4 Usability</h3><br>
+<strong>Requirement:</strong> The interface must be intuitive and easy to use for all target users.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> Using the system for the first time.<br>
+- <strong>Expected Output:</strong> Familiarity with the navigation and functionality.<br>
+<br>
+<h3>2.3.5 Reliability</h3><br>
+<strong>Requirement:</strong> The system must function reliably without frequent crashes or errors.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> Simulating multiple attempts to log in.<br>
+- <strong>Expected Output:</strong> No crashes or errors occurring.<br>
+<br>
+<h3>2.3.6 Maintainability</h3><br>
+<strong>Requirement:</strong> The system must be easily maintainable and scalable.<br>
+<br>
+<strong>Test Case:</strong><br>
+- <strong>Input:</strong> Adding a new feature or modifying existing functionality.<br>
+- <strong>Expected Output:</strong> Changes implemented without affecting existing functionality.<br>
+<br>
+<h2>2.4 Additional Notes</h2><br>
+<br>
+<h3>2.4.1 CRS0129</h3><br>
+<strong>Note:</strong> The system shall demonstrate a high level of security and reliability, ensuring that user data is protected and that the system performs optimally under various conditions.<br>
+<br>
+<h3>2.4.2 UNCERTAIN</h3><br>
+<strong>Note:</strong> The system shall comply with the latest industry standards for data integrity and confidentiality.<br>
+<br>
+<h3>2.4.3 Requirement Improvement</h3><br>
+<strong>Note:</strong> The system shall support multi-tier authentication when required, enhancing security measures.<br>
+<br>
+---<br>
+<br>
+This document outlines the core functionalities and non-functional requirements of the Smart University Attendance Management System, ensuring that it meets the needs of its intended users while maintaining robust security and performance characteristics.<br>
+<br>
+---<br>
+<br>
+<h1>3. Functional Requirements</h1><br>
+<br>
+<h3>3. Functional Requirements</h3><br>
+<br>
+<h4>3.1 Student Registration and Authentication</h4><br>
+<br>
+<strong>Shall</strong> the system provide a secure and efficient mechanism for students to register and authenticate themselves?<br>
+<br>
+- <strong>Description</strong>: Students shall be able to sign up for an account using their email address and password. Upon successful registration, they shall receive a unique login link via email for verification purposes.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Verify that a new student can successfully register.<br>
+  - Ensure that the system sends a confirmation email with a verification link.<br>
+  - Confirm that the verification process requires clicking on the link sent to the registered email.<br>
+<br>
+---<br>
+<br>
+<h4>3.2 Teacher Authentication</h4><br>
+<br>
+<strong>Shall</strong> the system enable teachers to log in securely using their credentials?<br>
+<br>
+- <strong>Description</strong>: Teachers shall be able to access the system using their username and password. The system shall enforce strong password policies and require two-factor authentication where applicable.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Validate that a teacher can log in using their correct credentials.<br>
+  - Ensure that incorrect passwords result in failed login attempts.<br>
+  - Test the system's ability to handle multiple simultaneous logins without overwhelming resources.<br>
+<br>
+---<br>
+<br>
+<h4>3.3 Course and Class Management</h4><br>
+<br>
+<strong>Shall</strong> the system facilitate the creation and management of courses and classes by teachers?<br>
+<br>
+- <strong>Description</strong>: Teachers shall be able to create new courses and classes within the system. They shall also have the capability to add students to these classes, assign instructors, and set meeting times.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Verify that teachers can create new courses and classes.<br>
+  - Check if adding students to a course works correctly.<br>
+  - Ensure that assigning instructors and setting meeting times are feasible.<br>
+<br>
+---<br>
+<br>
+<h4>3.4 Attendance Session Creation</h4><br>
+<br>
+<strong>Shall</strong> the system allow teachers to schedule and manage attendance sessions?<br>
+<br>
+- <strong>Description</strong>: Teachers shall be able to create and schedule attendance sessions for their classes. These sessions shall include details such as start and end times, location, and any additional instructions.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Confirm that teachers can create new attendance sessions.<br>
+  - Verify that sessions can be scheduled and rescheduled.<br>
+  - Ensure that session details are accurately recorded and displayed.<br>
+<br>
+---<br>
+<br>
+<h4>3.5 Student Check-In</h4><br>
+<br>
+<strong>Shall</strong> the system enable students to check into attendance sessions?<br>
+<br>
+- <strong>Description</strong>: Students shall be able to log into the system and check in for attendance sessions. This shall involve entering their name, selecting the session they wish to attend, and confirming their presence.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Validate that students can log in and check into sessions.<br>
+  - Ensure that checking in is optional and can be done individually or in groups.<br>
+  - Confirm that the system records each student's attendance status accurately.<br>
+<br>
+---<br>
+<br>
+<h4>3.6 Attendance Report Generation</h4><br>
+<br>
+<strong>Shall</strong> the system generate detailed attendance reports automatically?<br>
+<br>
+- <strong>Description</strong>: The system shall automatically generate attendance reports based on the logged-in students' check-ins. Reports shall include total attendance numbers, individual student attendance percentages, and any other relevant statistical data.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Verify that automatic report generation occurs after a specified period.<br>
+  - Ensure that reports are accurate and comprehensive.<br>
+  - Test different scenarios to confirm the system handles various types of attendance data effectively.<br>
+<br>
+---<br>
+<br>
+<h4>3.7 Admin Dashboard</h4><br>
+<br>
+<strong>Shall</strong> the system provide an admin dashboard for managing all aspects of the system?<br>
+<br>
+- <strong>Description</strong>: Administrators shall have access to an admin dashboard where they can oversee all activities within the system. This shall include viewing attendance statistics, managing course schedules, and performing administrative tasks.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Confirm that administrators can access the admin dashboard.<br>
+  - Verify that the dashboard displays all essential functionalities.<br>
+  - Test the system's ability to handle large volumes of data efficiently.<br>
+<br>
+---<br>
+<br>
+<h4>3.8 Security</h4><br>
+<br>
+<strong>Shall</strong> the system ensure robust security measures to protect user data?<br>
+<br>
+- <strong>Description</strong>: The system shall implement encryption for sensitive data, utilize multi-factor authentication, and adhere to industry-standard security protocols to safeguard user accounts and personal information.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Validate that user accounts cannot be accessed without proper authentication.<br>
+  - Ensure that data breaches are mitigated through regular security audits and updates.<br>
+  - Test the system’s ability to detect and respond to potential security threats.<br>
+<br>
+---<br>
+<br>
+<h4>3.9 Performance</h4><br>
+<br>
+<strong>Shall</strong> the system maintain acceptable performance levels across varying loads?<br>
+<br>
+- <strong>Description</strong>: The system shall scale well to handle high traffic volumes while maintaining low latency and minimal downtime. Performance metrics shall be regularly monitored and reported to stakeholders.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Measure response times during peak usage periods.<br>
+  - Evaluate load capacity by simulating heavy traffic scenarios.<br>
+  - Confirm that the system remains responsive even under extreme conditions.<br>
+<br>
+---<br>
+<br>
+<h4>3.10 Availability</h4><br>
+<br>
+<strong>Shall</strong> the system remain available to users continuously?<br>
+<br>
+- <strong>Description</strong>: The system shall operate reliably without frequent disruptions. Users shall be notified promptly about any planned maintenance or service outages.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Monitor uptime over a defined period.<br>
+  - Conduct periodic tests to simulate network failures and assess recovery mechanisms.<br>
+  - Ensure that users receive timely notifications about service interruptions.<br>
+<br>
+---<br>
+<br>
+<h4>3.11 Usability</h4><br>
+<br>
+<strong>Shall</strong> the system meet usability standards to enhance user experience?<br>
+<br>
+- <strong>Description</strong>: The system shall be intuitive and user-friendly, ensuring that all users, regardless of technical expertise, can navigate and interact with it effectively.<br>
+<br>
+- <strong>Test Cases</strong>:<br>
+  - Perform user acceptance testing with a diverse group of users.<br>
+  - Collect feedback on user interfaces and navigation paths.<br>
+  - Ensure that the system adheres to accessibility guidelines and complies with WCAG standards.<br>
+<br>
+---<br>
+<br>
+<h4>3.12 Reliability</h4><br>
+<br>
+<strong>Shall</strong> the system demonstrate reliability and stability?<br>
+<br>
+- <strong>Description</strong>: The system<br>
+<br>
+---<br>
+<br>
+<h1>4. Non-Functional Requirements</h1><br>
+<br>
+<h1>Non-Functional Requirements</h1><br>
+<br>
+<h2>4. Non-Functional Requirements</h2><br>
+<br>
+<h3>4.1 Security</h3><br>
+The system shall ensure secure user authentication and authorization mechanisms to prevent unauthorized access. User passwords shall be encrypted and stored securely. Additionally, the system shall implement multi-factor authentication where possible to enhance security.<br>
+<br>
+<h3>4.2 Performance</h3><br>
+The system shall be designed to handle concurrent user requests efficiently without significant delays or timeouts. The response time for critical operations such as creating a new session, checking in a student, and generating an attendance report shall be within acceptable limits.<br>
+<br>
+<h3>4.3 Availability</h3><br>
+The system shall operate continuously without interruption. The uptime percentage shall be maintained at least 99.999%. In case of any downtime, the system shall notify the relevant parties promptly and restore service as soon as possible.<br>
+<br>
+<h3>4.4 Usability</h3><br>
+The user interface shall be intuitive and consistent across different devices and platforms. Navigation shall be simple and straightforward, allowing users to perform tasks easily. The system shall provide clear feedback upon successful completion of actions and error messages for common issues.<br>
+<br>
+<h3>4.5 Reliability</h3><br>
+The system shall exhibit high reliability with minimal failures. Failures due to hardware or software errors shall be minimized, and recovery processes shall be automated to minimize downtime.<br>
+<br>
+<h3>4.6 Maintainability</h3><br>
+The system shall be modular and extensible, facilitating easy updates and enhancements. Documentation shall be comprehensive and up-to-date, making it easier for developers and maintenance personnel to understand and modify the codebase.<br>
+<br>
+---<br>
+<br>
+This non-functional requirement section outlines the key aspects of the system's non-functional requirements, ensuring that the system meets the project's objectives in terms of security, performance, availability, usability, reliability, and maintainability.<br>
+<br>
+---<br>
+<br>
+<h1>5. Interface Requirements</h1><br>
+<br>
+<h1>Interface Requirements</h1><br>
+<br>
+<h2>5.1 User Interface</h2><br>
+<br>
+<h3>5.1.1 Student Registration and Authentication</h3><br>
+<strong>Requirement:</strong> The system shall provide an intuitive and secure student registration process that allows new students to create accounts and log in with their credentials.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> A student successfully registers and logs into the system.<br>
+   - Input: New student details (name, email, password).<br>
+   - Expected Output: Successful registration and login confirmation.<br>
+<br>
+2. <strong>Negative Test Case:</strong> Attempting to register with duplicate email or existing username.<br>
+   - Input: Duplicate email or existing username.<br>
+   - Expected Output: Error message indicating failure due to duplicate entry.<br>
+<br>
+<h3>5.1.2 Teacher Authentication</h3><br>
+<strong>Requirement:</strong> The system shall allow teachers to authenticate themselves using their credentials, ensuring secure access to course management functionalities.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> A teacher successfully authenticates using valid credentials.<br>
+   - Input: Valid teacher credentials (username, password).<br>
+   - Expected Output: Successful authentication and access to course management pages.<br>
+<br>
+2. <strong>Negative Test Case:</strong> Invalid credentials result in an error message.<br>
+   - Input: Invalid teacher credentials.<br>
+   - Expected Output: Error message indicating incorrect credentials.<br>
+<br>
+<h3>5.1.3 Course and Class Management</h3><br>
+<strong>Requirement:</strong> The system shall enable administrators to manage courses and classes effectively, including creating, updating, and deleting them.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> An administrator creates a new course.<br>
+   - Input: Course details (title, description, start date, end date).<br>
+   - Expected Output: Course created successfully, displayed on admin dashboard.<br>
+<br>
+2. <strong>Negative Test Case:</strong> Attempting to create a course with invalid parameters.<br>
+   - Input: Missing required fields (title, description).<br>
+   - Expected Output: Error message indicating incomplete form submission.<br>
+<br>
+<h3>5.1.4 Attendance Session Creation</h3><br>
+<strong>Requirement:</strong> The system shall facilitate the creation of attendance sessions for teachers, allowing them to track student presence during lectures.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> A teacher successfully creates an attendance session.<br>
+   - Input: Session details (date, time, location).<br>
+   - Expected Output: Attendance session created successfully, visible on admin dashboard.<br>
+<br>
+2. <strong>Negative Test Case:</strong> Creating an attendance session without providing all required fields.<br>
+   - Input: Missing required fields (date, time, location).<br>
+   - Expected Output: Error message indicating incomplete form submission.<br>
+<br>
+<h3>5.1.5 Student Check-In</h3><br>
+<strong>Requirement:</strong> Students shall be able to check in and out of attendance sessions, enabling accurate tracking of their presence.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> A student checks in successfully.<br>
+   - Input: Student ID, session ID.<br>
+   - Expected Output: Student checked in, status updated in attendance records.<br>
+<br>
+2. <strong>Negative Test Case:</strong> Checking in with an invalid student ID.<br>
+   - Input: Invalid student ID.<br>
+   - Expected Output: Error message indicating invalid input.<br>
+<br>
+<h3>5.1.6 Attendance Report Generation</h3><br>
+<strong>Requirement:</strong> The system shall generate detailed attendance reports automatically based on the logged-in user's permissions.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> An administrator generates an attendance report.<br>
+   - Input: No additional parameters.<br>
+   - Expected Output: Attendance report generated, viewable via admin dashboard.<br>
+<br>
+2. <strong>Negative Test Case:</strong> Attempting to generate a report without proper permissions.<br>
+   - Input: Insufficient permissions.<br>
+   - Expected Output: Error message indicating insufficient access rights.<br>
+<br>
+<h3>5.1.7 Admin Dashboard</h3><br>
+<strong>Requirement:</strong> The system shall offer an admin dashboard where administrators can monitor various aspects of the system, including course management, attendance tracking, and user activity.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> An administrator views the dashboard.<br>
+   - Input: Logged in as an administrator.<br>
+   - Expected Output: Dashboard displays relevant sections, including course listings and attendance reports.<br>
+<br>
+2. <strong>Negative Test Case:</strong> Attempting to access the dashboard while not logged in.<br>
+   - Input: Not logged in.<br>
+   - Expected Output: Redirect to login page.<br>
+<br>
+<h3>5.1.8 Security</h3><br>
+<strong>Requirement:</strong> The system shall implement robust security measures to protect user data and prevent unauthorized access.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> User successfully logs in after entering correct credentials.<br>
+   - Input: Correct username and password.<br>
+   - Expected Output: Login successful, redirected to dashboard.<br>
+<br>
+2. <strong>Negative Test Case:</strong> Attempting to log in with invalid credentials.<br>
+   - Input: Incorrect username or password.<br>
+   - Expected Output: Login failed, display error message.<br>
+<br>
+<h3>5.1.9 Performance</h3><br>
+<strong>Requirement:</strong> The system shall ensure high performance levels, capable of handling multiple concurrent users without significant degradation in functionality.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> Multiple students check in simultaneously.<br>
+   - Input: Multiple student IDs checking in.<br>
+   - Expected Output: All students' statuses updated in real-time.<br>
+<br>
+2. <strong>Negative Test Case:</strong> High load testing scenario.<br>
+   - Input: Simulating thousands of concurrent users.<br>
+   - Expected Output: System remains responsive, no noticeable delays or crashes.<br>
+<br>
+<h3>5.1.10 Availability</h3><br>
+<strong>Requirement:</strong> The system shall guarantee high availability, ensuring continuous operation without frequent downtime.<br>
+<br>
+<strong>Test Cases:</strong><br>
+1. <strong>Positive Test Case:</strong> Continuous operation over extended periods.<br>
+   - Input: Regularly accessing the system.<br>
+   - Expected Output: System remains operational without interruptions.<br>
+<br>
+2. <strong>Negative Test Case:</strong> Occurrence of scheduled maintenance.<br>
+   - Input: Scheduled maintenance window.<br>
+   - Expected Output: System resumes operations upon completion of maintenance.<br>
+<br>
+<h3>5.1.11 Usability</h3><br>
+<strong>Requirement:</strong> The system shall be designed with usability in mind, making it easy for users<br>
+<br>
+---<br>
+<br>
+<h1>6. Performance Requirements</h1><br>
+<br>
+<h1>6. Performance Requirements</h1><br>
+<br>
+<h2>6.1 Response Time</h2><br>
+<br>
+<strong>Requirement:</strong> The system shall respond within <strong>a stakeholder-defined threshold</strong> milliseconds for all user requests related to student registration, teacher authentication, course and class management, attendance session creation, student check-in, and attendance report generation.<br>
+<br>
+<h3>Test Cases</h3><br>
+1. <strong>Scenario:</strong> User registers a new student account.<br>
+   - <strong>Expected Result:</strong> Registration process completes successfully within <strong>a stakeholder-defined threshold</strong> ms.<br>
+<br>
+2. <strong>Scenario:</strong> Teacher authenticates with their credentials.<br>
+   - <strong>Expected Result:</strong> Authentication process completes within <strong>a stakeholder-defined threshold</strong> ms.<br>
+<br>
+3. <strong>Scenario:</strong> A student checks into an attendance session.<br>
+   - <strong>Expected Result:</strong> Check-in process completes within <strong>a stakeholder-defined threshold</strong> ms.<br>
+<br>
+4. <strong>Scenario:</strong> An administrator manages a course.<br>
+   - <strong>Expected Result:</strong> Course management operations complete within <strong>a stakeholder-defined threshold</strong> ms.<br>
+<br>
+5. <strong>Scenario:</strong> A student generates an attendance report.<br>
+   - <strong>Expected Result:</strong> Report generation process completes within <strong>a stakeholder-defined threshold</strong> ms.<br>
+<br>
+<h2>6.2 Throughput</h2><br>
+<br>
+<strong>Requirement:</strong> The system shall handle up to <strong>a stakeholder-defined number of users</strong> concurrent users without significant degradation in performance metrics such as response time or throughput.<br>
+<br>
+<h3>Test Cases</h3><br>
+1. <strong>Scenario:</strong> Simulate a scenario where 100 students attempt to register simultaneously.<br>
+   - <strong>Expected Result:</strong> All registrations complete within <strong>a stakeholder-defined threshold</strong> ms each.<br>
+<br>
+2. <strong>Scenario:</strong> Simulate a scenario where 100 teachers authenticate simultaneously.<br>
+   - <strong>Expected Result:</strong> All authentications complete within <strong>a stakeholder-defined threshold</strong> ms each.<br>
+<br>
+3. <strong>Scenario:</strong> Simulate a scenario where 100 students check into attendance sessions simultaneously.<br>
+   - <strong>Expected Result:</strong> All check-ins complete within <strong>a stakeholder-defined threshold</strong> ms each.<br>
+<br>
+4. <strong>Scenario:</strong> Simulate a scenario where 100 administrators manage courses simultaneously.<br>
+   - <strong>Expected Result:</strong> All course management operations complete within <strong>a stakeholder-defined threshold</strong> ms each.<br>
+<br>
+5. <strong>Scenario:</strong> Simulate a scenario where 100 students generate attendance reports simultaneously.<br>
+   - <strong>Expected Result:</strong> All report generation processes complete within <strong>a stakeholder-defined threshold</strong> ms each.<br>
+<br>
+<h2>6.3 Load Testing</h2><br>
+<br>
+<strong>Requirement:</strong> The system shall pass predefined load testing scenarios that simulate real-world usage patterns without crashing or significantly impacting performance.<br>
+<br>
+<h3>Test Cases</h3><br>
+1. <strong>Scenario:</strong> Simulate a scenario with 100 concurrent users performing multiple tasks concurrently.<br>
+   - <strong>Expected Result:</strong> The system remains responsive and performs all tasks within specified thresholds.<br>
+<br>
+2. <strong>Scenario:</strong> Simulate a scenario with 500 concurrent users performing single tasks sequentially.<br>
+   - <strong>Expected Result:</strong> The system handles all tasks within specified thresholds without any noticeable delays.<br>
+<br>
+3. <strong>Scenario:</strong> Simulate a scenario with 1000 concurrent users performing single tasks sequentially.<br>
+   - <strong>Expected Result:</strong> The system handles all tasks within specified thresholds without any noticeable delays.<br>
+<br>
+4. <strong>Scenario:</strong> Simulate a scenario with 1000 concurrent users performing multiple tasks concurrently.<br>
+   - <strong>Expected Result:</strong> The system remains responsive and performs all tasks within specified thresholds.<br>
+<br>
+<h2>6.4 Scalability</h2><br>
+<br>
+<strong>Requirement:</strong> The system shall scale horizontally by adding more servers without compromising on performance metrics such as response time or throughput.<br>
+<br>
+<h3>Test Cases</h3><br>
+1. <strong>Scenario:</strong> Add one server to the existing infrastructure.<br>
+   - <strong>Expected Result:</strong> The system continues to perform all tasks within specified thresholds after adding the new server.<br>
+<br>
+2. <strong>Scenario:</strong> Add two servers to the existing infrastructure.<br>
+   - <strong>Expected Result:</strong> The system continues to perform all tasks within specified thresholds after adding the additional servers.<br>
+<br>
+3. <strong>Scenario:</strong> Add three servers to the existing infrastructure.<br>
+   - <strong>Expected Result:</strong> The system continues to perform all tasks within specified thresholds after adding the additional servers.<br>
+<br>
+4. <strong>Scenario:</strong> Add four servers to the existing infrastructure.<br>
+   - <strong>Expected Result:</strong> The system continues to perform all tasks within specified thresholds after adding the additional servers.<br>
+<br>
+<h2>6.5 Security</h2><br>
+<br>
+<strong>Requirement:</strong> The system shall implement robust security measures to protect user data and prevent unauthorized access.<br>
+<br>
+<h3>Test Cases</h3><br>
+1. <strong>Scenario:</strong> Attempt to log in with invalid credentials.<br>
+   - <strong>Expected Result:</strong> Login fails and displays an error message indicating incorrect credentials.<br>
+<br>
+2. <strong>Scenario:</strong> Attempt to access sensitive data without proper authorization.<br>
+   - <strong>Expected Result:</strong> Access denied and redirected to the login page.<br>
+<br>
+3. <strong>Scenario:</strong> Attempt to upload large files without proper authorization.<br>
+   - <strong>Expected Result:</strong> File upload rejected and displayed an error message indicating insufficient permissions.<br>
+<br>
+4. <strong>Scenario:</strong> Attempt to execute malicious code on the system.<br>
+   - <strong>Expected Result:</strong> Malicious activity detected and blocked by the firewall.<br>
+<br>
+5. <strong>Scenario:</strong> Attempt to bypass security measures intentionally.<br>
+   - <strong>Expected Result:</strong> Detection of attempted intrusion and alerting of security personnel.<br>
+<br>
+<h2>6.6 Availability</h2><br>
+<br>
+<strong>Requirement:</strong> The system shall remain available 99.9% of the time, ensuring minimal downtime and uninterrupted service.<br>
+<br>
+<h3>Test Cases</h3><br>
+1. <strong>Scenario:</strong> Simulate a scenario with a planned maintenance window.<br>
+   - <strong>Expected Result:</strong> The system remains operational during the maintenance window without any disruptions.<br>
+<br>
+2. <strong>Scenario:</strong> Simulate a scenario with unexpected hardware failures.<br>
+   - <strong>Expected Result:</strong> The system continues to operate with minimal impact on services.<br>
+<br>
+3. <strong>Scenario:</strong> Simulate a scenario with a sudden surge in traffic.<br>
+   - <strong>Expected Result:</strong> The system maintains its performance under heavy loads without any significant slowdowns.<br>
+<br>
+4. <strong>Scenario:</strong> Simulate a scenario with a natural disaster affecting the physical location hosting the system.<br>
+   - <strong>Expected Result:</strong><br>
+<br>
+---<br>
+<br>
+<h1>7. Security Requirements</h1><br>
+<br>
+<h3>Section 7: Security Requirements</h3><br>
+<br>
+<h4>Subsection 7.1: Authentication</h4><br>
+<br>
+<strong>Goal:</strong> Ensure secure access to the system by requiring valid credentials for both students and teachers.<br>
+<br>
+<strong>Requirements:</strong><br>
+<br>
+1. <strong>Multi-Tier Authentication Requirement</strong>: The system shall support multi-tier authentication when it is required. This includes two-factor authentication (2FA) with a combination of password and biometric verification.<br>
+<br>
+2. <strong>Password Complexity Requirement</strong>: Passwords must adhere to industry-standard complexity policies, including length, character type, and regular updates.<br>
+<br>
+3. <strong>Biometric Verification</strong>: Biometric authentication methods (e.g., fingerprint, facial recognition) shall be implemented to enhance security beyond traditional passwords.<br>
+<br>
+4. <strong>Two-Factor Authentication (2FA)</strong>: Students and teachers must enable 2FA via their account settings to increase security.<br>
+<br>
+5. <strong>Account Lockout Policy</strong>: Upon multiple failed login attempts, accounts shall be locked out for a specified period to prevent brute-force attacks.<br>
+<br>
+6. <strong>Password Reset Mechanism</strong>: Users shall have the ability to reset their passwords through email or another secure method upon request.<br>
+<br>
+<h4>Subsection 7.2: Authorization</h4><br>
+<br>
+<strong>Goal:</strong> Grant access based on roles and permissions to ensure that each user has only the necessary privileges.<br>
+<br>
+<strong>Requirements:</strong><br>
+<br>
+1. <strong>Role-Based Access Control (RBAC)</strong>: Implement RBAC to assign different levels of access to students, teachers, and administrators. Roles may include Student, Teacher, Administrator, and Course Manager.<br>
+<br>
+2. <strong>Permission Levels</strong>: Define permission levels for each role, such as read-only access, edit permissions, and full control over course management.<br>
+<br>
+3. <strong>Access Logs</strong>: Maintain detailed logs of all access attempts and changes made within the system to facilitate auditing and troubleshooting.<br>
+<br>
+4. <strong>Audit Trail</strong>: Generate an audit trail for every action performed within the system, including logins, changes to user profiles, and modifications to course schedules.<br>
+<br>
+5. <strong>Data Encryption</strong>: Encrypt sensitive data during transmission and storage to protect against unauthorized access.<br>
+<br>
+<h4>Subsection 7.3: Privacy</h4><br>
+<br>
+<strong>Goal:</strong> Protect user data by ensuring confidentiality, integrity, and availability.<br>
+<br>
+<strong>Requirements:</strong><br>
+<br>
+1. <strong>Data Encryption</strong>: All user data, including passwords and personal information, shall be encrypted both in transit and at rest.<br>
+<br>
+2. <strong>Secure Storage</strong>: Store user data securely, adhering to industry standards for encryption and access controls.<br>
+<br>
+3. <strong>Access Controls</strong>: Limit access to user data to only those who need it to perform their job functions.<br>
+<br>
+4. <strong>Data Minimization</strong>: Collect only the data necessary to fulfill the stated functional requirements and non-functional needs.<br>
+<br>
+5. <strong>Regular Audits</strong>: Conduct regular audits of user data access and usage to detect and prevent unauthorized access.<br>
+<br>
+<h4>Subsection 7.4: Audit and Data Protection</h4><br>
+<br>
+<strong>Goal:</strong> Ensure compliance with legal and regulatory requirements regarding data protection.<br>
+<br>
+<strong>Requirements:</strong><br>
+<br>
+1. <strong>Compliance with GDPR</strong>: The system shall comply with the General Data Protection Regulation (GDPR) and other relevant data protection laws.<br>
+<br>
+2. <strong>Data Retention Policies</strong>: Establish clear retention policies for user data, ensuring that data is retained only as long as necessary and then deleted securely.<br>
+<br>
+3. <strong>Incident Response Plan</strong>: Develop an incident response plan to address data breaches and other security incidents promptly and effectively.<br>
+<br>
+4. <strong>Data Breach Notification</strong>: In case of a data breach, notify affected individuals and relevant authorities in accordance with applicable regulations.<br>
+<br>
+<h4>Subsection 7.5: Performance</h4><br>
+<br>
+<strong>Goal:</strong> Ensure the system performs well under normal and peak loads.<br>
+<br>
+<strong>Requirements:</strong><br>
+<br>
+1. <strong>Scalability</strong>: The system shall scale horizontally to handle increased load without compromising performance.<br>
+<br>
+2. <strong>Load Balancing</strong>: Implement load balancing mechanisms to distribute traffic evenly across servers to improve performance.<br>
+<br>
+3. <strong>Resource Allocation</strong>: Allocate resources efficiently to minimize latency and maximize throughput.<br>
+<br>
+4. <strong>Response Time</strong>: Ensure that critical operations, such as checking in students and generating attendance reports, respond within acceptable timeframes.<br>
+<br>
+<h4>Subsection 7.6: Availability</h4><br>
+<br>
+<strong>Goal:</strong> Ensure the system remains available to users at all times.<br>
+<br>
+<strong>Requirements:</strong><br>
+<br>
+1. <strong>High Availability</strong>: Design the system to operate continuously without significant downtime.<br>
+<br>
+2. <strong>Redundancy</strong>: Implement redundancy for critical components to ensure failover capabilities.<br>
+<br>
+3. <strong>Failover Mechanisms</strong>: Have backup systems ready to take over if primary systems fail.<br>
+<br>
+4. <strong>Monitoring and Alerts</strong>: Continuously monitor system performance and alert administrators to any issues before they impact user experience.<br>
+<br>
+<h4>Subsection 7.7: Usability</h4><br>
+<br>
+<strong>Goal:</strong> Ensure ease of use for all target users.<br>
+<br>
+<strong>Requirements:</strong><br>
+<br>
+1. <strong>User Interface (UI)</strong>: Design intuitive and consistent UI elements that are easy to navigate.<br>
+<br>
+2. <strong>Accessibility</strong>: Ensure that the system is accessible to users with disabilities, following WCAG guidelines.<br>
+<br>
+3. <strong>Training and Documentation</strong>: Provide comprehensive training materials and documentation to help new users quickly understand how to use the system.<br>
+<br>
+4. <strong>Feedback Mechanisms</strong>: Include feedback mechanisms to allow users to report issues and suggest improvements.<br>
+<br>
+<h4>Subsection 7.8: Reliability</h4><br>
+<br>
+<strong>Goal:</strong> Ensure the system operates consistently and reliably.<br>
+<br>
+<strong>Requirements:</strong><br>
+<br>
+1. <strong>System Stability</strong>: Ensure that the system runs smoothly without frequent crashes or errors.<br>
+<br>
+2. <strong>Error Handling</strong>: Implement robust error handling mechanisms to gracefully recover from failures and provide meaningful error messages.<br>
+<br>
+3. <strong>Maintenance Schedule</strong>: Establish a maintenance schedule to regularly update and patch the system to fix bugs and vulnerabilities.<br>
+<br>
+4. <strong>Backup and Recovery</strong>: Regularly back up critical data and have a recovery plan in place to restore the system in case of a failure.<br>
+<br>
+<h4>Subsection 7.9: Maintainability</h4><br>
+<br>
+<strong>Goal:</strong> Ensure the system can be easily modified and extended over time.<br>
+<br>
+<strong>Requirements:</strong><br>
+<br>
+1. <strong>Modular Design</strong>: Design the system architecture to be modular, allowing for easier modification and extension.<br>
+<br>
+2. **Documentation<br>
+<br>
+---<br>
+<br>
+<h1>8. Acceptance Criteria</h1><br>
+<br>
+<h1>Acceptance Criteria</h1><br>
+<br>
+<h2>8. Acceptance Criteria</h2><br>
+<br>
+<h3>8.1 Student Registration and Authentication</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> Students must be able to register and authenticate themselves securely within the system.  <br>
+- <strong>a stakeholder-defined threshold</strong> Upon successful registration, students should receive a confirmation email or notification.  <br>
+- <strong>a stakeholder-defined threshold</strong> Students must have the ability to log out of their account at any time.<br>
+<br>
+<h3>8.2 Teacher Authentication</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> Teachers must be able to log into the system using their credentials.  <br>
+- <strong>a stakeholder-defined threshold</strong> Teachers should be able to reset their password if they forget it.  <br>
+- <strong>a stakeholder-defined threshold</strong> Teachers must be able to view detailed information about each student’s attendance record.<br>
+<br>
+<h3>8.3 Course and Class Management</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> Administrators must be able to create new courses and classes.  <br>
+- <strong>a stakeholder-defined threshold</strong> Each course/class should have its own unique identifier and name.  <br>
+- <strong>a stakeholder-defined threshold</strong> Administrators must be able to assign teachers to specific courses/classes.<br>
+<br>
+<h3>8.4 Attendance Session Creation</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> Teachers must be able to schedule and create attendance sessions within their assigned courses.  <br>
+- <strong>a stakeholder-defined threshold</strong> Sessions should have a start and end time, and a duration.  <br>
+- <strong>a stakeholder-defined threshold</strong> Teachers must be able to add notes or comments related to the session.<br>
+<br>
+<h3>8.5 Student Check-In</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> Students must be able to check in during the scheduled session.  <br>
+- <strong>a stakeholder-defined threshold</strong> Students should receive a confirmation message after checking in.  <br>
+- <strong>a stakeholder-defined threshold</strong> Students should be able to cancel their check-in if needed.<br>
+<br>
+<h3>8.6 Attendance Report Generation</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> The system must generate comprehensive attendance reports automatically based on the logged-in users’ activity.  <br>
+- <strong>a stakeholder-defined threshold</strong> Reports should include details such as session names, dates, times, and attendance status of all registered students.  <br>
+- <strong>a stakeholder-defined threshold</strong> Reports should be customizable and exported in various formats (e.g., PDF, CSV).<br>
+<br>
+<h3>8.7 Admin Dashboard</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> Administrators must have access to a central dashboard that displays key metrics and statistics related to course attendance.  <br>
+- <strong>a stakeholder-defined threshold</strong> The dashboard should enable administrators to filter and sort data by different parameters (e.g., date range, course name).  <br>
+- <strong>a stakeholder-defined threshold</strong> Administrators should be able to export summary reports of attendance trends over time.<br>
+<br>
+<h3>8.8 Security</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> The system must implement robust security measures to protect user data and prevent unauthorized access.  <br>
+- <strong>a stakeholder-defined threshold</strong> User passwords must be encrypted and stored securely.  <br>
+- <strong>a stakeholder-defined threshold</strong> All communication between the system and external parties must be secure, utilizing HTTPS protocols.<br>
+<br>
+<h3>8.9 Performance</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> The system must handle concurrent user requests efficiently without significant delays.  <br>
+- <strong>a stakeholder-defined threshold</strong> The system should respond within predefined latency thresholds for critical operations (e.g., login, logout, report generation).  <br>
+- <strong>a stakeholder-defined threshold</strong> The system should scale horizontally to accommodate increasing numbers of users.<br>
+<br>
+<h3>8.10 Availability</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> The system must be available 24/7, ensuring continuous operation without disruptions.  <br>
+- <strong>a stakeholder-defined threshold</strong> The system should failover gracefully to ensure minimal downtime in case of hardware failures or network issues.  <br>
+- <strong>a stakeholder-defined threshold</strong> The system should perform regular maintenance checks and updates to ensure optimal performance.<br>
+<br>
+<h3>8.11 Usability</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> The user interface should be intuitive and easy to navigate.  <br>
+- <strong>a stakeholder-defined threshold</strong> Users should be able to find and use the system functionalities quickly and efficiently.  <br>
+- <strong>a stakeholder-defined threshold</strong> The system should provide clear error messages and instructions for troubleshooting common issues.<br>
+<br>
+<h3>8.12 Reliability</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> The system must operate reliably under normal conditions without frequent crashes or data loss.  <br>
+- <strong>a stakeholder-defined threshold</strong> The system should recover from minor errors and anomalies without requiring manual intervention.  <br>
+- <strong>a stakeholder-defined threshold</strong> The system should undergo thorough testing and validation processes to ensure high reliability.<br>
+<br>
+<h3>8.13 Maintainability</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> The system should be easily upgradeable and extendible.  <br>
+- <strong>a stakeholder-defined threshold</strong> The codebase should follow best practices for version control and documentation.  <br>
+- <strong>a stakeholder-defined threshold</strong> The system should be designed with scalability in mind, allowing for future enhancements without major rewrites.<br>
+<br>
+<h3>8.14 Non-Functional Needs</h3><br>
+<strong>Acceptance Criteria:</strong>  <br>
+- <strong>a stakeholder-defined threshold</strong> The system must comply with industry-standard security practices (e.g., PCI DSS, GDPR).  <br>
+- **<br>
+<br>
+---<br>
+<br>
+<h1>9. Risks and Assumptions</h1><br>
+<br>
+<h1>Risks and Assumptions</h1><br>
+<br>
+<h2>Risks</h2><br>
+<br>
+<h3>Security Risk</h3><br>
+The system may be vulnerable to unauthorized access or data breaches if proper security measures are not implemented.<br>
+<br>
+<h3>Performance Risk</h3><br>
+The system may experience significant delays or crashes due to insufficient hardware resources or inefficient code.<br>
+<br>
+<h3>Availability Risk</h3><br>
+The system may become unavailable due to technical issues, power outages, or network disruptions.<br>
+<br>
+<h3>Usability Risk</h3><br>
+Users may find the interface difficult to navigate or understand, leading to frustration and decreased productivity.<br>
+<br>
+<h3>Reliability Risk</h3><br>
+The system may fail to meet its intended functionality, resulting in incorrect data processing or service interruptions.<br>
+<br>
+<h3>Maintainability Risk</h3><br>
+The system may require extensive maintenance efforts to address bugs, updates, and new features, increasing development costs.<br>
+<br>
+<h2>Assumptions</h2><br>
+<br>
+<h3>User Adoption</h3><br>
+Users will adopt the system willingly, providing regular feedback on usability and suggesting improvements.<br>
+<br>
+<h3>Hardware Resources</h3><br>
+There will be adequate computing resources available to run the system smoothly without frequent crashes.<br>
+<br>
+<h3>Network Stability</h3><br>
+The internet connection will remain stable and reliable throughout the system's operation.<br>
+<br>
+<h3>Data Integrity</h3><br>
+Data integrity will be maintained, ensuring that all transactions are secure and accurate.<br>
+<br>
+<h3>Technical Support</h3><br>
+Technical support will be readily available to assist with any issues encountered during system usage.<br>
+<br>
+<h3>Continuous Updates</h3><br>
+Continuous updates and patches will be provided to ensure the system remains up-to-date with the latest technologies and security standards.<br>
+<br>
+<h2>Dependencies</h2><br>
+<br>
+<h3>Legal Compliance</h3><br>
+Compliance with legal regulations regarding data protection and privacy will be ensured, including GDPR and other relevant laws.<br>
+<br>
+<h3>Regulatory Requirements</h3><br>
+Regulatory compliance with educational institutions' policies and procedures will be adhered to, ensuring adherence to accreditation standards.<br>
+<br>
+<h2>Limitations</h2><br>
+<br>
+<h3>Limited Scalability</h3><br>
+The current system architecture may limit scalability, making it challenging to handle an increase in user base or complex operations.<br>
+<br>
+<h3>Resource Intensive</h3><br>
+The system requires substantial computational resources, which may not be feasible for all organizations or environments.<br>
+<br>
+<h3>Customization Challenges</h3><br>
+Customizing the system to fit specific institutional needs may involve significant development effort and customization work.<br>
+<br>
+<h3>Integration Complexity</h3><br>
+Integrating third-party applications and services into the system may introduce additional complexity and potential conflicts.<br>
+<br>
+<h3>Training Needs</h3><br>
+Training staff on how to effectively use the system may be necessary, especially for those unfamiliar with technology.<br>
+<br>
+<h3>Cost Considerations</h3><br>
+Implementing and maintaining the system may incur high initial and ongoing costs, potentially affecting budget constraints.<br>
+<br>
+<h3>Privacy Concerns</h3><br>
+User privacy concerns may arise, necessitating robust encryption and anonymization techniques to protect sensitive data.<br>
+<br>
+<h3>Third-Party Vendor Dependence</h3><br>
+Dependence on third-party vendors for critical components could lead to vendor lock-in, limiting future flexibility and control over the system.<br>
+<br>
+---<br>
+<br>
+<br>
+<br>
+---<br>
+<br>
+<h1>Requirements Validation Note</h1><br>
+<br>
+This SRS was generated using an AI-assisted pipeline based on user-provided project information, RAG retrieval, requirement quality scoring, and explainability diagnostics.<br>
+<br>
+The generated requirements should be reviewed by stakeholders before implementation. In particular, performance thresholds, availability targets, security policies, and acceptance criteria must be validated with the project owner, technical team, and end users.<br>
+<br>
+---<br>
+<br>
+<br>
+<br>
+<h1>10. Conclusion</h1><br>
+<br>
+<h1>10. Conclusion</h1><br>
+<br>
+<h2>Goal</h2><br>
+Summarize the Software Requirements Specification (SRS) and the expected project outcome.<br>
+<br>
+---<br>
+<br>
+<h2>10.1 Introduction</h2><br>
+This document outlines the functional and non-functional requirements for the Smart University Attendance Management System. It includes details on how the system will help universities manage student attendance efficiently, including functionalities such as student registration and authentication, teacher authentication, course and class management, attendance session creation, student check-in, attendance report generation, and admin dashboard. Additionally, it addresses security, performance, availability, usability, reliability, and maintainability constraints.<br>
+<br>
+---<br>
+<br>
+<h2>10.2 Functional Requirements</h2><br>
+<br>
+<h3>10.2.1 Student Registration and Authentication</h3><br>
+<strong>Authorized users</strong>: Students shall be able to register and authenticate themselves using their unique identifiers. This ensures that each student has a distinct account within the system.<br>
+<br>
+<strong>Authorized users</strong>: Students shall have the ability to check in for classes or sessions they attend.<br>
+<br>
+<strong>Authorized users</strong>: Administrators shall have the authority to manage student accounts and verify student presence.<br>
+<br>
+---<br>
+<br>
+<h3>10.2.2 Teacher Authentication</h3><br>
+<strong>Authorized users</strong>: Teachers shall be able to log into the system with their credentials, allowing them to create and manage attendance sessions.<br>
+<br>
+<strong>Authorized users</strong>: Teachers shall have the capability to view attendance reports generated by the system.<br>
+<br>
+---<br>
+<br>
+<h3>10.2.3 Course and Class Management</h3><br>
+<strong>Authorized users</strong>: Administrators shall be able to create new courses and classes, assign teachers to these classes, and manage course schedules.<br>
+<br>
+<strong>Authorized users</strong>: Teachers shall be able to add sessions to their respective classes, specifying start times and duration.<br>
+<br>
+---<br>
+<br>
+<h3>10.2.4 Attendance Session Creation</h3><br>
+<strong>Authorized users</strong>: Teachers shall be able to initiate an attendance session for their class.<br>
+<br>
+<strong>Authorized users</strong>: Students shall be able to join an attendance session by logging in and checking in.<br>
+<br>
+---<br>
+<br>
+<h3>10.2.5 Student Check-In</h3><br>
+<strong>Authorized users</strong>: Students shall be able to enter the name of the session they are attending and confirm their presence.<br>
+<br>
+<strong>Authorized users</strong>: The system shall automatically record the student's attendance status upon check-in.<br>
+<br>
+---<br>
+<br>
+<h3>10.2.6 Attendance Report Generation</h3><br>
+<strong>Authorized users</strong>: Administrators shall be able to generate detailed attendance reports for all classes and sessions.<br>
+<br>
+<strong>Authorized users</strong>: Reports shall include attendance statistics, such as total attendees, absentees, and latecomers.<br>
+<br>
+---<br>
+<br>
+<h3>10.2.7 Admin Dashboard</h3><br>
+<strong>Authorized users</strong>: Administrators shall have access to a central dashboard where they can monitor overall attendance trends, manage teachers, and review attendance reports.<br>
+<br>
+---<br>
+<br>
+<h2>10.3 Non-Functional Requirements</h2><br>
+<br>
+<h3>10.3.1 Security</h3><br>
+<strong>Security requirement</strong>: The system shall employ robust encryption techniques to ensure secure transmission of sensitive data, including student IDs, teacher passwords, and attendance records.<br>
+<br>
+<strong>Security requirement</strong>: User data shall be stored securely, adhering to industry-standard data protection regulations.<br>
+<br>
+<h3>10.3.2 Performance</h3><br>
+<strong>Performance requirement</strong>: The system shall be designed to handle concurrent user requests without significant delays, ensuring smooth operation even during peak usage periods.<br>
+<br>
+<strong>Performance requirement</strong>: The system shall meet performance benchmarks set by the university, guaranteeing minimal response times and high throughput.<br>
+<br>
+<h3>10.3.3 Availability</h3><br>
+<strong>Availability requirement</strong>: The system shall operate continuously, providing uninterrupted service to all authorized users.<br>
+<br>
+<strong>Availability requirement</strong>: The system shall be capable of handling unexpected failures and recover gracefully, minimizing downtime.<br>
+<br>
+<h3>10.3.4 Usability</h3><br>
+<strong>Usability requirement</strong>: The user interface shall be intuitive and easy to navigate, ensuring that students, teachers, and administrators can perform tasks efficiently.<br>
+<br>
+<strong>Usability requirement</strong>: The system shall provide clear feedback and error messages to guide users through the process.<br>
+<br>
+<h3>10.3.5 Reliability</h3><br>
+<strong>Reliability requirement</strong>: The system shall be highly reliable, with minimal downtime due to software bugs or hardware failures.<br>
+<br>
+<strong>Reliability requirement</strong>: The system shall undergo rigorous testing and validation processes before deployment to ensure its stability.<br>
+<br>
+<h3>10.3.6 Maintainability</h3><br>
+<strong>a stakeholder-defined value</strong>: The system shall be modular and well-documented, facilitating easy updates and maintenance.<br>
+<br>
+<strong>a stakeholder-defined value</strong>: The system shall include comprehensive documentation and support resources to assist users in troubleshooting and upgrading the system.<br>
+<br>
+---<br>
+<br>
+<h2>10.4 Requirement Improvement</h2><br>
+<br>
+<strong>a stakeholder-defined value</strong>: The current system shall support multi-tier authentication when required, enhancing security measures.<br>
+<br>
+---<br>
+<br>
+<h2>10.5 Requirement Enhancement</h2><br>
+<br>
+<strong>a stakeholder-defined value</strong>: The system shall integrate real-time analytics to provide insights into attendance patterns, aiding in educational planning and resource allocation.<br>
+<br>
+---<br>
+<br>
+<h2>10.6 Requirement Refinement</h2><br>
+<br>
+<strong>a stakeholder-defined value</strong>: The system shall offer a feature for teachers to schedule reminders for absent students, improving communication and attendance rates.<br>
+<br>
+---<br>
+<br>
+<h2>10.7 Requirement Clarification</h2><br>
+<br>
+<strong>a stakeholder-defined value</strong>: The system shall allow for flexible scheduling of attendance sessions, accommodating different teaching styles and preferences.<br>
+<br>
+---<br>
+<br>
+<h2>10.8 Requirement Definition</h2><br>
+<br>
+<strong>a stakeholder-defined value</strong>: The system shall enable seamless integration with existing campus systems, facilitating a unified student<br>
+<br>
+---<br>
+<br>
+<h1>References and Data Sources</h1><br>
+<br>
+This generated SRS was created using a retrieval-augmented generation pipeline.<br>
+<br>
+The generation knowledge base was built from the outputs of previous notebooks:<br>
+<br>
+1. `c9_multimodal_requirement_quality_scores.csv`  <br>
+   Used as the main source of requirement quality signals.<br>
+<br>
+2. `c10_llm_requirement_rewrites.csv`  <br>
+   Used as examples of weak-to-improved requirement rewriting.<br>
+<br>
+3. `c11_final_requirement_report.csv`  <br>
+   Used as the final enriched requirement knowledge base.<br>
+<br>
+4. `c11_final_document_report.csv`  <br>
+   Used for document-level quality context.<br>
+<br>
+5. `c9_section_quality_summary.csv`  <br>
+   Used for section-level quality context.<br>
+<br>
+The generated requirements were validated using rule-based quality checks for clarity, testability, measurability, and completeness.
+</body>
+</html>
