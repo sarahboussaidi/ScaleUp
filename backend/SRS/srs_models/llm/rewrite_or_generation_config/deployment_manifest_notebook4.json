@@ -1,0 +1,36 @@
+{
+  "bundle_name": "notebook4_deployment_bundle",
+  "purpose": "C9-C10-C11 deployment assets for Django SRS intelligence system",
+  "contains": {
+    "quality_model": "/kaggle/working/notebook4_deployment_bundle/models_ai/roberta_requirement_quality_model",
+    "configs": [
+      "/kaggle/working/notebook4_deployment_bundle/configs/llm_rewrite_config.json",
+      "/kaggle/working/notebook4_deployment_bundle/configs/quality_model_config.json"
+    ],
+    "outputs": [
+      "c9_multimodal_requirement_quality_scores.csv",
+      "c9_document_quality_summary.csv",
+      "c9_section_quality_summary.csv",
+      "c9_multimodal_base_table.csv",
+      "c9_roberta_quality_eval_results.csv",
+      "c9_outputs_manifest.csv",
+      "c9_final_summary.txt",
+      "c10_llm_requirement_rewrites.csv",
+      "c10_llm_rewrite_summary.txt",
+      "c11_final_requirement_report.csv",
+      "c11_final_document_report.csv",
+      "c11_top_problematic_requirements.csv",
+      "c11_generated_report_paths.csv",
+      "c11_outputs_manifest.csv",
+      "c11_final_project_summary.txt",
+      "c12_dashboard_summary.txt",
+      "c12_dashboard_outputs_manifest.csv"
+    ],
+    "reports_folder": "/kaggle/working/notebook4_deployment_bundle/sample_outputs/final_srs_reports"
+  },
+  "django_usage": {
+    "C9": "Load roberta_requirement_quality_model to classify requirement quality.",
+    "C10": "Use Qwen/Qwen2.5-1.5B-Instruct config for requirement rewriting.",
+    "C11": "Use final CSV/Markdown outputs as report templates and test references."
+  }
+}

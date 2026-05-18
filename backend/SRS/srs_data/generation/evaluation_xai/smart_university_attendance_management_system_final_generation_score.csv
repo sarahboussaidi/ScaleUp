@@ -1,0 +1,2 @@
+rag_score_scaled,structure_score,requirement_quality_score,requirement_count_score,vague_penalty,final_generation_score,final_generation_label
+46.97,100.0,93.68,100,2.64,81.89,GOOD_GENERATION

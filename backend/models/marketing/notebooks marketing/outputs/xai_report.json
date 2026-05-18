@@ -1,0 +1,86 @@
+{
+  "image": "D:\\integration-fresh\\backend\\uploads\\marketing_27utility_crop.jpg",
+  "image_composition": {
+    "file_path": "D:\\integration-fresh\\backend\\uploads\\marketing_27utility_crop.jpg",
+    "dimensions": {
+      "width": 685,
+      "height": 702
+    },
+    "aspect_ratio": 0.98,
+    "color_space": "RGB",
+    "file_size_kb": 200.572265625,
+    "average_color": {
+      "red": 215.4,
+      "green": 211.5,
+      "blue": 216.7
+    },
+    "brightness_0_255": 213.3,
+    "brightness_label": "bright",
+    "contrast_std": 77.5,
+    "contrast_label": "high",
+    "color_saturation_0_1": 0.042,
+    "saturation_label": "desaturated"
+  },
+  "extracted_text": "HP GAS\n(PPHrRar Booking\n966602555\nOMI HP GAS ENTERPRISES\nFor Emergency :\n6301685752\nFor Complaint\n1800 233 3555\n14.2 (HSN:27111900)\n1\n768.00\n618814\n1115400-03/05/19 .\nIPPILI SRI RAr HURTHY\n1\n5-100/0/6/7/303, FNO-303\nTRICON HEIGHTS, SECRETARIAT CO\n8\nPUPPALEWDA 500089\nLPG Id:z 9111 0141 0010 8010\n8\n500371 29/04/2019 11.49:07\nSubsidy Consuned:1/12\n203\n8ous\n{uha\n'iueyLujtc Juc+ygst/utoS\nCUSTOMFF CQFY\n[Eo7a\nLane Beslde PAI\nHyd-48. Timings : O,00 am; to 8,00 pm\nPh: 040-66611115\n16\nStore,",
+  "visual_prediction": {
+    "class": "bad",
+    "score_0_10": 5.9,
+    "class_id": 0,
+    "source": "notebook_visual_evaluation"
+  },
+  "grad_cam": {
+    "heatmap_save": "D:\\integration-fresh\\backend\\models\\marketing\\notebooks marketing\\outputs\\gradcam_marketing_27utility_crop.jpg",
+    "top_regions_save": "D:\\integration-fresh\\backend\\models\\marketing\\notebooks marketing\\outputs\\gradcam_marketing_27utility_crop_top_regions.jpg",
+    "top_regions": [
+      "Region 1: row=4/8, col=7/8 (intensity=1.000)",
+      "Region 2: row=2/8, col=2/8 (intensity=0.821)",
+      "Region 3: row=3/8, col=7/8 (intensity=0.765)",
+      "Region 4: row=3/8, col=6/8 (intensity=0.715)",
+      "Region 5: row=5/8, col=7/8 (intensity=0.669)"
+    ]
+  },
+  "attribute_importance_inference": {
+    "top_3": [
+      [
+        "Object",
+        0.9999999913852842
+      ],
+      [
+        "Light",
+        0.9384484675201858
+      ],
+      [
+        "VividColor",
+        0.8767239018810071
+      ]
+    ],
+    "full": {
+      "BalacingElements": 0.6181065520547622,
+      "ColorHarmony": 0.6043840826316674,
+      "Content": 0.5261126669215366,
+      "DoF": 0.7562510377691214,
+      "Light": 0.9384484675201858,
+      "MotionBlur": 0.7411442341533853,
+      "Object": 0.9999999913852842,
+      "Repetition": 0.0,
+      "RuleOfThirds": 0.4150453903632885,
+      "Symmetry": 0.0,
+      "VividColor": 0.8767239018810071
+    }
+  },
+  "attribute_importance_training": {
+    "Content": 0.6808642017202233,
+    "Light": 0.5693554032653336,
+    "ColorHarmony": 0.5619543730650818,
+    "Object": 0.5418692003813564,
+    "VividColor": 0.5144203182980835,
+    "DoF": 0.4373044485203855,
+    "RuleOfThirds": 0.3530456447115033,
+    "BalacingElements": 0.33214858063586367,
+    "MotionBlur": 0.21686219788450856,
+    "Symmetry": 0.1290828079344685,
+    "Repetition": 0.10040885388955621
+  },
+  "interpretation": "The notebook-trained visual score is 5.9/10, which falls in the 'bad' band. Image: 685x702 (0.98:1), bright with high contrast. Image regions with highest activation shown in Grad-CAM heatmap. Top influencing attributes: Object(1.00), Light(0.94), VividColor(0.88)",
+  "score_source": "notebook_visual_evaluation"
+}

@@ -1,0 +1,124 @@
+{
+  "source": "raw_text",
+  "image_path": null,
+  "image_composition": null,
+  "raw_text_full": "HP GAS PPHnRei Booking OMi HP GAS ENTERPRISES For Emergency 6301685752 For Complaint 1800 233 3555 14.2 (HSN:Z7111900) 1 768. 00 618814 1115400-03/05/19 , IPPILI SRI RAA MURTHY 5-100/0/6/7/303, FNO-303 TRICON HEIGHTS , SECRETARIAT CO 8 PUPPALGUDA 500089 LPG Id:2 9111 0141 0010 8010 8 500371 29/04/2019 11:49.07 Subsidy Consuned:1/12 Lane Beside PAI Ph: 040-66611115 116 Scanned by CamScanner Store,",
+  "raw_text_preview": "HP GAS PPHnRei Booking OMi HP GAS ENTERPRISES For Emergency 6301685752 For Complaint 1800 233 3555 14.2 (HSN:Z7111900) 1 768. 00 618814 1115400-03/05/19 , IPPILI SRI RAA MURTHY 5-100/0/6/7/303, FNO-303 TRICON HEIGHTS , SECRETARIAT CO 8 PUPPALGUDA 500089 LPG Id:2 9111 0141 0010 8010 8 500371 29/04/2019 11:49.07 Subsidy Consuned:1/12 Lane Beside PAI Ph: 040-66611115 116 Scanned by CamScanner Store,",
+  "text_length": 399,
+  "platform": "instagram",
+  "overall_score": 3.6,
+  "penalized_overall_score": 1.6,
+  "universal_score": 2.44,
+  "penalty_applied": 2.0,
+  "overall_label": "unknown",
+  "dimension_scores": {
+    "sentiment": 4.3,
+    "structure": 3.5,
+    "hashtags": 0.0,
+    "target_match": 6.6
+  },
+  "dimension_contribution": {
+    "sentiment": {
+      "score": 4.3,
+      "weight": 0.25,
+      "contribution": 1.075,
+      "percent_of_total": 29.86111111111111
+    },
+    "structure": {
+      "score": 3.5,
+      "weight": 0.25,
+      "contribution": 0.875,
+      "percent_of_total": 24.305555555555557
+    },
+    "hashtags": {
+      "score": 0.0,
+      "weight": 0.25,
+      "contribution": 0.0,
+      "percent_of_total": 0.0
+    },
+    "target_match": {
+      "score": 6.6,
+      "weight": 0.25,
+      "contribution": 1.65,
+      "percent_of_total": 45.833333333333336
+    }
+  },
+  "ranked_dimensions": [
+    {
+      "dimension": "target_match",
+      "score": 6.6,
+      "contribution_percent": 45.833333333333336
+    },
+    {
+      "dimension": "sentiment",
+      "score": 4.3,
+      "contribution_percent": 29.86111111111111
+    },
+    {
+      "dimension": "structure",
+      "score": 3.5,
+      "contribution_percent": 24.305555555555557
+    },
+    {
+      "dimension": "hashtags",
+      "score": 0.0,
+      "contribution_percent": 0.0
+    }
+  ],
+  "feature_metrics": {
+    "raw_text": "HP GAS PPHnRei Booking OMi HP GAS ENTERPRISES For Emergency 6301685752 For Complaint 1800 233 3555 14.2 (HSN:Z7111900) 1 768. 00 618814 1115400-03/05/19 , IPPILI SRI RAA MURTHY 5-100/0/6/7/303, FNO-303 TRICON HEIGHTS , SECRETARIAT CO 8 PUPPALGUDA 500089 LPG Id:2 9111 0141 0010 8010 8 500371 29/04/2019 11:49.07 Subsidy Consuned:1/12 Lane Beside PAI Ph: 040-66611115 116 Scanned by CamScanner Store,",
+    "word_count": 77,
+    "char_count": 399,
+    "hashtag_count": 0,
+    "mention_count": 0,
+    "exclaim_count": 0,
+    "question_count": 0,
+    "emoji_count": 0,
+    "has_cta": 1,
+    "has_url": 0,
+    "readability_flesch": 118.0780681818182,
+    "avg_word_length": 4.064935064935065,
+    "sentence_count": 4,
+    "caps_ratio": 0.4166666666666667,
+    "unique_hashtag_ratio": 0.0
+  },
+  "top_features": {
+    "word_count": {
+      "value": 77.0,
+      "impact": "Word count (optimal: 10-150 words)",
+      "importance": 0.15
+    },
+    "char_count": {
+      "value": 399.0,
+      "impact": "Character count (optimal: 100-2200)",
+      "importance": 0.15
+    },
+    "hashtag_count": {
+      "value": 0.0,
+      "impact": "Hashtag count (optimal: 3-7 for Instagram)",
+      "importance": 0.15
+    },
+    "has_cta": {
+      "value": 1.0,
+      "impact": "Call-to-action present (binary: buy, click, link, etc.)",
+      "importance": 0.1
+    },
+    "sentiment_polarity": {
+      "value": 4.064935064935065,
+      "impact": "Average word length (shorter=more readable)",
+      "importance": 0.1
+    }
+  },
+  "issues_detected": {
+    "too_short": false,
+    "too_long": false,
+    "no_cta": false,
+    "no_hashtags": true,
+    "hashtag_spam": false,
+    "all_caps": true,
+    "hard_to_read": false,
+    "negative_tone": false,
+    "flat_neutral": true
+  },
+  "interpretation": "Low engagement risk (score 3.6/10). Weaknesses: structure, hashtags. Issues detected: No Hashtags, All Caps, Flat Neutral."
+}

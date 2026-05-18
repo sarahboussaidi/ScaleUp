@@ -1,0 +1,46 @@
+{
+  "BalacingElements": {
+    "min": -1.0,
+    "max": 1.0
+  },
+  "ColorHarmony": {
+    "min": -1.0,
+    "max": 1.0
+  },
+  "Content": {
+    "min": -1.0,
+    "max": 1.0
+  },
+  "DoF": {
+    "min": -1.0,
+    "max": 1.0
+  },
+  "Light": {
+    "min": -1.0,
+    "max": 1.0
+  },
+  "MotionBlur": {
+    "min": -1.0,
+    "max": 1.0
+  },
+  "Object": {
+    "min": -1.0,
+    "max": 1.0
+  },
+  "Repetition": {
+    "min": 0.0,
+    "max": 1.0
+  },
+  "RuleOfThirds": {
+    "min": -0.8,
+    "max": 1.0
+  },
+  "Symmetry": {
+    "min": 0.0,
+    "max": 1.0
+  },
+  "VividColor": {
+    "min": -1.0,
+    "max": 1.0
+  }
+}

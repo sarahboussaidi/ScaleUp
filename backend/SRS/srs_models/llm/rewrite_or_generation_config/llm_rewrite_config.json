@@ -1,0 +1,27 @@
+{
+  "module": "C10",
+  "task": "requirement_rewriting",
+  "llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+  "model_type": "instruction_tuned_llm",
+  "is_finetuned": false,
+  "max_new_tokens": 256,
+  "temperature": 0.2,
+  "purpose": "Rewrite weak, ambiguous, or low-quality SRS requirements into clear, testable, measurable requirements.",
+  "input_columns": [
+    "block_text",
+    "requirement_quality_score",
+    "requirement_quality_level",
+    "final_prediction",
+    "final_ambiguity_label",
+    "vision_page_type",
+    "vision_confidence",
+    "quality_issues",
+    "quality_recommendations"
+  ],
+  "output_columns": [
+    "improved_requirement",
+    "rewrite_strategy",
+    "what_was_fixed",
+    "remaining_assumptions"
+  ]
+}

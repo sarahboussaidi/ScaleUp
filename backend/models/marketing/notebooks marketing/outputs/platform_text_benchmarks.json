@@ -1,0 +1,62 @@
+{
+  "instagram": {
+    "caption_length": {
+      "optimal_min": 113,
+      "optimal_max": 127,
+      "max_allowed": 2200
+    },
+    "hashtag_count": {
+      "optimal_min": 6,
+      "optimal_max": 10,
+      "spam_threshold": 20,
+      "max_allowed": 30
+    },
+    "readability_target": 60,
+    "cta_impact": "high"
+  },
+  "linkedin": {
+    "caption_length": {
+      "optimal_min": 150,
+      "optimal_max": 700,
+      "max_allowed": 3000
+    },
+    "hashtag_count": {
+      "optimal_min": 3,
+      "optimal_max": 5,
+      "spam_threshold": 8,
+      "max_allowed": 10
+    },
+    "readability_target": 50,
+    "cta_impact": "medium"
+  },
+  "twitter": {
+    "caption_length": {
+      "optimal_min": 70,
+      "optimal_max": 240,
+      "max_allowed": 280
+    },
+    "hashtag_count": {
+      "optimal_min": 1,
+      "optimal_max": 2,
+      "spam_threshold": 3,
+      "max_allowed": 5
+    },
+    "readability_target": 70,
+    "cta_impact": "medium"
+  },
+  "facebook": {
+    "caption_length": {
+      "optimal_min": 40,
+      "optimal_max": 200,
+      "max_allowed": 63206
+    },
+    "hashtag_count": {
+      "optimal_min": 1,
+      "optimal_max": 3,
+      "spam_threshold": 5,
+      "max_allowed": 10
+    },
+    "readability_target": 65,
+    "cta_impact": "high"
+  }
+}
