@@ -1,2 +1,0 @@
-total_generated_requirements,avg_quality_score,avg_clarity_score,avg_testability_score,avg_measurability_score,avg_completeness_score,strong_requirements,acceptable_requirements,needs_review_requirements,weak_requirements,requirements_with_modal,requirements_with_numeric_or_quality_constraint,requirements_with_actor_or_system,requirements_with_vague_terms
-144,93.68,95.87,97.36,86.25,95.24,124,20,0,0,144,64,111,19

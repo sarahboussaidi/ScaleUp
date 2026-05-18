@@ -1,8 +1,0 @@
-pillow
-numpy
-opencv-python
-pytesseract
-textblob
-joblib
-scikit-learn
-ultralytics
