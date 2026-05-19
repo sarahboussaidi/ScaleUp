@@ -1,7 +1,0 @@
-requirement_id,requirement_type,requirement_text
-FR-001,FR,The system shall help pearople with their daily life.
-NFR-001,NFR,The system shall security.
-NFR-002,NFR,The system shall performance.
-NFR-003,NFR,The system shall usability.
-NFR-004,NFR,The system shall reliability.
-NFR-005,NFR,The system shall maintainability.
