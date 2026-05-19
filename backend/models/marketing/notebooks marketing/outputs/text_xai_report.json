@@ -2,33 +2,33 @@
   "source": "raw_text",
   "image_path": null,
   "image_composition": null,
-  "raw_text_full": "HP GAS PPHnRei Booking OMi HP GAS ENTERPRISES For Emergency 6301685752 For Complaint 1800 233 3555 14.2 (HSN:Z7111900) 1 768. 00 618814 1115400-03/05/19 , IPPILI SRI RAA MURTHY 5-100/0/6/7/303, FNO-303 TRICON HEIGHTS , SECRETARIAT CO 8 PUPPALGUDA 500089 LPG Id:2 9111 0141 0010 8010 8 500371 29/04/2019 11:49.07 Subsidy Consuned:1/12 Lane Beside PAI Ph: 040-66611115 116 Scanned by CamScanner Store,",
-  "raw_text_preview": "HP GAS PPHnRei Booking OMi HP GAS ENTERPRISES For Emergency 6301685752 For Complaint 1800 233 3555 14.2 (HSN:Z7111900) 1 768. 00 618814 1115400-03/05/19 , IPPILI SRI RAA MURTHY 5-100/0/6/7/303, FNO-303 TRICON HEIGHTS , SECRETARIAT CO 8 PUPPALGUDA 500089 LPG Id:2 9111 0141 0010 8010 8 500371 29/04/2019 11:49.07 Subsidy Consuned:1/12 Lane Beside PAI Ph: 040-66611115 116 Scanned by CamScanner Store,",
-  "text_length": 399,
-  "platform": "instagram",
-  "overall_score": 3.6,
-  "penalized_overall_score": 1.6,
-  "universal_score": 2.44,
-  "penalty_applied": 2.0,
+  "raw_text_full": "Gktnn Ghh Mail me: ghofranegharbi454@gmail.com",
+  "raw_text_preview": "Gktnn Ghh Mail me: ghofranegharbi454@gmail.com",
+  "text_length": 46,
+  "platform": "twitter",
+  "overall_score": 3.45,
+  "penalized_overall_score": 0.95,
+  "universal_score": 3.09,
+  "penalty_applied": 2.5,
   "overall_label": "unknown",
   "dimension_scores": {
-    "sentiment": 4.3,
-    "structure": 3.5,
+    "sentiment": 4.7,
+    "structure": 2.5,
     "hashtags": 0.0,
     "target_match": 6.6
   },
   "dimension_contribution": {
     "sentiment": {
-      "score": 4.3,
+      "score": 4.7,
       "weight": 0.25,
-      "contribution": 1.075,
-      "percent_of_total": 29.86111111111111
+      "contribution": 1.175,
+      "percent_of_total": 34.05797101449276
     },
     "structure": {
-      "score": 3.5,
+      "score": 2.5,
       "weight": 0.25,
-      "contribution": 0.875,
-      "percent_of_total": 24.305555555555557
+      "contribution": 0.625,
+      "percent_of_total": 18.115942028985508
     },
     "hashtags": {
       "score": 0.0,
@@ -40,24 +40,24 @@
       "score": 6.6,
       "weight": 0.25,
       "contribution": 1.65,
-      "percent_of_total": 45.833333333333336
+      "percent_of_total": 47.826086956521735
     }
   },
   "ranked_dimensions": [
     {
       "dimension": "target_match",
       "score": 6.6,
-      "contribution_percent": 45.833333333333336
+      "contribution_percent": 47.826086956521735
     },
     {
       "dimension": "sentiment",
-      "score": 4.3,
-      "contribution_percent": 29.86111111111111
+      "score": 4.7,
+      "contribution_percent": 34.05797101449276
     },
     {
       "dimension": "structure",
-      "score": 3.5,
-      "contribution_percent": 24.305555555555557
+      "score": 2.5,
+      "contribution_percent": 18.115942028985508
     },
     {
       "dimension": "hashtags",
@@ -66,30 +66,30 @@
     }
   ],
   "feature_metrics": {
-    "raw_text": "HP GAS PPHnRei Booking OMi HP GAS ENTERPRISES For Emergency 6301685752 For Complaint 1800 233 3555 14.2 (HSN:Z7111900) 1 768. 00 618814 1115400-03/05/19 , IPPILI SRI RAA MURTHY 5-100/0/6/7/303, FNO-303 TRICON HEIGHTS , SECRETARIAT CO 8 PUPPALGUDA 500089 LPG Id:2 9111 0141 0010 8010 8 500371 29/04/2019 11:49.07 Subsidy Consuned:1/12 Lane Beside PAI Ph: 040-66611115 116 Scanned by CamScanner Store,",
-    "word_count": 77,
-    "char_count": 399,
+    "raw_text": "Gktnn Ghh Mail me: ghofranegharbi454@gmail.com",
+    "word_count": 7,
+    "char_count": 46,
     "hashtag_count": 0,
-    "mention_count": 0,
+    "mention_count": 1,
     "exclaim_count": 0,
     "question_count": 0,
     "emoji_count": 0,
-    "has_cta": 1,
+    "has_cta": 0,
     "has_url": 0,
-    "readability_flesch": 118.0780681818182,
-    "avg_word_length": 4.064935064935065,
-    "sentence_count": 4,
-    "caps_ratio": 0.4166666666666667,
+    "readability_flesch": 70.33964285714288,
+    "avg_word_length": 5.571428571428571,
+    "sentence_count": 2,
+    "caps_ratio": 0.0,
     "unique_hashtag_ratio": 0.0
   },
   "top_features": {
     "word_count": {
-      "value": 77.0,
+      "value": 7.0,
       "impact": "Word count (optimal: 10-150 words)",
       "importance": 0.15
     },
     "char_count": {
-      "value": 399.0,
+      "value": 46.0,
       "impact": "Character count (optimal: 100-2200)",
       "importance": 0.15
     },
@@ -99,26 +99,26 @@
       "importance": 0.15
     },
     "has_cta": {
-      "value": 1.0,
+      "value": 0.0,
       "impact": "Call-to-action present (binary: buy, click, link, etc.)",
       "importance": 0.1
     },
     "sentiment_polarity": {
-      "value": 4.064935064935065,
+      "value": 5.571428571428571,
       "impact": "Average word length (shorter=more readable)",
       "importance": 0.1
     }
   },
   "issues_detected": {
-    "too_short": false,
+    "too_short": true,
     "too_long": false,
-    "no_cta": false,
+    "no_cta": true,
     "no_hashtags": true,
     "hashtag_spam": false,
-    "all_caps": true,
+    "all_caps": false,
     "hard_to_read": false,
     "negative_tone": false,
     "flat_neutral": true
   },
-  "interpretation": "Low engagement risk (score 3.6/10). Weaknesses: structure, hashtags. Issues detected: No Hashtags, All Caps, Flat Neutral."
+  "interpretation": "Low engagement risk (score 3.5/10). Weaknesses: structure, hashtags. Issues detected: Too Short, No Cta, No Hashtags, Flat Neutral. Recommendations: Expand caption to 100+ characters."
 }

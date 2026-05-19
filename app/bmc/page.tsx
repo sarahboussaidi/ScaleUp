@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
+import { useEvaluation } from "@/hooks/useEvaluation"
 import {
   Upload,
   Image as ImageIcon,
@@ -17,7 +18,6 @@ import {
   Loader2,
   X,
   CheckCircle,
-  AlertTriangle,
   TrendingUp,
   Users,
   DollarSign,
@@ -27,33 +27,8 @@ import {
   MessageSquare,
   Handshake,
   Cog,
+  AlertCircle,
 } from "lucide-react"
-
-interface BMCBox {
-  id: string
-  name: string
-  icon: React.ElementType
-  score: number
-  content: string
-  feedback: string
-  suggestions: string[]
-}
-
-interface BMCAnalysis {
-  overallScore: number
-  boxes: BMCBox[]
-  strengths: string[]
-  weaknesses: string[]
-  coherence: {
-    score: number
-    feedback: string
-    suggestions: string[]
-  }
-  sustainability: {
-    feedback: string
-    suggestions: string[]
-  }
-}
 
 interface GeneratedBMC {
   keyPartners: string
@@ -67,6 +42,30 @@ interface GeneratedBMC {
   revenueStreams: string
 }
 
+const SECTION_DISPLAY: Record<string, string> = {
+  KeyPartners:           "Key Partners",
+  KeyActivities:         "Key Activities",
+  ValuePropositions:     "Value Propositions",
+  CustomerRelationships: "Customer Relationships",
+  CustomerSegments:      "Customer Segments",
+  KeyResources:          "Key Resources",
+  Channels:              "Channels",
+  CostStructure:         "Cost Structure",
+  RevenueStreams:        "Revenue Streams",
+}
+
+const BMC_ICONS: Record<string, React.ElementType> = {
+  KeyPartners:           Handshake,
+  KeyActivities:         Cog,
+  ValuePropositions:     Heart,
+  CustomerRelationships: MessageSquare,
+  CustomerSegments:      Users,
+  KeyResources:          Package,
+  Channels:              Truck,
+  CostStructure:         DollarSign,
+  RevenueStreams:        TrendingUp,
+}
+
 export default function BMCPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<"analyze" | "generate">("analyze")
@@ -75,8 +74,7 @@ export default function BMCPage() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysis, setAnalysis] = useState<BMCAnalysis | null>(null)
+  const { evaluate, result, loading: isAnalyzing, error: evalError, reset } = useEvaluation()
 
   // Generation state
   const [businessIdea, setBusinessIdea] = useState("")
@@ -105,143 +103,22 @@ export default function BMCPage() {
     if (droppedFile && droppedFile.type.startsWith("image/")) {
       setFile(droppedFile)
       setPreview(URL.createObjectURL(droppedFile))
-      setAnalysis(null)
+      reset()
     }
-  }, [])
+  }, [reset])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
       setFile(selectedFile)
       setPreview(URL.createObjectURL(selectedFile))
-      setAnalysis(null)
+      reset()
     }
   }
 
   const analyzeBMC = async () => {
     if (!file) return
-    setIsAnalyzing(true)
-
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    const mockAnalysis: BMCAnalysis = {
-      overallScore: 74,
-      boxes: [
-        {
-          id: "key-partners",
-          name: "Key Partners",
-          icon: Handshake,
-          score: 72,
-          content: "Technology vendors, Local incubators, Government agencies",
-          feedback: "Good partner identification but lacking strategic depth.",
-          suggestions: ["Add financial institutions for funding partnerships", "Consider academic partnerships"],
-        },
-        {
-          id: "key-activities",
-          name: "Key Activities",
-          icon: Cog,
-          score: 68,
-          content: "Platform development, Customer support, Marketing",
-          feedback: "Activities are generic. Need more specificity.",
-          suggestions: ["Define core differentiating activities", "Add quality assurance processes"],
-        },
-        {
-          id: "key-resources",
-          name: "Key Resources",
-          icon: Package,
-          score: 75,
-          content: "AI technology, Development team, Brand",
-          feedback: "Resources are identified but intellectual property not mentioned.",
-          suggestions: ["Include IP and proprietary algorithms", "Add human capital details"],
-        },
-        {
-          id: "value-propositions",
-          name: "Value Propositions",
-          icon: Heart,
-          score: 82,
-          content: "AI-powered business validation, Time savings, Expert-level insights",
-          feedback: "Strong value propositions well articulated.",
-          suggestions: ["Quantify the value (e.g., '80% faster')", "Add competitive differentiation"],
-        },
-        {
-          id: "customer-relationships",
-          name: "Customer Relationships",
-          icon: MessageSquare,
-          score: 70,
-          content: "Self-service platform, Email support, Community forum",
-          feedback: "Adequate but could be more personalized.",
-          suggestions: ["Add onboarding assistance", "Consider dedicated success managers for enterprise"],
-        },
-        {
-          id: "channels",
-          name: "Channels",
-          icon: Truck,
-          score: 78,
-          content: "Website, Social media, Partner referrals, Events",
-          feedback: "Multi-channel approach is good.",
-          suggestions: ["Add mobile app channel", "Consider B2B partnerships for distribution"],
-        },
-        {
-          id: "customer-segments",
-          name: "Customer Segments",
-          icon: Users,
-          score: 80,
-          content: "Early-stage startups, Student entrepreneurs, SMEs",
-          feedback: "Well-defined segments with clear focus.",
-          suggestions: ["Define personas for each segment", "Identify highest-value segment"],
-        },
-        {
-          id: "cost-structure",
-          name: "Cost Structure",
-          icon: DollarSign,
-          score: 65,
-          content: "Development costs, Marketing, Infrastructure",
-          feedback: "Cost categories identified but no prioritization.",
-          suggestions: ["Add fixed vs variable cost breakdown", "Include customer acquisition cost"],
-        },
-        {
-          id: "revenue-streams",
-          name: "Revenue Streams",
-          icon: TrendingUp,
-          score: 73,
-          content: "Subscription fees, Enterprise licenses, Premium features",
-          feedback: "Multiple revenue streams identified.",
-          suggestions: ["Add pricing tiers details", "Consider freemium conversion metrics"],
-        },
-      ],
-      strengths: [
-        "Strong value proposition clarity",
-        "Well-defined customer segments",
-        "Multi-channel distribution strategy",
-      ],
-      weaknesses: [
-        "Cost structure needs more detail",
-        "Key activities are too generic",
-        "Customer relationships could be more personalized",
-      ],
-      coherence: {
-        score: 76,
-        feedback: "The BMC shows good internal coherence with aligned value propositions and customer segments. However, some activities don't directly support the stated value propositions.",
-        suggestions: [
-          "Ensure all key activities directly contribute to delivering the value propositions",
-          "Align cost structure with revenue streams for better financial coherence",
-          "Review channels to ensure they effectively reach the defined customer segments"
-        ]
-      },
-      sustainability: {
-        feedback: "The business model has potential for sustainability but lacks explicit environmental and social considerations.",
-        suggestions: [
-          "Incorporate green technology practices in key activities",
-          "Add sustainable sourcing for key resources and partnerships",
-          "Consider social impact metrics in value propositions",
-          "Implement circular economy principles in cost and revenue structures",
-          "Develop long-term partnerships with sustainable suppliers"
-        ]
-      },
-    }
-
-    setAnalysis(mockAnalysis)
-    setIsAnalyzing(false)
+    await evaluate(file)
   }
 
   const generateBMC = async () => {
@@ -315,7 +192,7 @@ export default function BMCPage() {
   const clearFile = () => {
     setFile(null)
     setPreview(null)
-    setAnalysis(null)
+    reset()
   }
 
   const getScoreColor = (score: number) => {
@@ -456,27 +333,43 @@ export default function BMCPage() {
                     </CardContent>
                   </Card>
 
+                  {/* Error */}
+                  {evalError && (
+                    <div className="max-w-2xl mx-auto p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                      {evalError}
+                    </div>
+                  )}
+
+                  {/* Not a BMC */}
+                  {result && !result.is_bmc && (
+                    <div className="max-w-2xl mx-auto p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm">
+                      {result.error ?? "This image does not appear to be a Business Model Canvas."}
+                    </div>
+                  )}
+
                   {/* Analysis Results */}
-                  {analysis && (
+                  {result && result.is_bmc && (
                     <div className="space-y-6">
                       {/* Overall Score */}
-                      <Card className={`border ${getScoreBg(analysis.overallScore)} max-w-2xl mx-auto`}>
+                      <Card className={`border ${getScoreBg(result.overall.score)} max-w-2xl mx-auto`}>
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="text-white/60 text-sm mb-1">Overall BMC Score</p>
-                              <p className={`text-4xl font-bold ${getScoreColor(analysis.overallScore)}`}>
-                                {analysis.overallScore}/100
+                              <p className={`text-4xl font-bold ${getScoreColor(result.overall.score)}`}>
+                                {result.overall.score}/100
+                              </p>
+                              <p className="text-white/40 text-xs mt-1">
+                                Section avg: {result.overall.section_avg} · Coherence: {result.overall.coherence}
                               </p>
                             </div>
-                            <div className="text-right">
-                              <p className="text-white/60 text-sm mb-2">Key Findings</p>
-                              <div className="flex items-center gap-2 text-sm">
-                                <CheckCircle className="w-4 h-4 text-green-400" />
-                                <span className="text-green-400">{analysis.strengths.length} Strengths</span>
-                                <AlertTriangle className="w-4 h-4 text-yellow-400 ml-2" />
-                                <span className="text-yellow-400">{analysis.weaknesses.length} Areas to Improve</span>
-                              </div>
+                            <div className="text-right max-w-xs space-y-1">
+                              <p className="text-white/50 text-xs">
+                                {result.language === "fr" ? "🇫🇷 French" : "🇬🇧 English"}
+                              </p>
+                              <p className="text-white/50 text-xs leading-relaxed">
+                                {result.overall.summary}
+                              </p>
                             </div>
                           </div>
                         </CardContent>
@@ -484,50 +377,70 @@ export default function BMCPage() {
 
                       {/* Box-by-Box Analysis */}
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {analysis.boxes.map((box) => (
-                          <Card key={box.id} className="bg-white/5 backdrop-blur-xl border-white/10">
-                            <CardHeader className="pb-2">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <box.icon className="w-5 h-5 text-purple-400" />
-                                  <CardTitle className="text-white text-base">{box.name}</CardTitle>
+                        {Object.entries(result.sections).map(([key, sec]) => {
+                          const Icon = BMC_ICONS[key] ?? Layers
+                          const isEmpty = sec.score === 0
+
+                          return (
+                            <Card
+                              key={key}
+                              className={`bg-white/5 backdrop-blur-xl border-white/10 ${
+                                isEmpty ? "opacity-75" : ""
+                              }`}
+                            >
+                              <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Icon className={`w-5 h-5 ${isEmpty ? "text-white/30" : "text-purple-400"}`} />
+                                    <CardTitle className="text-white text-base">
+                                      {SECTION_DISPLAY[key] ?? key}
+                                    </CardTitle>
+                                  </div>
+                                  {isEmpty ? (
+                                    <div className="flex items-center gap-1 text-white/40 text-xs">
+                                      <AlertCircle className="w-3 h-3" />
+                                      Empty
+                                    </div>
+                                  ) : (
+                                    <span className={`font-bold ${getScoreColor(sec.score)}`}>{sec.score}</span>
+                                  )}
                                 </div>
-                                <span className={`font-bold ${getScoreColor(box.score)}`}>{box.score}</span>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                              <div className="w-full bg-white/10 rounded-full h-2">
-                                <div
-                                  className={`h-2 rounded-full transition-all duration-500 ${
-                                    box.score >= 80
-                                      ? "bg-green-400"
-                                      : box.score >= 60
-                                        ? "bg-yellow-400"
-                                        : "bg-red-400"
-                                  }`}
-                                  style={{ width: `${box.score}%` }}
-                                />
-                              </div>
-                              <p className="text-white/60 text-sm">{box.feedback}</p>
-                              <div className="pt-2 border-t border-white/10">
-                                <p className="text-xs text-purple-300 mb-1">Suggestions:</p>
-                                <ul className="space-y-1">
-                                  {box.suggestions.map((sug, i) => (
-                                    <li key={i} className="text-white/50 text-xs flex items-start gap-1">
-                                      <span className="text-purple-400">•</span>
-                                      {sug}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                              </CardHeader>
+                              <CardContent className="space-y-3">
+                                {!isEmpty && (
+                                  <div className="w-full bg-white/10 rounded-full h-2">
+                                    <div
+                                      className={`h-2 rounded-full transition-all duration-500 ${
+                                        sec.score >= 80
+                                          ? "bg-green-400"
+                                          : sec.score >= 60
+                                            ? "bg-yellow-400"
+                                            : "bg-red-400"
+                                      }`}
+                                      style={{ width: `${sec.score}%` }}
+                                    />
+                                  </div>
+                                )}
+                                <p className="text-white/60 text-sm">{sec.feedback}</p>
+                                {sec.improvement && (
+                                  <div className="pt-2 border-t border-white/10">
+                                    <p className={`text-xs mb-1 ${isEmpty ? "text-white/40" : "text-purple-300"}`}>
+                                      {isEmpty ? "What to add:" : "Improvement:"}
+                                    </p>
+                                    <p className="text-white/50 text-xs">{sec.improvement}</p>
+                                  </div>
+                                )}
+                                <p className="text-white/30 text-xs">
+                                  {sec.engine} · {sec.word_count}w · {sec.text_type}
+                                </p>
+                              </CardContent>
+                            </Card>
+                          )
+                        })}
                       </div>
 
-                      {/* Additional Evaluations */}
+                      {/* Coherence + Sustainability */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
-                        {/* Coherence Evaluation */}
                         <Card className="bg-white/5 backdrop-blur-xl border-white/10">
                           <CardHeader className="pb-2">
                             <div className="flex items-center justify-between">
@@ -535,38 +448,28 @@ export default function BMCPage() {
                                 <CheckCircle className="w-5 h-5 text-purple-400" />
                                 <CardTitle className="text-white text-base">BMC Coherence</CardTitle>
                               </div>
-                              <span className={`font-bold ${getScoreColor(analysis.coherence.score)}`}>{analysis.coherence.score}</span>
+                              <span className={`font-bold ${getScoreColor(result.coherence.score)}`}>
+                                {result.coherence.score}
+                              </span>
                             </div>
                           </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="w-full bg-white/10 rounded-full h-2">
+                          <CardContent>
+                            <div className="w-full bg-white/10 rounded-full h-2 mb-3">
                               <div
                                 className={`h-2 rounded-full transition-all duration-500 ${
-                                  analysis.coherence.score >= 80
+                                  result.coherence.score >= 80
                                     ? "bg-green-400"
-                                    : analysis.coherence.score >= 60
+                                    : result.coherence.score >= 60
                                       ? "bg-yellow-400"
                                       : "bg-red-400"
                                 }`}
-                                style={{ width: `${analysis.coherence.score}%` }}
+                                style={{ width: `${result.coherence.score}%` }}
                               />
                             </div>
-                            <p className="text-white/60 text-sm">{analysis.coherence.feedback}</p>
-                            <div className="pt-2 border-t border-white/10">
-                              <p className="text-xs text-purple-300 mb-1">Suggestions:</p>
-                              <ul className="space-y-1">
-                                {analysis.coherence.suggestions.map((sug, i) => (
-                                  <li key={i} className="text-white/50 text-xs flex items-start gap-1">
-                                    <span className="text-purple-400">•</span>
-                                    {sug}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
+                            <p className="text-white/60 text-sm">{result.coherence.analysis}</p>
                           </CardContent>
                         </Card>
 
-                        {/* Sustainability Evaluation */}
                         <Card className="bg-white/5 backdrop-blur-xl border-white/10">
                           <CardHeader className="pb-2">
                             <div className="flex items-center gap-2">
@@ -574,19 +477,8 @@ export default function BMCPage() {
                               <CardTitle className="text-white text-base">Sustainability Advice</CardTitle>
                             </div>
                           </CardHeader>
-                          <CardContent className="space-y-3">
-                            <p className="text-white/60 text-sm">{analysis.sustainability.feedback}</p>
-                            <div className="pt-2 border-t border-white/10">
-                              <p className="text-xs text-purple-300 mb-1">Suggestions:</p>
-                              <ul className="space-y-1">
-                                {analysis.sustainability.suggestions.map((sug, i) => (
-                                  <li key={i} className="text-white/50 text-xs flex items-start gap-1">
-                                    <span className="text-purple-400">•</span>
-                                    {sug}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
+                          <CardContent>
+                            <p className="text-white/60 text-sm">{result.sustainability.advice}</p>
                           </CardContent>
                         </Card>
                       </div>

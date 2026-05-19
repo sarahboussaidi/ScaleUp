@@ -57,6 +57,14 @@ except Exception as exc:
     def init_bmc_processor():
         return None
 
+try:
+    from bmc_eval_routes import bmc_eval_bp, init_bmc_eval
+except Exception as exc:
+    print(f"[WARN] BMC eval routes unavailable: {exc}")
+    bmc_eval_bp = None
+    def init_bmc_eval():
+        return None
+
 from strength_predictor import detect_bad_words, hybrid_strength_predict
 from SRS.srs_engine.document_parser import extract_text_from_file
 from SRS.srs_engine.generator import generate_srs_document
@@ -91,6 +99,10 @@ if doc_classifier_bp is not None:
 # Register BMC processor blueprint
 if bmc_processor_bp is not None:
     app.register_blueprint(bmc_processor_bp, url_prefix='/api')
+
+# Register bmc eval
+if bmc_eval_bp is not None:
+    app.register_blueprint(bmc_eval_bp, url_prefix='/api')
 
 # Get the backend directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -2659,6 +2671,8 @@ if __name__ == '__main__':
     init_document_classifier()
 
     init_bmc_processor()
+
+    init_bmc_eval()
     
     # Run Flask app
     app.run(
