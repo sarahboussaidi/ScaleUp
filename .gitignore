@@ -47,3 +47,4 @@ artifacts/
 
 
 
+backend/models/pitch_deck_final/model.safetensors
