@@ -107,6 +107,8 @@ export async function analyzeSpeechStrength(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
+    console.debug(`[analyzeSpeechStrength] Audio blob size: ${audioBlob.size} bytes`)
+    
     const formData = new FormData()
     formData.append("file", audioBlob, "voice.webm")
 
@@ -120,7 +122,9 @@ export async function analyzeSpeechStrength(
       throw new Error(`API error: ${response.status}`)
     }
 
-    return await response.json()
+    const result = await response.json()
+    console.debug(`[analyzeSpeechStrength] Response:`, result)
+    return result
   } finally {
     clearTimeout(timeoutId)
   }

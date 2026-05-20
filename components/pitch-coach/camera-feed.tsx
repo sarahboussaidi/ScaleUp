@@ -31,6 +31,7 @@ export function CameraFeed({ onStreamReady, onStreamEnd, isRecording, onAnalysis
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [lastEmotion, setLastEmotion] = useState<string>("waiting")
   const [lastStress, setLastStress] = useState<string>("waiting")
+  const [lastResponses, setLastResponses] = useState<{ emotion?: any; stress?: any; posture?: any } | null>(null)
   const [emotionBox, setEmotionBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null)
 
@@ -105,18 +106,34 @@ export function CameraFeed({ onStreamReady, onStreamEnd, isRecording, onAnalysis
         ctx.drawImage(video, 0, 0, canvasRef.current.width, canvasRef.current.height)
         const frame = canvasRef.current.toDataURL("image/jpeg", 0.8)
 
+
         setIsAnalyzing(true)
         try {
           const emotionResponse = await analyzeFrame(API_CONFIG.ENDPOINTS.ANALYZE_EMOTION, frame)
           const stressResponse = await analyzeFrame(API_CONFIG.ENDPOINTS.ANALYZE_STRESS, frame)
           const postureResponse = await analyzeFrame(API_CONFIG.ENDPOINTS.ANALYZE_POSTURE, frame)
 
-          if (emotionResponse?.emotion && emotionResponse.emotion !== "no_face") {
+          // DEBUG: log raw responses to help diagnose constant predictions
+          console.debug('analyzeFrame emotion response:', emotionResponse)
+          console.debug('analyzeFrame stress response:', stressResponse)
+          console.debug('analyzeFrame posture response:', postureResponse)
+
+          // expose last raw responses to the UI for easier debugging
+          setLastResponses({ emotion: emotionResponse, stress: stressResponse, posture: postureResponse })
+
+          // Always update displayed lastEmotion/lastStress so UI reflects 'no_face' or 'unknown'
+          if (emotionResponse && typeof emotionResponse.emotion !== 'undefined') {
             setLastEmotion(emotionResponse.emotion)
+          } else {
+            setLastEmotion('waiting')
           }
-          if (stressResponse?.stress && stressResponse.stress !== "unknown") {
+
+          if (stressResponse && typeof stressResponse.stress !== 'undefined') {
             setLastStress(stressResponse.stress)
+          } else {
+            setLastStress('waiting')
           }
+
           setEmotionBox(emotionResponse?.emotion && emotionResponse.emotion !== "no_face" ? emotionResponse.face_box || null : null)
           onAnalysisUpdate?.({
             emotion: emotionResponse?.emotion,
@@ -135,6 +152,9 @@ export function CameraFeed({ onStreamReady, onStreamEnd, isRecording, onAnalysis
       }, 2500)
     } catch (error) {
       console.error("Error accessing camera:", error)
+      // show a visible error to the user by setting backendHealthy to false and logging
+      setBackendHealthy(false)
+      // Optionally, bubble up a toast or call onStreamEnd
     }
   }
 
@@ -256,6 +276,21 @@ export function CameraFeed({ onStreamReady, onStreamEnd, isRecording, onAnalysis
             </div>
           </div>
         </div>
+
+        {/* Debug panel showing last raw model responses */}
+        {lastResponses && (
+          <div className="mt-3 rounded-lg border border-white/10 bg-black/60 p-3 text-xs text-slate-200">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-medium">Last Model Responses (debug)</div>
+              <div className="text-xs text-slate-400">Updated live</div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <pre className="whitespace-pre-wrap overflow-auto max-h-40 p-2 bg-slate-900/40 rounded">{JSON.stringify(lastResponses.emotion, null, 2)}</pre>
+              <pre className="whitespace-pre-wrap overflow-auto max-h-40 p-2 bg-slate-900/40 rounded">{JSON.stringify(lastResponses.stress, null, 2)}</pre>
+              <pre className="whitespace-pre-wrap overflow-auto max-h-40 p-2 bg-slate-900/40 rounded">{JSON.stringify(lastResponses.posture, null, 2)}</pre>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-xs text-slate-400">
           The camera feed sends frames to <span className="text-slate-200">{API_CONFIG.BASE_URL}</span> and queries <span className="text-slate-200">/api/analyze/emotion</span> and <span className="text-slate-200">/api/analyze/stress</span>.

@@ -1,0 +1,8 @@
+[WARN] MediaPipe face detector unavailable: module 'mediapipe' has no attribute 'solutions'
+[!] Emotion model not found in any expected location
+[!] Stress model not found in any expected location
+[!] Pose landmarker task not found
+[!] Confidence model not found - posture detection will use landmarks only
+[!] Label encoder not found
+[!] Scaler not found
+[!] Voice emotion model not found at C:\Users\SOUFIEN\OneDrive\Documents\GitHub\ScaleUp\backend\models\best_cnn2d_v2.keras

@@ -1,0 +1,15 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1779304521.836358   24096 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1779304526.097356   24096 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+Traceback (most recent call last):
+  File "C:\Users\SOUFIEN\OneDrive\Documents\GitHub\ScaleUp\backend\app.py", line 2683, in <module>
+    init_document_classifier()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\SOUFIEN\OneDrive\Documents\GitHub\ScaleUp\backend\Bmc_generation\document_classifier_routes.py", line 468, in init_document_classifier
+    print("\n\U0001f4e6 Initializing Document Classifier Module...")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\SOUFIEN\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4e6' in position 2: character maps to <undefined>

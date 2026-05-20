@@ -98,6 +98,7 @@ export default function PitchCoachPage() {
 
   const handleRecordingStart = useCallback(() => {
     setIsRecording(true)
+    isRecordingRef.current = true
     setRecordingDuration(0)
     setTranscription("")
     setFinalTranscript("")
@@ -109,27 +110,30 @@ export default function PitchCoachPage() {
 
     if (stream) {
       try {
-        const cameraAudioTracks = stream.getAudioTracks()
-        const audioStream = cameraAudioTracks.length > 0 ? new MediaStream(cameraAudioTracks) : null
-
         const startRecorder = (sourceStream: MediaStream) => {
           const preferredMimeTypes = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"]
           const mimeType = preferredMimeTypes.find((t) => MediaRecorder.isTypeSupported(t))
           const mediaRecorder = mimeType ? new MediaRecorder(sourceStream, { mimeType }) : new MediaRecorder(sourceStream)
           mediaRecorderRef.current = mediaRecorder
-          mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data) }
-          mediaRecorder.start()
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              audioChunksRef.current.push(e.data)
+            }
+          }
+          // Emit chunks periodically so we don't depend on a single stop event.
+          mediaRecorder.start(1000)
         }
 
-        if (audioStream) {
-          voiceAudioStreamRef.current = audioStream
-          startRecorder(audioStream)
-        } else {
-          navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((micStream) => {
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+          .then((micStream) => {
             voiceAudioStreamRef.current = micStream
             startRecorder(micStream)
-          }).catch((e) => console.error("Microphone access failed:", e))
-        }
+            setVoiceEmotionStatus("Microphone recording started.")
+          })
+          .catch((e) => {
+            console.error("Microphone access failed:", e)
+            setVoiceEmotionStatus("Microphone access failed. Check mic permission.")
+          })
       } catch (e) {
         console.error("Failed to start MediaRecorder:", e)
       }
@@ -138,10 +142,17 @@ export default function PitchCoachPage() {
 
   const handleRecordingStop = useCallback(async () => {
     setIsRecording(false)
+    isRecordingRef.current = false
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       await new Promise<void>((resolve) => {
         const recorder = mediaRecorderRef.current
         if (!recorder) { resolve(); return }
+        try {
+          // Force the last buffered chunk to be emitted before stopping.
+          recorder.requestData()
+        } catch (e) {
+          console.warn("requestData() failed before stop:", e)
+        }
         recorder.onstop = () => resolve()
         recorder.stop()
       })
@@ -177,9 +188,13 @@ export default function PitchCoachPage() {
         if (voiceEmotionResult.status === "fulfilled" && voiceEmotionResult.value && !voiceEmotionResult.value.error) {
           if (voiceEmotionResult.value.emotion) {
             voiceEmotionAnalysis[voiceEmotionResult.value.emotion] = 1
+          } else {
+            setVoiceEmotionStatus("Voice emotion API returned no emotion.")
           }
         } else if (voiceEmotionResult.status === "rejected") {
           setVoiceEmotionStatus("Voice emotion analysis failed: request timed out or was aborted.")
+        } else {
+          setVoiceEmotionStatus("Voice emotion analysis returned an empty result.")
         }
 
         if (speechStrengthResult.status === "fulfilled" && speechStrengthResult.value && !speechStrengthResult.value.error) {
@@ -202,6 +217,7 @@ export default function PitchCoachPage() {
       }
     } else {
       setVoiceEmotionStatus("No audio was captured. Check microphone permission.")
+      voiceEmotionAnalysis["no audio captured"] = 1
     }
 
     setRecordingAnalysis({

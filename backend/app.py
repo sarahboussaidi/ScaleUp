@@ -858,13 +858,16 @@ def find_best_face(gray):
             for cascade in (FACE_CASCADE_DEFAULT, FACE_CASCADE_ALT2):
                 if cascade.empty():
                     continue
-
-                faces = cascade.detectMultiScale(
-                    source,
-                    scaleFactor=scale_factor,
-                    minNeighbors=min_neighbors,
-                    minSize=(min_size, min_size),
-                )
+                try:
+                    faces = cascade.detectMultiScale(
+                        source,
+                        scaleFactor=scale_factor,
+                        minNeighbors=min_neighbors,
+                        minSize=(min_size, min_size),
+                    )
+                except cv2.error as e:
+                    print(f"[WARN] Haar cascade detection failed, skipping cascade: {e}")
+                    continue
 
                 if len(faces) == 0:
                     continue
@@ -889,6 +892,57 @@ def find_best_face(gray):
     except Exception as e:
         print(f"[WARN] find_best_face failed: {e}")
         return None
+
+
+def _central_face_crop(gray):
+    """Return a conservative central crop when no face detector succeeds."""
+    h, w = gray.shape[:2]
+    crop_w = max(48, int(w * 0.45))
+    crop_h = max(48, int(h * 0.45))
+    x = max(0, (w - crop_w) // 2)
+    y = max(0, (h - crop_h) // 2)
+    return (x, y, min(crop_w, w - x), min(crop_h, h - y))
+
+
+def _estimate_face_box_from_pose(frame, gray):
+    """Estimate a face box from pose landmarks; fall back to a central upper crop."""
+    try:
+        if models_loaded.get('pose_detector') is not None:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+            detection_result = models_loaded['pose_detector'].detect(mp_image)
+            landmarks_list = getattr(detection_result, 'pose_landmarks', None) or []
+            landmarks = landmarks_list[0] if landmarks_list else None
+
+            if landmarks and len(landmarks) > NOSE:
+                nose = landmarks[NOSE]
+                left_ear = landmarks[LEFT_EAR] if len(landmarks) > LEFT_EAR else None
+                right_ear = landmarks[RIGHT_EAR] if len(landmarks) > RIGHT_EAR else None
+                h, w = gray.shape[:2]
+
+                if left_ear and right_ear:
+                    x_center = int(((left_ear.x + right_ear.x) / 2.0) * w)
+                    y_center = int(nose.y * h)
+                    face_w = max(64, int(abs(left_ear.x - right_ear.x) * w * 2.0))
+                    face_h = max(64, int(face_w * 1.15))
+                    x = max(0, x_center - face_w // 2)
+                    y = max(0, y_center - face_h // 2)
+                    bw = min(w - x, face_w)
+                    bh = min(h - y, face_h)
+                    if bw > 0 and bh > 0:
+                        return (x, y, bw, bh), "pose"
+
+                # fallback small box around nose, biased upward to capture the full face
+                x = max(0, int(nose.x * w) - 56)
+                y = max(0, int(nose.y * h) - 84)
+                bw = min(w - x, 112)
+                bh = min(h - y, 140)
+                if bw > 0 and bh > 0:
+                    return (x, y, bw, bh), "pose_nose"
+    except Exception as e:
+        print(f"[WARN] Pose-based face estimation failed: {e}")
+
+    return _central_face_crop(gray), "central_crop"
 
 
 def compute_posture_features(landmarks):
@@ -1015,6 +1069,7 @@ def load_models():
         stress_path = find_model_path(
             "models/best_final_stress_cnn_73.h5",
             "models/stress/best_final_stress_cnn_73.h5",
+            "models/emotion/best_final_stress_cnn_73.h5",
         )
         
         if emotion_path:
@@ -1031,7 +1086,11 @@ def load_models():
         
         # Load pose detection model
         try:
-            pose_task_path = find_model_path("models/posturedata/pose_landmarker.task")
+            pose_task_path = find_model_path(
+                "models/posturedata/pose_landmarker.task",
+                "models/pose_landmarker.task",
+                "models/emotion/pose_landmarker.task",
+            )
             if pose_task_path:
                 base_options = mp.tasks.BaseOptions(model_asset_path=pose_task_path)
                 options = mp.tasks.vision.PoseLandmarkerOptions(base_options=base_options, output_segmentation_masks=False)
@@ -1044,7 +1103,11 @@ def load_models():
         
         # Load posture confidence model
         try:
-            confidence_path = find_model_path("models/posturedata/confidence_model.pkl")
+            confidence_path = find_model_path(
+                "models/posturedata/confidence_model.pkl",
+                "models/emotion/confidence_model.pkl",
+                "models/confidence_model.pkl",
+            )
             if confidence_path:
                 models_loaded['confidence_model'] = joblib.load(confidence_path)
                 print("[OK] Confidence model loaded")
@@ -1055,7 +1118,11 @@ def load_models():
         
         # Load label encoder
         try:
-            encoder_path = find_model_path("models/posturedata/label_encoder.pkl")
+            encoder_path = find_model_path(
+                "models/posturedata/label_encoder.pkl",
+                "models/emotion/label_encoder.pkl",
+                "models/label_encoder.pkl",
+            )
             if encoder_path:
                 models_loaded['label_encoder'] = joblib.load(encoder_path)
                 print("[OK] Label encoder loaded")
@@ -1066,7 +1133,11 @@ def load_models():
         
         # Load scaler
         try:
-            scaler_path = find_model_path("models/posturedata/scaler.pkl")
+            scaler_path = find_model_path(
+                "models/posturedata/scaler.pkl",
+                "models/emotion/scaler.pkl",
+                "models/scaler.pkl",
+            )
             if scaler_path:
                 models_loaded['scaler'] = joblib.load(scaler_path)
                 print("[OK] Scaler loaded")
@@ -1077,17 +1148,34 @@ def load_models():
         
         # Load voice emotion model
         try:
-            if os.path.exists(VOICE_EMOTION_MODEL_PATH):
-                models_loaded['voice_emotion'] = load_model(VOICE_EMOTION_MODEL_PATH)
-                print(f"[OK] Voice emotion model loaded from {VOICE_EMOTION_MODEL_PATH}")
+            voice_candidate = find_model_path(
+                os.path.join("models", os.path.basename(VOICE_EMOTION_MODEL_PATH)),
+                "models/emotion/best_cnn2d_v2.keras",
+                "models/emotion/best_cnn2d.keras",
+            )
+            if voice_candidate:
+                models_loaded['voice_emotion'] = load_model(voice_candidate)
+                print(f"[OK] Voice emotion model loaded from {voice_candidate}")
             else:
-                print(f"[!] Voice emotion model not found at {VOICE_EMOTION_MODEL_PATH}")
+                print(f"[!] Voice emotion model not found (checked several locations)")
         except Exception as e:
             print(f"[!] Voice emotion model loading failed: {e}")
             
     except Exception as e:
         print(f"[ERROR] Error loading models: {e}")
         traceback.print_exc()
+
+
+@app.route('/api/load_models', methods=['GET', 'POST'])
+def api_load_models():
+    """Trigger model loading on-demand and return load status."""
+    try:
+        load_models()
+        status = {k: bool(v) for k, v in models_loaded.items()}
+        return jsonify({'models_loaded': status}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 # -----------------
@@ -1161,24 +1249,60 @@ def preprocess_face(face_array):
         print(f"[ERROR] Error preprocessing face: {e}")
         return None
 
+
+def _decode_base64_image(frame_base64: str):
+    """Decode a base64 image string into an OpenCV BGR image.
+    Accepts strings with or without the data:image/...;base64, prefix.
+    Provides a fallback of writing to a temp file and using cv2.imread
+    if cv2.imdecode returns None (some OpenCV builds need this).
+    """
+    try:
+        if not isinstance(frame_base64, str):
+            raise ValueError("frame_base64 must be a string")
+
+        payload = frame_base64
+        if "," in frame_base64:
+            # support data:[<mediatype>][;base64],<data>
+            payload = frame_base64.split(",", 1)[1]
+
+        frame_data = base64.b64decode(payload)
+        nparr = np.frombuffer(frame_data, dtype=np.uint8)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        if frame is None:
+            # Fallback: write to temp file and let cv2.imread handle it
+            try:
+                fd, tmp_path = tempfile.mkstemp(suffix='.jpg')
+                os.close(fd)
+                with open(tmp_path, 'wb') as f:
+                    f.write(frame_data)
+                frame = cv2.imread(tmp_path, cv2.IMREAD_COLOR)
+                try:
+                    os.remove(tmp_path)
+                except Exception:
+                    pass
+            except Exception:
+                frame = None
+
+        return frame
+    except Exception as e:
+        print(f"[ERROR] _decode_base64_image failed: {e}")
+        return None
+
 def detect_emotion(frame_base64):
     """Detect emotion from frame"""
     try:
         if models_loaded['emotion'] is None:
             return {"error": "Emotion model not loaded"}
         
-        # Decode base64 frame
-        frame_data = base64.b64decode(frame_base64.split(',')[1])
-        nparr = np.frombuffer(frame_data, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # Decode base64 frame (robust helper handles prefixes and fallbacks)
+        frame = _decode_base64_image(frame_base64)
         
         # Convert to grayscale for emotion detection
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
-        face = find_best_face(gray)
-
-        if face is None:
-            return {"emotion": "no_face", "confidence": 0.0, "face_detected": False}
+        face, face_source = _estimate_face_box_from_pose(frame, gray)
+        print(f"[INFO] Emotion face source: {face_source}")
         
         # Get largest face candidate
         x, y, w, h = face
@@ -1196,6 +1320,7 @@ def detect_emotion(frame_base64):
             "emotion": EMOTION_LABELS[emotion_idx],
             "confidence": float(preds[emotion_idx]),
             "face_detected": True,
+            "face_source": face_source,
             "face_box": {
                 "x": int(x),
                 "y": int(y),
@@ -1218,18 +1343,14 @@ def detect_stress(frame_base64):
         if models_loaded['stress'] is None:
             return {"error": "Stress model not loaded"}
         
-        # Decode base64 frame
-        frame_data = base64.b64decode(frame_base64.split(',')[1])
-        nparr = np.frombuffer(frame_data, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # Decode base64 frame (robust helper handles prefixes and fallbacks)
+        frame = _decode_base64_image(frame_base64)
         
         # Convert to grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
-        face = find_best_face(gray)
-
-        if face is None:
-            return {"stress": "unknown", "confidence": 0.0}
+        face, face_source = _estimate_face_box_from_pose(frame, gray)
+        print(f"[INFO] Stress face source: {face_source}")
         
         # Get largest face candidate
         x, y, w, h = face
@@ -1255,6 +1376,7 @@ def detect_stress(frame_base64):
             "stress": label,
             "confidence": confidence,
             "face_detected": True,
+            "face_source": face_source,
             "face_box": {
                 "x": int(x),
                 "y": int(y),
@@ -1273,10 +1395,8 @@ def detect_posture(frame_base64):
         if models_loaded['pose_detector'] is None:
             return {"error": "Pose detector not loaded"}
         
-        # Decode base64 frame
-        frame_data = base64.b64decode(frame_base64.split(',')[1])
-        nparr = np.frombuffer(frame_data, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # Decode base64 frame (robust helper handles prefixes and fallbacks)
+        frame = _decode_base64_image(frame_base64)
         
         # Convert BGR to RGB for MediaPipe
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -1332,42 +1452,53 @@ def detect_posture(frame_base64):
 def detect_voice_emotion(audio_base64):
     """Detect emotion from audio using CNN model"""
     try:
+        print(f"[VoiceEmotion] Starting inference on audio (b64 len={len(audio_base64)})")
         if models_loaded['voice_emotion'] is None:
             return {"error": "Voice emotion model not loaded"}
         
         # Decode base64 audio
+        print(f"[VoiceEmotion] Decoding base64 audio...")
         audio_data = base64.b64decode(audio_base64.split(',')[1] if ',' in audio_base64 else audio_base64)
+        print(f"[VoiceEmotion] Decoded audio: {len(audio_data)} bytes")
         
         # Load audio from bytes
+        print(f"[VoiceEmotion] Loading audio with librosa...")
         try:
             audio_stream = io.BytesIO(audio_data)
             y, sr = librosa.load(audio_stream, sr=16000)
+            print(f"[VoiceEmotion] Audio loaded: {len(y)} samples at {sr}Hz")
         except Exception as e:
-            print(f"[!] Librosa load failed: {e}, trying alternative")
+            print(f"[VoiceEmotion] Librosa load failed: {e}, trying alternative")
             # If librosa fails, try alternative loading
             import soundfile as sf
             audio_stream = io.BytesIO(audio_data)
             y, sr = sf.read(audio_stream)
             y = np.array(y, dtype=np.float32)
+            print(f"[VoiceEmotion] Audio loaded via soundfile: {len(y)} samples")
         
         # Build a 3-channel spectrogram image that matches the model input shape (128x128x3)
+        print(f"[VoiceEmotion] Computing mel-spectrogram...")
         mel_spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, n_fft=2048, hop_length=512)
         mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
 
         # Normalize and create 3 channels: base mel, delta, delta-delta
+        print(f"[VoiceEmotion] Computing deltas...")
         mel_norm = (mel_spec_db - np.mean(mel_spec_db)) / (np.std(mel_spec_db) + 1e-8)
         delta = librosa.feature.delta(mel_norm)
         delta2 = librosa.feature.delta(mel_norm, order=2)
 
         spectrogram = np.stack([mel_norm, delta, delta2], axis=-1)
+        print(f"[VoiceEmotion] Resizing spectrogram to 128x128...")
         spectrogram = cv2.resize(spectrogram.astype(np.float32), (128, 128), interpolation=cv2.INTER_AREA)
         mel_spec_input = np.expand_dims(spectrogram, axis=0)
 
         expected_shape = models_loaded['voice_emotion'].input_shape
-        print(f"[VoiceEmotion] input shape={mel_spec_input.shape}, model expects={expected_shape}")
+        print(f"[VoiceEmotion] Input shape={mel_spec_input.shape}, model expects={expected_shape}")
         
         # Predict
+        print(f"[VoiceEmotion] Running model inference...")
         preds = models_loaded['voice_emotion'].predict(mel_spec_input, verbose=0)[0]
+        print(f"[VoiceEmotion] Inference complete")
         emotion_idx = int(np.argmax(preds))
         
         return {
@@ -1614,19 +1745,30 @@ def analyze_posture():
 @app.route('/api/analyze/voice-emotion', methods=['POST'])
 def analyze_voice_emotion():
     """Analyze voice emotion from audio"""
+    print(f"[VoiceEmotion] Endpoint called - content_type={request.content_type}")
     try:
         if request.content_type and request.content_type.startswith('multipart'):
             if 'file' not in request.files:
+                print(f"[VoiceEmotion] No file in request")
                 return jsonify({"error": "No audio received"}), 400
 
             uploaded_file = request.files['file']
             raw_tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.webm')
             wav_tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
             uploaded_file.save(raw_tmp.name)
+            file_size = os.path.getsize(raw_tmp.name)
+            print(f"[VoiceEmotion] Received file: {file_size} bytes")
 
-            convert_audio_to_wav(raw_tmp.name, wav_tmp.name)
+            try:
+                convert_audio_to_wav(raw_tmp.name, wav_tmp.name)
+                wav_size = os.path.getsize(wav_tmp.name)
+                print(f"[VoiceEmotion] Converted to WAV: {wav_size} bytes")
+            except Exception as conv_err:
+                print(f"[VoiceEmotion] Conversion failed: {conv_err}")
+                return jsonify({"error": f"Conversion failed: {str(conv_err)}"}), 400
 
-            if os.path.getsize(wav_tmp.name) < 1000:
+            if wav_size < 1000:
+                print(f"[VoiceEmotion] Audio too small: {wav_size} bytes")
                 return jsonify({
                     "emotion": "no audio",
                     "confidence": 0,
@@ -1635,17 +1777,24 @@ def analyze_voice_emotion():
 
             with open(wav_tmp.name, 'rb') as f:
                 audio_payload = base64.b64encode(f.read()).decode('utf-8')
+            print(f"[VoiceEmotion] Calling detect_voice_emotion...")
             result = detect_voice_emotion(audio_payload)
+            print(f"[VoiceEmotion] Result: {result.get('emotion', 'error')}")
         else:
             data = request.json or {}
             audio_base64 = data.get('audio')
 
             if not audio_base64:
+                print(f"[VoiceEmotion] No audio in JSON body")
                 return jsonify({"error": "No audio provided"}), 400
 
+            print(f"[VoiceEmotion] Calling detect_voice_emotion from JSON...")
             result = detect_voice_emotion(audio_base64)
+            print(f"[VoiceEmotion] Result: {result.get('emotion', 'error')}")
         return jsonify(result)
     except Exception as e:
+        print(f"[VoiceEmotion] Exception: {e}")
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 
@@ -1653,6 +1802,9 @@ def analyze_voice_emotion():
 def analyze_speech_strength():
     """Analyze speech strength from audio (base64 or multipart file)"""
     try:
+        audio_path = None
+        file_size = 0
+        
         # Accept JSON body with 'audio' (data URL) or multipart file
         if request.content_type and request.content_type.startswith('multipart'):
             # file upload
@@ -1662,9 +1814,17 @@ def analyze_speech_strength():
             raw_tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.webm')
             wav_tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
             f.save(raw_tmp.name)
+            file_size = os.path.getsize(raw_tmp.name)
+            print(f"[SPEECH] Received audio file: {file_size} bytes")
 
-            convert_audio_to_wav(raw_tmp.name, wav_tmp.name)
-            audio_path = wav_tmp.name
+            try:
+                convert_audio_to_wav(raw_tmp.name, wav_tmp.name)
+                audio_path = wav_tmp.name
+                wav_size = os.path.getsize(wav_tmp.name)
+                print(f"[SPEECH] Converted to WAV: {wav_size} bytes")
+            except Exception as conv_err:
+                print(f"[SPEECH] Conversion failed: {conv_err}")
+                return jsonify({'error': f'Audio conversion failed: {str(conv_err)}'}), 400
         else:
             data = request.get_json() or {}
             audio_b64 = data.get('audio')
@@ -1674,6 +1834,8 @@ def analyze_speech_strength():
             if ',' in audio_b64:
                 audio_b64 = audio_b64.split(',', 1)[1]
             audio_bytes = base64.b64decode(audio_b64)
+            file_size = len(audio_bytes)
+            print(f"[SPEECH] Received base64 audio: {file_size} bytes")
             tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
             tmp.write(audio_bytes)
             tmp.flush()
@@ -1681,24 +1843,42 @@ def analyze_speech_strength():
 
         # Transcribe
         transcript = ""
+        transcription_error = None
         if transcribe_audio is not None:
             try:
+                print(f"[SPEECH] Transcribing audio from {audio_path} ({os.path.getsize(audio_path)} bytes)")
                 transcript = transcribe_audio(audio_path)
-            except Exception:
+                print(f"[SPEECH] Transcription result: {repr(transcript[:100] if transcript else '(empty)')}")
+                if not transcript:
+                    transcription_error = "Transcription returned empty (no speech detected)"
+            except Exception as trans_err:
+                transcription_error = f"Transcription failed: {str(trans_err)}"
+                print(f"[SPEECH] {transcription_error}")
                 transcript = ""
+        else:
+            transcription_error = "Transcription module not available"
+            print(f"[SPEECH] {transcription_error}")
 
         # Predict strength
         prediction = hybrid_strength_predict(transcript or "")
         bad_words = detect_bad_words(transcript or "")
+        
+        print(f"[SPEECH] Final results - Strength: {prediction['label']}, Safety: {bad_words['label']}")
 
         return jsonify({
-            'transcript': transcript,
+            'transcript': transcript or "",
             'prediction': prediction,
             'bad_words': bad_words,
+            'debug': {
+                'file_size': file_size,
+                'transcription_error': transcription_error,
+                'has_transcript': bool(transcript),
+            }
         })
     except Exception as e:
         traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
+        print(f"[SPEECH] Endpoint error: {e}")
+        return jsonify({'error': str(e), 'debug': {'transcription_error': 'Endpoint exception'}}), 500
 
 
 @app.route('/api/marketing/analyze', methods=['POST'])

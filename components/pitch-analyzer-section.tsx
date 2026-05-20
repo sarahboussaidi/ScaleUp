@@ -31,6 +31,7 @@ export function PitchAnalyzerSection() {
 
   const [isRecording, setIsRecording] = useState(false)
   const [isCameraOn, setIsCameraOn] = useState(false)
+  const [cameraError, setCameraError] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [emotionResult, setEmotionResult] = useState<AnalysisResult | null>(null)
   const [stressResult, setStressResult] = useState<AnalysisResult | null>(null)
@@ -53,6 +54,7 @@ export function PitchAnalyzerSection() {
         video: { width: 640, height: 480 },
         audio: true,
       })
+      setCameraError(null)
       streamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
@@ -60,6 +62,7 @@ export function PitchAnalyzerSection() {
       setIsCameraOn(true)
     } catch (error) {
       console.error("Error accessing camera:", error)
+      setCameraError((error as Error)?.message || String(error))
     }
   }
 
@@ -203,6 +206,7 @@ export function PitchAnalyzerSection() {
                       ref={videoRef}
                       autoPlay
                       playsInline
+                      muted
                       className="w-full h-80 object-cover"
                     />
                     <canvas ref={canvasRef} className="hidden" />
@@ -221,6 +225,9 @@ export function PitchAnalyzerSection() {
                       </Button>
                     )}
                   </div>
+                  {cameraError && (
+                    <div className="mt-2 text-sm text-red-400">Camera error: {cameraError}</div>
+                  )}
                 </div>
               </CardContent>
             </Card>
