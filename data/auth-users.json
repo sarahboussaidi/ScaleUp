@@ -1,0 +1,16 @@
+[
+  {
+    "id": "8a0b7896-e393-4267-86f2-caf10f541383",
+    "firstName": "Dina",
+    "lastName": "Charfi",
+    "dateOfBirth": "2005-01-21",
+    "address": "RESIDENCE NOUR 2",
+    "phone": "+21628366065",
+    "email": "dcharfi2005@gmail.com",
+    "organizationName": "Scaleup",
+    "passwordSalt": "b6fb363c3b31406fbeaf0e2f58ca81a9",
+    "passwordHash": "d32ba66bbecf0f62bcba21c5e31552db388c8a523e361004047ac9cd0cb513758f3f5cbdcf33e20d0d0541abad80e79242b8976987fb47896618629345a03572",
+    "plan": "free",
+    "createdAt": "2026-05-21T17:52:58.821Z"
+  }
+]

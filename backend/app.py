@@ -3,10 +3,13 @@ Pitch Analyzer API - Backend Service
 Simplified for Next.js integration
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from flask import send_file, send_from_directory
 from flask_cors import CORS
 import cv2
+import base64
+import hashlib
+import hmac
 import re
 import numpy as np
 import json
@@ -87,11 +90,97 @@ except Exception as exc:
     TemplateDocumentGenerator = None
     LEGAL_FEATURES_AVAILABLE = False
 
+try:
+    from models.styling_model_v2 import predict_styling_recommendation
+except Exception as exc:
+    print(f"[WARN] Styling model unavailable: {exc}")
+    predict_styling_recommendation = None
+
 load_model = tf.keras.models.load_model
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+FRONTEND_ORIGINS = [
+    os.environ.get("NEXT_PUBLIC_FRONTEND_URL", "http://localhost:3000"),
+    "http://127.0.0.1:3000",
+]
+CORS(app, supports_credentials=True, origins=FRONTEND_ORIGINS)
+
+AUTH_COOKIE_NAME = "scaleup_session"
+SESSION_SECRET = (
+    os.environ.get("SCALEUP_SESSION_SECRET")
+    or os.environ.get("NEXT_PUBLIC_SCALEUP_SESSION_SECRET")
+    or "scaleup-dev-secret-change-me"
+)
+
+def _base64url_encode(value: bytes) -> str:
+    return base64.urlsafe_b64encode(value).decode("utf-8").rstrip("=")
+
+
+def _base64url_decode(value: str) -> bytes:
+    padding = "=" * ((4 - len(value) % 4) % 4)
+    return base64.urlsafe_b64decode(value + padding)
+
+
+def _sign_session_payload(payload_part: str) -> str:
+    digest = hmac.new(
+        SESSION_SECRET.encode("utf-8"),
+        payload_part.encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    return _base64url_encode(digest)
+
+
+def _verify_session_token(token: str):
+    try:
+        payload_part, signature_part = token.split(".", 1)
+    except ValueError:
+        return None
+
+    expected_signature = _sign_session_payload(payload_part)
+    if not hmac.compare_digest(expected_signature, signature_part):
+        return None
+
+    try:
+        payload = json.loads(_base64url_decode(payload_part).decode("utf-8"))
+    except Exception:
+        return None
+
+    if not payload.get("sub") or not payload.get("email") or not payload.get("exp"):
+        return None
+
+    if int(datetime.utcnow().timestamp() * 1000) > int(payload["exp"]):
+        return None
+
+    return payload
+
+
+def _get_session_token():
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        return auth_header.split(" ", 1)[1].strip()
+
+    return request.cookies.get(AUTH_COOKIE_NAME)
+
+
+@app.before_request
+def _require_authentication():
+    if request.method == "OPTIONS":
+        return None
+
+    if request.path == "/api/health":
+        return None
+
+    if request.path.startswith("/api/") or request.path.startswith("/generated/"):
+        token = _get_session_token()
+        payload = _verify_session_token(token) if token else None
+
+        if payload is None:
+          return jsonify({"error": "Authentication required."}), 401
+
+        g.current_user = payload
+
+    return None
 # Register document classifier blueprint
 if doc_classifier_bp is not None:
     app.register_blueprint(doc_classifier_bp, url_prefix='/api')
@@ -458,6 +547,7 @@ RIGHT_HIP = 24
 
 FACE_CASCADE_DEFAULT = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 FACE_CASCADE_ALT2 = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml")
+EYE_CASCADE = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_eye_tree_eyeglasses.xml")
 FACE_DETECTOR = None
 
 try:
@@ -493,6 +583,359 @@ def _humanize_filename(stem: str) -> str:
     cleaned = cleaned.replace("_", " ").replace("-", " ")
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     return cleaned.title() if cleaned else stem
+
+
+def _normalize_styling_terms(text: Any) -> list[str]:
+    raw = str(text or "").lower()
+    pieces = re.split(r"[,/;|+&\n]+", raw)
+    normalized = []
+    for piece in pieces:
+        cleaned = re.sub(r"[^a-z0-9\s-]", " ", piece).strip()
+        cleaned = re.sub(r"\s+", " ", cleaned)
+        if cleaned:
+            normalized.append(cleaned)
+    return normalized
+
+
+def _contains_any(source: str, terms: list[str]) -> bool:
+    source_text = str(source or "").lower()
+    for term in terms:
+        if term and term in source_text:
+            return True
+    return False
+
+
+def _evaluate_styling_outfit(recommendations: dict[str, str], outfit: dict[str, Any]) -> dict[str, Any]:
+    recommended_colors = recommendations.get("Recommended Clothing Colors", "")
+    avoid_colors = recommendations.get("Avoid Clothing Colors", "")
+    recommended_fit = recommendations.get("Recommended Fitting Style", "")
+    recommended_materials = recommendations.get("Recommended Materials", "")
+
+    outfit_colors = outfit.get("colors", "")
+    outfit_fit = outfit.get("fit", "")
+    outfit_materials = outfit.get("materials", "")
+    outfit_notes = outfit.get("notes", "")
+
+    recommended_color_terms = _normalize_styling_terms(recommended_colors)
+    avoid_color_terms = _normalize_styling_terms(avoid_colors)
+    outfit_color_terms = _normalize_styling_terms(outfit_colors)
+    recommended_fit_terms = _normalize_styling_terms(recommended_fit)
+    recommended_material_terms = _normalize_styling_terms(recommended_materials)
+    outfit_fit_terms = _normalize_styling_terms(outfit_fit)
+    outfit_material_terms = _normalize_styling_terms(outfit_materials)
+
+    color_good = True
+    color_reasons = []
+    if outfit_color_terms:
+        color_good = any(
+            any(recommended_term in outfit_term or outfit_term in recommended_term for recommended_term in recommended_color_terms)
+            for outfit_term in outfit_color_terms
+        )
+        if color_good:
+            color_reasons.append("Les couleurs de la tenue suivent les recommandations.")
+        else:
+            color_reasons.append("Les couleurs ne correspondent pas aux couleurs recommandées.")
+        if any(
+            any(avoid_term in outfit_term or outfit_term in avoid_term for avoid_term in avoid_color_terms)
+            for outfit_term in outfit_color_terms
+        ):
+            color_good = False
+            color_reasons.append("Au moins une couleur à éviter a été détectée.")
+    else:
+        color_reasons.append("Aucune couleur de tenue fournie.")
+
+    fit_good = True
+    fit_reasons = []
+    if outfit_fit_terms:
+        fit_good = any(
+            any(recommended_term in outfit_term or outfit_term in recommended_term for recommended_term in recommended_fit_terms)
+            for outfit_term in outfit_fit_terms
+        )
+        if fit_good:
+            fit_reasons.append("La coupe de la tenue est adaptée.")
+        else:
+            fit_reasons.append("La coupe de la tenue ne correspond pas au style recommandé.")
+    else:
+        fit_reasons.append("Aucune information de coupe fournie.")
+
+    material_good = True
+    material_reasons = []
+    if outfit_material_terms:
+        material_good = any(
+            any(recommended_term in outfit_term or outfit_term in recommended_term for recommended_term in recommended_material_terms)
+            for outfit_term in outfit_material_terms
+        )
+        if material_good:
+            material_reasons.append("Le tissu est cohérent avec la recommandation.")
+        else:
+            material_reasons.append("Le tissu ne correspond pas au matériau recommandé.")
+    else:
+        material_reasons.append("Aucune information de matière fournie.")
+
+    is_good = color_good and fit_good and material_good
+    verdict = "bon" if is_good else "pas bon"
+
+    reasons = []
+    reasons.extend(color_reasons)
+    reasons.extend(fit_reasons)
+    reasons.extend(material_reasons)
+    if outfit_notes:
+        reasons.append(f"Note tenue: {outfit_notes}")
+
+    return {
+        "verdict": verdict,
+        "is_good": is_good,
+        "checks": {
+            "colors": {
+                "good": color_good,
+                "recommended": recommended_colors,
+                "avoid": avoid_colors,
+                "value": outfit_colors,
+            },
+            "fit": {
+                "good": fit_good,
+                "recommended": recommended_fit,
+                "value": outfit_fit,
+            },
+            "materials": {
+                "good": material_good,
+                "recommended": recommended_materials,
+                "value": outfit_materials,
+            },
+        },
+        "reasons": reasons,
+    }
+
+
+def _classify_styling_pixel(pixel_bgr: np.ndarray) -> str:
+    b, g, r = [int(channel) for channel in pixel_bgr[:3]]
+    h, s, v = cv2.cvtColor(np.uint8([[[b, g, r]]]), cv2.COLOR_BGR2HSV)[0, 0]
+
+    if v < 45:
+        return "black"
+    if s < 24 and v > 210:
+        return "white"
+    if s < 35 and 60 <= v <= 210:
+        return "gray"
+    if s < 45 and 130 <= v <= 230:
+        return "beige"
+    if h < 10 or h >= 170:
+        return "red"
+    if h < 18:
+        return "orange"
+    if h < 32:
+        return "yellow"
+    if h < 75:
+        return "green"
+    if h < 125:
+        return "blue"
+    if h < 155:
+        return "purple"
+    return "pink"
+
+
+def _score_styling_crop(crop_bgr: np.ndarray, max_labels: int = 4) -> dict[str, Any]:
+    if crop_bgr is None or crop_bgr.size == 0:
+        return {
+            "labels": [],
+            "dominant_label": "unknown",
+            "brightness": 0.0,
+            "confidence": 0.0,
+            "reason": "Region not readable.",
+        }
+
+    resized = cv2.resize(crop_bgr, (120, 120), interpolation=cv2.INTER_AREA)
+    hsv = cv2.cvtColor(resized, cv2.COLOR_BGR2HSV)
+    pixels = resized.reshape(-1, 3)
+    hsv_pixels = hsv.reshape(-1, 3)
+
+    scored_labels: dict[str, float] = {}
+    total = float(len(pixels)) or 1.0
+
+    for bgr, hsv_pixel in zip(pixels, hsv_pixels):
+        label = _classify_styling_pixel(bgr)
+        brightness_boost = 1.0 + max(0.0, (float(hsv_pixel[2]) - 90.0) / 255.0)
+        scored_labels[label] = scored_labels.get(label, 0.0) + brightness_boost
+
+    ordered_labels = sorted(scored_labels.items(), key=lambda item: item[1], reverse=True)
+    labels = [label for label, _ in ordered_labels[:max_labels]]
+    dominant_label = labels[0] if labels else "unknown"
+    brightness = float(np.mean(hsv_pixels[:, 2]) / 255.0) if len(hsv_pixels) else 0.0
+    confidence = float(min(1.0, (scored_labels.get(dominant_label, 0.0) / total) if dominant_label != "unknown" else 0.0))
+
+    return {
+        "labels": labels,
+        "dominant_label": dominant_label,
+        "brightness": round(brightness, 4),
+        "confidence": round(confidence, 4),
+        "reason": "Dominant colors extracted from the region.",
+    }
+
+
+def _detect_largest_face_rect(image_bgr: np.ndarray) -> dict[str, int] | None:
+    if image_bgr is None or image_bgr.size == 0:
+        return None
+
+    gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
+    detections = []
+    for cascade in (FACE_CASCADE_DEFAULT, FACE_CASCADE_ALT2):
+        if cascade is None or cascade.empty():
+            continue
+        found = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=4, minSize=(60, 60))
+        for (x, y, w, h) in found:
+            detections.append({"x": int(x), "y": int(y), "w": int(w), "h": int(h)})
+
+    if not detections:
+        return None
+
+    return max(detections, key=lambda rect: rect["w"] * rect["h"])
+
+
+def _build_rect(x: int, y: int, w: int, h: int, width: int, height: int) -> dict[str, int]:
+    x0 = max(0, int(x))
+    y0 = max(0, int(y))
+    x1 = min(width, int(x + w))
+    y1 = min(height, int(y + h))
+    return {"x": x0, "y": y0, "w": max(0, x1 - x0), "h": max(0, y1 - y0)}
+
+
+def _crop_rect(image_bgr: np.ndarray, rect: dict[str, int] | None) -> np.ndarray:
+    if image_bgr is None or image_bgr.size == 0 or not rect:
+        return np.empty((0, 0, 3), dtype=np.uint8)
+
+    x = rect["x"]
+    y = rect["y"]
+    w = rect["w"]
+    h = rect["h"]
+    if w <= 0 or h <= 0:
+        return np.empty((0, 0, 3), dtype=np.uint8)
+    return image_bgr[y:y + h, x:x + w]
+
+
+def _extract_styling_photo_colors(image_bgr: np.ndarray) -> dict[str, Any]:
+    if image_bgr is None or image_bgr.size == 0:
+        return {
+            "regions": {},
+            "labels": [],
+            "dominant_label": "unknown",
+            "brightness": 0.0,
+            "confidence": 0.0,
+            "reason": "Image not readable.",
+        }
+
+    height, width = image_bgr.shape[:2]
+    face_rect = _detect_largest_face_rect(image_bgr)
+    if face_rect is None:
+        face_rect = {"x": int(width * 0.2), "y": int(height * 0.06), "w": int(width * 0.6), "h": int(height * 0.32)}
+
+    face_crop = _crop_rect(image_bgr, face_rect)
+    face_x = face_rect["x"]
+    face_y = face_rect["y"]
+    face_w = face_rect["w"]
+    face_h = face_rect["h"]
+
+    face_eye_zone = _build_rect(face_x + int(face_w * 0.05), face_y + int(face_h * 0.08), int(face_w * 0.9), int(face_h * 0.42), width, height)
+    face_skin_zone = _build_rect(face_x + int(face_w * 0.12), face_y + int(face_h * 0.35), int(face_w * 0.76), int(face_h * 0.5), width, height)
+    torso_zone = _build_rect(int(width * 0.12), min(height - 1, face_y + face_h + max(8, int(face_h * 0.15))), int(width * 0.76), max(1, int(height * 0.42)), width, height)
+
+    face_eye_crop = _crop_rect(image_bgr, face_eye_zone)
+    face_skin_crop = _crop_rect(image_bgr, face_skin_zone)
+    torso_crop = _crop_rect(image_bgr, torso_zone)
+
+    eye_region = _score_styling_crop(face_eye_crop, max_labels=3)
+    skin_region = _score_styling_crop(face_skin_crop, max_labels=3)
+    clothes_region = _score_styling_crop(torso_crop, max_labels=4)
+
+    combined_labels = clothes_region.get("labels", []) or skin_region.get("labels", []) or eye_region.get("labels", [])
+    dominant_label = clothes_region.get("dominant_label") if clothes_region.get("dominant_label") != "unknown" else (skin_region.get("dominant_label") or eye_region.get("dominant_label") or "unknown")
+
+    brightness_values = [region.get("brightness", 0.0) for region in (eye_region, skin_region, clothes_region) if region]
+    confidence_values = [region.get("confidence", 0.0) for region in (eye_region, skin_region, clothes_region) if region]
+
+    return {
+        "regions": {
+            "eyes": {**eye_region, "box": face_eye_zone},
+            "skin": {**skin_region, "box": face_skin_zone},
+            "clothes": {**clothes_region, "box": torso_zone},
+        },
+        "labels": combined_labels,
+        "dominant_label": dominant_label,
+        "brightness": round(float(np.mean(brightness_values)) if brightness_values else 0.0, 4),
+        "confidence": round(float(np.mean(confidence_values)) if confidence_values else 0.0, 4),
+        "reason": "Dominant colors extracted separately for the face, skin, and clothing regions.",
+        "face_detected": face_rect is not None,
+        "face_box": face_rect,
+    }
+
+
+def _evaluate_styling_photo(recommendations: dict[str, str], photo_analysis: dict[str, Any]) -> dict[str, Any]:
+    recommended_colors = recommendations.get("Recommended Clothing Colors", "")
+    avoid_colors = recommendations.get("Avoid Clothing Colors", "")
+
+    recommended_terms = _normalize_styling_terms(recommended_colors)
+    avoid_terms = _normalize_styling_terms(avoid_colors)
+    clothes_terms = _normalize_styling_terms(", ".join(photo_analysis.get("regions", {}).get("clothes", {}).get("labels", [])))
+    skin_terms = _normalize_styling_terms(", ".join(photo_analysis.get("regions", {}).get("skin", {}).get("labels", [])))
+    eye_terms = _normalize_styling_terms(", ".join(photo_analysis.get("regions", {}).get("eyes", {}).get("labels", [])))
+
+    color_match = any(
+        any(rec_term in detected_term or detected_term in rec_term for rec_term in recommended_terms)
+        for detected_term in clothes_terms
+    )
+    avoid_match = any(
+        any(avoid_term in detected_term or detected_term in avoid_term for avoid_term in avoid_terms)
+        for detected_term in clothes_terms
+    )
+
+    brightness = float(photo_analysis.get("brightness", 0.0))
+    photo_confidence = float(photo_analysis.get("confidence", 0.0))
+
+    is_good = color_match and not avoid_match and brightness >= 0.18
+    if brightness < 0.12:
+        is_good = False
+
+    verdict = "bon" if is_good else "pas bon"
+    reasons = []
+    if color_match:
+        reasons.append("Les couleurs détectées sur les vêtements ressemblent aux couleurs recommandées.")
+    else:
+        reasons.append("Les couleurs détectées sur les vêtements ne ressemblent pas assez aux couleurs recommandées.")
+    if avoid_match:
+        reasons.append("Une couleur à éviter semble présente dans la photo.")
+    if brightness < 0.18:
+        reasons.append("La photo est trop sombre pour une validation fiable.")
+    if skin_terms:
+        reasons.append(f"Peau détectée de façon approximative: {', '.join(skin_terms[:2])}.")
+    if eye_terms:
+        reasons.append(f"Yeux détectés de façon approximative: {', '.join(eye_terms[:2])}.")
+
+    return {
+        "verdict": verdict,
+        "is_good": is_good,
+        "photo": photo_analysis,
+        "confidence": round(photo_confidence, 4),
+        "reasons": reasons,
+        "checks": {
+            "colors": {
+                "good": color_match and not avoid_match,
+                "recommended": recommended_colors,
+                "avoid": avoid_colors,
+                "value": ", ".join(clothes_terms),
+            },
+            "eyes": {
+                "value": ", ".join(eye_terms),
+                "good": True,
+            },
+            "skin": {
+                "value": ", ".join(skin_terms),
+                "good": True,
+            },
+            "brightness": {
+                "good": brightness >= 0.18,
+                "value": round(brightness, 4),
+            },
+        },
+    }
 
 
 def _legal_template_items() -> list[dict[str, Any]]:
@@ -1212,6 +1655,94 @@ def api_generate_pitch():
         
         slides = json.loads(stdout[json_start:json_end])
         return jsonify({'slides': slides})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/styling/pitch-day/check', methods=['POST'])
+def api_styling_pitch_day_check():
+    try:
+        if predict_styling_recommendation is None:
+            return jsonify({'error': 'Styling model is unavailable'}), 503
+
+        payload = request.json or {}
+        profile = payload.get('profile') or {}
+        outfit = payload.get('outfit') or {}
+
+        model_result = predict_styling_recommendation(profile)
+        outfit_result = _evaluate_styling_outfit(model_result.get('predictions', {}), outfit)
+
+        return jsonify({
+            'available': True,
+            'model': model_result.get('model', 'styling_model_v2'),
+            'profile': model_result.get('input_profile', {}),
+            'predictions': model_result.get('predictions', {}),
+            'confidence': model_result.get('confidence', {}),
+            'overall_confidence': model_result.get('overall_confidence', 0),
+            'pitch_day_summary': model_result.get('pitch_day_summary', ''),
+            'recommended_color_families': model_result.get('recommended_color_families', []),
+            'outfit': outfit,
+            'verdict': outfit_result.get('verdict', 'pas bon'),
+            'is_good': outfit_result.get('is_good', False),
+            'checks': outfit_result.get('checks', {}),
+            'reasons': outfit_result.get('reasons', []),
+        })
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/styling/pitch-day/check-photo', methods=['POST'])
+def api_styling_pitch_day_check_photo():
+    try:
+        if predict_styling_recommendation is None:
+            return jsonify({'error': 'Styling model is unavailable'}), 503
+
+        if request.content_type and request.content_type.startswith('multipart'):
+            profile_raw = request.form.get('profile', '{}')
+            try:
+                profile = json.loads(profile_raw) if profile_raw else {}
+            except Exception:
+                profile = {}
+
+            uploaded_file = request.files.get('image')
+            if uploaded_file is None:
+                return jsonify({'error': 'No image uploaded'}), 400
+
+            file_bytes = np.frombuffer(uploaded_file.read(), np.uint8)
+            image_bgr = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        else:
+            payload = request.json or {}
+            profile = payload.get('profile') or {}
+            image_data = payload.get('image') or ''
+            if not image_data:
+                return jsonify({'error': 'No image provided'}), 400
+            image_bgr = _decode_base64_image(image_data)
+
+        if image_bgr is None:
+            return jsonify({'error': 'Could not decode image'}), 400
+
+        model_result = predict_styling_recommendation(profile)
+        photo_analysis = _extract_styling_photo_colors(image_bgr)
+        outfit_result = _evaluate_styling_photo(model_result.get('predictions', {}), photo_analysis)
+
+        return jsonify({
+            'available': True,
+            'model': model_result.get('model', 'styling_model_v2'),
+            'profile': model_result.get('input_profile', {}),
+            'predictions': model_result.get('predictions', {}),
+            'confidence': model_result.get('confidence', {}),
+            'overall_confidence': model_result.get('overall_confidence', 0),
+            'pitch_day_summary': model_result.get('pitch_day_summary', ''),
+            'recommended_color_families': model_result.get('recommended_color_families', []),
+            'photo_analysis': photo_analysis,
+            'verdict': outfit_result.get('verdict', 'pas bon'),
+            'is_good': outfit_result.get('is_good', False),
+            'checks': outfit_result.get('checks', {}),
+            'reasons': outfit_result.get('reasons', []),
+            'confidence_score': outfit_result.get('confidence', 0),
+        })
     except Exception as e:
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
@@ -2844,8 +3375,11 @@ def srs_download_report():
 
 
 if __name__ == '__main__':
-    # Load models on startup
-    load_models()
+    # Start the server immediately; load the heavier models in the background so
+    # the UI can connect to Flask without waiting for every artifact to finish loading.
+    import threading
+
+    threading.Thread(target=load_models, daemon=True).start()
 
     #BMC MODELS INITIALIZATION
     init_document_classifier()

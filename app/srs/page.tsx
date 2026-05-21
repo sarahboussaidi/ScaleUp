@@ -298,6 +298,7 @@ const extractedText =
       const response = await fetch(`${SRS_API_BASE}/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           project_name: projectName,
           prepared_by: "Sarah Boussaidi",
@@ -399,6 +400,7 @@ const extractedText =
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ text }),
     })
 
@@ -430,6 +432,7 @@ const extractedText =
       const response = await fetch(`${SRS_API_BASE}/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ text: generatedSRS.markdown }),
       });
 
@@ -472,6 +475,7 @@ const extractedText =
 
       response = await fetch(`${SRS_API_BASE}/evaluate`, {
         method: "POST",
+        credentials: "include",
         body: formData,
       })
     } else {
@@ -480,6 +484,7 @@ const extractedText =
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           text: srsText,
         }),

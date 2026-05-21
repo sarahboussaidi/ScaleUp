@@ -199,6 +199,7 @@ export default function MarketingAnalysisPage() {
 
       const response = await fetch(marketingEvaluateEndpoint, {
         method: "POST",
+        credentials: "include",
         body: formData,
       })
 

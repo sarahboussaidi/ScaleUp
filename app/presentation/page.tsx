@@ -41,17 +41,69 @@ const SLIDE_PLACEHOLDERS: Record<string, string> = {
   ask:            "What support, funding, or partners are needed.",
 }
 
+const STYLING_PROFILE_FIELDS = [
+  { key: "Hair Color", label: "Hair color", options: ["Black", "Blonde", "Brown", "Grey", "Red"] },
+  { key: "Eye Color", label: "Eye color", options: ["Black", "Blue", "Brown", "Green", "Grey", "Hazel", "Light Blue", "Light Brown"] },
+  { key: "Skin Tone", label: "Skin tone", options: ["Brown", "Fair", "Medium", "Olive", "Very Dark", "Very Fair"] },
+  { key: "Under Tone", label: "Undertone", options: ["Cool", "Neutral", "Warm"] },
+  { key: "Torso length", label: "Torso length", options: ["Balanced", "Long Torso", "Short Torso"] },
+  { key: "Body Proportion", label: "Body proportion", options: ["Apple", "Hourglass", "Inverted Triangle", "Oval", "Rectangle", "Trapezoid", "Triangle"] },
+]
+
+const VOICE_EMOTION_ANALYSIS_TIMEOUT_MS = 45000
+
+type StylingVerdictResult = {
+  verdict: string
+  is_good: boolean
+  pitch_day_summary: string
+  predictions: Record<string, string>
+  confidence: Record<string, number>
+  recommended_color_families: string[]
+  reasons: string[]
+  confidence_score?: number
+  photo_analysis?: {
+    face_detected?: boolean
+    face_box?: { x: number; y: number; w: number; h: number }
+    labels: string[]
+    dominant_label: string
+    brightness: number
+    confidence: number
+    reason: string
+    regions?: {
+      eyes?: { labels: string[]; dominant_label: string; brightness: number; confidence: number }
+      skin?: { labels: string[]; dominant_label: string; brightness: number; confidence: number }
+      clothes?: { labels: string[]; dominant_label: string; brightness: number; confidence: number }
+    }
+  }
+  checks: Record<string, any>
+}
+
 export default function PitchCoachPage() {
   const [activeView, setActiveView] = useState<"pitch-evaluation" | "pitch-deck">("pitch-evaluation")
   const [startupName, setStartupName] = useState("")
   const [industry, setIndustry] = useState("")
   const [startupDescription, setStartupDescription] = useState("")
+  const [stylingProfile, setStylingProfile] = useState({
+    "Hair Color": "Brown",
+    "Eye Color": "Hazel",
+    "Skin Tone": "Medium",
+    "Under Tone": "Warm",
+    "Torso length": "Balanced",
+    "Body Proportion": "Hourglass",
+  })
 
   // ── FIX: store slides as a key→text record matching backend keys ──────────
   const [generatedSlides, setGeneratedSlides] = useState<Record<string, string>>({})
   const [isGenerating, setIsGenerating] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const [generateError, setGenerateError] = useState<string | null>(null)
+  const [isStylingChecking, setIsStylingChecking] = useState(false)
+  const [stylingError, setStylingError] = useState<string | null>(null)
+  const [stylingResult, setStylingResult] = useState<StylingVerdictResult | null>(null)
+  const [stylingPhotoPreview, setStylingPhotoPreview] = useState<string | null>(null)
+  const [stylingPhotoFile, setStylingPhotoFile] = useState<File | null>(null)
+  const [isStylingCameraOn, setIsStylingCameraOn] = useState(false)
+  const [stylingCameraError, setStylingCameraError] = useState<string | null>(null)
 
   const [deckEvaluation, setDeckEvaluation] = useState<{ score: number; label: string; feedback: string[] } | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
@@ -72,6 +124,21 @@ export default function PitchCoachPage() {
   const audioChunksRef = useRef<Blob[]>([])
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const voiceAudioStreamRef = useRef<MediaStream | null>(null)
+  const stylingVideoRef = useRef<HTMLVideoElement | null>(null)
+  const stylingCameraStreamRef = useRef<MediaStream | null>(null)
+  const stylingPhotoInputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (stylingCameraStreamRef.current) {
+        stylingCameraStreamRef.current.getTracks().forEach((track) => track.stop())
+        stylingCameraStreamRef.current = null
+      }
+      if (stylingPhotoPreview) {
+        URL.revokeObjectURL(stylingPhotoPreview)
+      }
+    }
+  }, [stylingPhotoPreview])
 
   useEffect(() => { isRecordingRef.current = isRecording }, [isRecording])
 
@@ -181,7 +248,7 @@ export default function PitchCoachPage() {
       try {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
         const [voiceEmotionResult, speechStrengthResult] = await Promise.allSettled([
-          analyzeVoiceEmotion(audioBlob, 15000),
+          analyzeVoiceEmotion(audioBlob, VOICE_EMOTION_ANALYSIS_TIMEOUT_MS),
           analyzeSpeechStrength(audioBlob, 45000),
         ])
 
@@ -192,7 +259,7 @@ export default function PitchCoachPage() {
             setVoiceEmotionStatus("Voice emotion API returned no emotion.")
           }
         } else if (voiceEmotionResult.status === "rejected") {
-          setVoiceEmotionStatus("Voice emotion analysis failed: request timed out or was aborted.")
+          setVoiceEmotionStatus("Voice emotion analysis unavailable for this recording.")
         } else {
           setVoiceEmotionStatus("Voice emotion analysis returned an empty result.")
         }
@@ -276,6 +343,7 @@ export default function PitchCoachPage() {
       const res = await fetch(`${API_BASE}/api/pitch/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ company, industry: sector, description: desc }),
       })
 
@@ -310,6 +378,7 @@ export default function PitchCoachPage() {
       const res = await fetch(`${API_BASE}/api/pitch/download`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ company, industry: sector, description: desc }),
       })
 
@@ -353,6 +422,134 @@ export default function PitchCoachPage() {
     }
     setDeckEvaluation({ score, label, feedback })
   }, [generatedSlides, industry, startupDescription, startupName])
+
+  const clearStylingPhoto = useCallback(() => {
+    if (stylingPhotoPreview) {
+      URL.revokeObjectURL(stylingPhotoPreview)
+    }
+    setStylingPhotoPreview(null)
+    setStylingPhotoFile(null)
+    setStylingCameraError(null)
+  }, [stylingPhotoPreview])
+
+  const handleStylingCameraStart = useCallback(async () => {
+    setStylingCameraError(null)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      stylingCameraStreamRef.current = stream
+      if (stylingVideoRef.current) {
+        stylingVideoRef.current.srcObject = stream
+        await stylingVideoRef.current.play().catch(() => undefined)
+      }
+      setIsStylingCameraOn(true)
+    } catch (error) {
+      console.error("Failed to start styling camera:", error)
+      setStylingCameraError("Camera access failed. Use photo upload instead.")
+      setIsStylingCameraOn(false)
+    }
+  }, [])
+
+  const handleStylingCameraStop = useCallback(() => {
+    if (stylingCameraStreamRef.current) {
+      stylingCameraStreamRef.current.getTracks().forEach((track) => track.stop())
+      stylingCameraStreamRef.current = null
+    }
+    if (stylingVideoRef.current) {
+      stylingVideoRef.current.srcObject = null
+    }
+    setIsStylingCameraOn(false)
+  }, [])
+
+  const handleStylingUploadClick = useCallback(() => {
+    stylingPhotoInputRef.current?.click()
+  }, [])
+
+  const handleStylingPhotoChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+
+    clearStylingPhoto()
+    const previewUrl = URL.createObjectURL(file)
+    setStylingPhotoPreview(previewUrl)
+    setStylingPhotoFile(file)
+  }, [clearStylingPhoto])
+
+  const handleStylingCapture = useCallback(() => {
+    const video = stylingVideoRef.current
+    if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+      setStylingCameraError("Camera is not ready yet.")
+      return
+    }
+
+    const canvas = document.createElement("canvas")
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const context = canvas.getContext("2d")
+    if (!context) {
+      setStylingCameraError("Unable to capture the camera frame.")
+      return
+    }
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height)
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        setStylingCameraError("Unable to create a photo from the camera.")
+        return
+      }
+      clearStylingPhoto()
+      const capturedFile = new File([blob], `styling-photo-${Date.now()}.jpg`, { type: "image/jpeg" })
+      const previewUrl = URL.createObjectURL(capturedFile)
+      setStylingPhotoPreview(previewUrl)
+      setStylingPhotoFile(capturedFile)
+      handleStylingCameraStop()
+    }, "image/jpeg", 0.92)
+  }, [clearStylingPhoto, handleStylingCameraStop])
+
+  const handleStylingCheck = useCallback(async () => {
+    setIsStylingChecking(true)
+    setStylingError(null)
+    setStylingResult(null)
+
+    try {
+      const API_BASE = `http://${window.location.hostname}:5000`
+      if (!stylingPhotoFile) throw new Error("Please upload or capture a photo first.")
+
+      const formData = new FormData()
+      formData.append("profile", JSON.stringify(stylingProfile))
+      formData.append("image", stylingPhotoFile)
+
+      const res = await fetch(`${API_BASE}/api/styling/pitch-day/check-photo`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      })
+
+      if (!res.ok) throw new Error(`Server error ${res.status}: ${res.statusText}`)
+
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+
+      setStylingResult({
+        verdict: data.verdict,
+        is_good: data.is_good,
+        pitch_day_summary: data.pitch_day_summary,
+        predictions: data.predictions || {},
+        confidence: data.confidence || {},
+        recommended_color_families: data.recommended_color_families || [],
+        reasons: data.reasons || [],
+        checks: data.checks || {},
+        confidence_score: data.confidence_score,
+        photo_analysis: data.photo_analysis,
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error"
+      setStylingError(msg)
+      console.error("Styling verdict failed:", msg)
+    } finally {
+      setIsStylingChecking(false)
+    }
+  }, [stylingPhotoFile, stylingProfile])
 
   const hasSlides = Object.keys(generatedSlides).length > 0
 
@@ -436,6 +633,229 @@ export default function PitchCoachPage() {
                     <PosturePanel isActive={!!stream} isRecording={isRecording} postureData={postureData} />
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-white/[0.08] bg-black/20 p-5">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-purple-300">Style</p>
+                    <h3 className="mt-2 text-xl font-semibold text-white">Validate clothes before pitch</h3>
+                    <p className="mt-2 text-sm text-slate-400">
+                      Upload a photo or start the webcam, then validate if the outfit is good or not for pitch day.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleStylingCheck}
+                    className="rounded-full border border-purple-500/30 bg-purple-500/10 px-5 py-3 text-sm font-semibold text-purple-200 transition hover:bg-purple-500/20 disabled:opacity-60"
+                    disabled={isStylingChecking}
+                  >
+                    {isStylingChecking ? "Validating clothes…" : "Validate Clothes"}
+                  </button>
+                </div>
+
+                <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+                    <p className="text-sm font-medium text-slate-200">Profile inputs</p>
+                    <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {STYLING_PROFILE_FIELDS.map((field) => (
+                        <label key={field.key} className="block">
+                          <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-slate-400">{field.label}</span>
+                          <select
+                            value={stylingProfile[field.key as keyof typeof stylingProfile]}
+                            onChange={(e) => setStylingProfile((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-purple-500/50"
+                          >
+                            {field.options.map((option) => (
+                              <option key={option} value={option} className="bg-slate-900">
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+                    <p className="text-sm font-medium text-slate-200">Photo validation</p>
+                    <p className="mt-2 text-sm text-slate-400">
+                      Use the webcam or upload a photo. The model checks the colors in the image and tells you if the outfit is good or not.
+                    </p>
+
+                    <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/30">
+                      {stylingPhotoPreview ? (
+                        <img
+                          src={stylingPhotoPreview}
+                          alt="Outfit preview"
+                          className="h-64 w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-64 items-center justify-center px-6 text-center text-sm text-slate-500">
+                          No outfit photo yet. Start the camera or upload an image to validate before pitching.
+                        </div>
+                      )}
+                      <video ref={stylingVideoRef} className={`h-64 w-full object-cover ${isStylingCameraOn ? "block" : "hidden"}`} playsInline muted />
+
+                        {stylingResult && (
+                          <div className="mt-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+                            <div className="flex items-center justify-between gap-3">
+                              <div>
+                                <p className="text-xs uppercase tracking-[0.18em] text-purple-300">Style report</p>
+                                <p className="mt-1 text-sm text-slate-400">Camera and outfit validation in the first report panel.</p>
+                              </div>
+                              <div className={`rounded-full px-3 py-1 text-xs font-semibold ${stylingResult.is_good ? "bg-green-500/15 text-green-200" : "bg-red-500/15 text-red-200"}`}>
+                                {stylingResult.is_good ? "Bon" : "Pas bon"}
+                              </div>
+                            </div>
+
+                            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+                              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                                <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Verdict</p>
+                                <p className="mt-1 text-sm text-white">{stylingResult.verdict}</p>
+                              </div>
+                              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                                <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Confidence</p>
+                                <p className="mt-1 text-sm text-white">
+                                  {typeof stylingResult.confidence_score === "number" ? `${Math.round(stylingResult.confidence_score * 100)}%` : "n/a"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <p className="mt-3 text-sm text-slate-400">{stylingResult.pitch_day_summary}</p>
+                          </div>
+                        )}
+                    </div>
+
+                    <input
+                      ref={stylingPhotoInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleStylingPhotoChange}
+                      className="hidden"
+                    />
+
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={handleStylingCameraStart}
+                        className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white transition hover:bg-white/[0.08]"
+                      >
+                        Start webcam
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleStylingCapture}
+                        disabled={!isStylingCameraOn}
+                        className="rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-2 text-sm font-semibold text-purple-200 transition hover:bg-purple-500/20 disabled:opacity-50"
+                      >
+                        Capture photo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleStylingUploadClick}
+                        className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white transition hover:bg-white/[0.08]"
+                      >
+                        Upload photo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={clearStylingPhoto}
+                        className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300 transition hover:bg-white/[0.08]"
+                      >
+                        Clear
+                      </button>
+                      {isStylingCameraOn && (
+                        <button
+                          type="button"
+                          onClick={handleStylingCameraStop}
+                          className="rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-200 transition hover:bg-red-500/20"
+                        >
+                          Stop camera
+                        </button>
+                      )}
+                    </div>
+
+                    {stylingCameraError && (
+                      <p className="mt-3 text-sm text-red-300">{stylingCameraError}</p>
+                    )}
+
+                    <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">
+                      {stylingPhotoFile ? `Selected file: ${stylingPhotoFile.name}` : "No file selected"}
+                    </p>
+                  </div>
+                </div>
+
+                {stylingError && (
+                  <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                    ⚠ {stylingError}
+                  </div>
+                )}
+
+                {stylingResult ? (
+                  <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-[220px_1fr]">
+                    <div className={`rounded-2xl p-5 text-center ${stylingResult.is_good ? "bg-green-600/20" : "bg-red-600/20"}`}>
+                      <p className="text-sm text-slate-300">Verdict</p>
+                      <p className="mt-2 text-4xl font-bold text-white">{stylingResult.is_good ? "Bon" : "Pas bon"}</p>
+                      <p className="mt-2 text-sm font-semibold text-white">{stylingResult.verdict}</p>
+                      {typeof stylingResult.confidence_score === "number" && (
+                        <p className="mt-2 text-xs uppercase tracking-[0.16em] text-slate-300">
+                          Confidence {Math.round(stylingResult.confidence_score * 100)}%
+                        </p>
+                      )}
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+                      <p className="text-sm font-medium text-slate-200">Why</p>
+                      <p className="mt-2 text-sm text-slate-400">{stylingResult.pitch_day_summary}</p>
+                      <ul className="mt-4 space-y-2 text-sm text-slate-400">
+                        {stylingResult.reasons.map((item) => (
+                          <li key={item} className="rounded-lg bg-black/20 px-3 py-2">{item}</li>
+                        ))}
+                      </ul>
+                      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                        {Object.entries(stylingResult.predictions).map(([label, value]) => (
+                          <div key={label} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                            <p className="text-xs uppercase tracking-[0.16em] text-purple-300">{label}</p>
+                            <p className="mt-1 text-sm text-white">{value}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {stylingResult.photo_analysis && (
+                        <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-slate-300">
+                          <p className="text-xs uppercase tracking-[0.16em] text-purple-300">Photo analysis</p>
+                            <p className="mt-2 text-slate-400">{stylingResult.photo_analysis.reason}</p>
+                            {stylingResult.photo_analysis.face_detected !== undefined && (
+                              <p className="mt-1 text-slate-400">
+                                Face detected: {stylingResult.photo_analysis.face_detected ? "yes" : "no"}
+                              </p>
+                            )}
+                            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+                              {[
+                                { key: "eyes", title: "Eyes" },
+                                { key: "skin", title: "Skin" },
+                                { key: "clothes", title: "Clothes" },
+                              ].map(({ key, title }) => {
+                                const region = stylingResult.photo_analysis?.regions?.[key as "eyes" | "skin" | "clothes"]
+                                return (
+                                  <div key={key} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                                    <p className="text-xs uppercase tracking-[0.14em] text-purple-300">{title}</p>
+                                    <p className="mt-1 text-sm text-white">{region?.dominant_label || "unknown"}</p>
+                                    <p className="mt-1 text-xs text-slate-400">
+                                      {(region?.labels || []).join(", ") || "No region colors detected"}
+                                    </p>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-5 text-sm text-slate-500">
+                    Click <span className="text-slate-200">Validate Clothes</span> after uploading or capturing a photo.
+                  </p>
+                )}
               </div>
             </div>
           </section>
@@ -637,61 +1057,12 @@ export default function PitchCoachPage() {
                     </p>
                   )}
                 </div>
+
               </div>
             </div>
           </section>
         )}
 
-        {/* How it works */}
-        <section className="px-4 py-20 md:px-8">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-4 text-center text-2xl font-semibold text-white md:text-3xl">How It Works</h2>
-            <p className="mx-auto mb-12 max-w-xl text-center text-slate-400">
-              Three simple steps to perfect your investor pitch with your Flask models.
-            </p>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {[
-                { n: "1", title: "Enable Camera", desc: "Allow camera and microphone access to start your practice session." },
-                { n: "2", title: "Practice Your Pitch", desc: "Deliver your pitch while webcam frames are analyzed by backend/app.py." },
-                { n: "3", title: "Review & Improve", desc: "Use emotion and stress models to review and improve your performance over time." },
-              ].map(({ n, title, desc }) => (
-                <div key={n} className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 text-center backdrop-blur-sm transition-all hover:border-purple-500/30 hover:bg-white/[0.05]">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10">
-                    <span className="text-lg font-semibold text-purple-400">{n}</span>
-                  </div>
-                  <h3 className="mb-2 font-medium text-slate-200">{title}</h3>
-                  <p className="text-sm leading-relaxed text-slate-400">{desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Model stack */}
-        <section className="px-4 pb-20 md:px-8">
-          <div className="mx-auto max-w-5xl">
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-sm md:p-8">
-              <h2 className="text-center text-2xl font-semibold text-white md:text-3xl">Backend Model Stack</h2>
-              <p className="mx-auto mt-4 max-w-2xl text-center text-slate-400">
-                Connected to <span className="text-slate-200">backend/app.py</span> and <span className="text-slate-200">pitch_generator.py</span>.
-              </p>
-              <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {[
-                  { label: "Emotion", name: "emotion_model.h5", desc: "Face emotion classifier via /api/analyze/emotion." },
-                  { label: "Stress", name: "stress_cnn_73.h5", desc: "Stress model via /api/analyze/stress." },
-                  { label: "Pitch Gen", name: "didina01/pitch-deck-phi3", desc: "Fine-tuned Phi-3 model via /api/pitch/generate." },
-                  { label: "Health", name: "/api/health", desc: "Checks if Flask models are loaded correctly." },
-                ].map(({ label, name, desc }) => (
-                  <div key={label} className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-purple-300">{label}</p>
-                    <p className="mt-2 text-lg font-medium text-white">{name}</p>
-                    <p className="mt-2 text-sm text-slate-400">{desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />

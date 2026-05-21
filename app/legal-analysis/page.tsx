@@ -550,7 +550,10 @@ export default function LegalAnalysisPage() {
 
     const loadTemplates = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/legal/templates")
+        const response = await fetch("http://localhost:5000/api/legal/templates", {
+          credentials: "include",
+        })
+
         if (!response.ok) return
 
         const payload = await response.json()
@@ -626,6 +629,7 @@ export default function LegalAnalysisPage() {
           const resp = await fetch("http://localhost:5000/api/legal/infer", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ file_name: (template as any).file_name, brief_text: "" }),
           })
           if (!resp.ok) throw new Error("infer-failed")
@@ -872,6 +876,7 @@ export default function LegalAnalysisPage() {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
         title: selectedTemplate.name,
         file_name: selectedTemplate.file_name,
@@ -887,7 +892,9 @@ export default function LegalAnalysisPage() {
     }
 
     const payload = await response.json()
-    const fileResponse = await fetch(`http://localhost:5000${payload.download_url}`)
+    const fileResponse = await fetch(`http://localhost:5000${payload.download_url}`, {
+      credentials: "include",
+    })
     const blob = await fileResponse.blob()
     const blobUrl = URL.createObjectURL(blob)
     const anchor = document.createElement("a")
@@ -944,6 +951,7 @@ export default function LegalAnalysisPage() {
 
       const response = await fetch('http://localhost:5000/api/document/intel-upload', {
         method: 'POST',
+        credentials: "include",
         body: formData,
       })
       

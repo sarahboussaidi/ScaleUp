@@ -1,0 +1,111 @@
+{
+  "version": 2,
+  "improvements": [
+    "semantic_color_matching",
+    "noise_injection",
+    "constrained_rf",
+    "cv_validation"
+  ],
+  "input_cols": [
+    "Hair Color",
+    "Eye Color",
+    "Skin Tone",
+    "Under Tone",
+    "Torso length",
+    "Body Proportion"
+  ],
+  "target_cols": [
+    "Recommended Clothing Colors",
+    "Avoid Clothing Colors",
+    "Recommended Fitting Style",
+    "Recommended Materials"
+  ],
+  "model_params": {
+    "n_estimators": 300,
+    "max_depth": 8,
+    "min_samples_leaf": 5,
+    "max_features": "sqrt"
+  },
+  "noise_std": 0.3,
+  "noisy_cols": [
+    "Hair Color",
+    "Eye Color",
+    "Skin Tone"
+  ],
+  "input_classes": {
+    "Hair Color": [
+      "Black",
+      "Blonde",
+      "Brown",
+      "Grey",
+      "Red"
+    ],
+    "Eye Color": [
+      "Black",
+      "Blue",
+      "Brown",
+      "Green",
+      "Grey",
+      "Hazel",
+      "Light Blue",
+      "Light Brown"
+    ],
+    "Skin Tone": [
+      "Brown",
+      "Fair",
+      "Medium",
+      "Olive",
+      "Very Dark",
+      "Very Fair"
+    ],
+    "Under Tone": [
+      "Cool",
+      "Neutral",
+      "Warm"
+    ],
+    "Torso length": [
+      "Balanced",
+      "Long Torso",
+      "Short Torso"
+    ],
+    "Body Proportion": [
+      "Apple",
+      "Hourglass",
+      "Inverted Triangle",
+      "Oval",
+      "Rectangle",
+      "Trapezoid",
+      "Triangle"
+    ]
+  },
+  "target_classes": {
+    "Recommended Clothing Colors": [
+      "Earth Tones, Olive, Coral, Peach, Mustard, Warm Red",
+      "Jewel Tones, Icy Blue, Lavender, Silver, Emerald",
+      "Soft Pinks, Plums, Teal, Neutral Beige"
+    ],
+    "Avoid Clothing Colors": [
+      "Cool Blue, Icy Gray, Jewel Tones",
+      "Fluorescents, Harsh Yellow",
+      "Orange, Mustard, Brown"
+    ],
+    "Recommended Fitting Style": [
+      "A-Line Bottoms",
+      "Balanced Fit",
+      "Defined Waist",
+      "Emphasize Top",
+      "Empire Waist",
+      "Tailored Fit",
+      "Wraps and Empire"
+    ],
+    "Recommended Materials": [
+      "Drapey Fabric",
+      "Flowy Fabric",
+      "Jersey, Knits",
+      "Lightweight Cotton",
+      "Soft Blends",
+      "Stretchy, Soft Fabric",
+      "Structured Cotton"
+    ]
+  }
+}

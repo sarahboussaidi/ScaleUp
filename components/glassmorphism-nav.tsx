@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Menu, X, ArrowRight } from "lucide-react"
+import { Menu, X, ArrowRight, LogIn, LogOut, UserCircle2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { fetchCurrentUser, logoutCurrentUser } from "@/lib/auth-client"
 
 const navigation = [
   { name: "Legal Analysis", href: "/legal-analysis" },
@@ -18,6 +19,8 @@ export function GlassmorphismNav() {
   const [isOpen, setIsOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [hasLoaded, setHasLoaded] = useState(false)
+  const [currentUser, setCurrentUser] = useState<{ firstName: string; lastName: string; email: string; plan: string } | null>(null)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const lastScrollY = useRef(0)
 
   useEffect(() => {
@@ -55,6 +58,12 @@ export function GlassmorphismNav() {
     if (typeof window !== "undefined") {
       window.addEventListener("scroll", controlNavbar, { passive: true })
       console.log("[v0] Scroll listener added")
+
+      void fetchCurrentUser().then((payload) => {
+        if (payload?.user) {
+          setCurrentUser(payload.user)
+        }
+      })
 
       return () => {
         window.removeEventListener("scroll", controlNavbar)
@@ -101,6 +110,46 @@ export function GlassmorphismNav() {
     }
     setIsOpen(false)
   }
+
+  const handleLogout = async () => {
+    setIsSigningOut(true)
+    try {
+      await logoutCurrentUser()
+      setCurrentUser(null)
+      window.location.href = "/"
+    } finally {
+      setIsSigningOut(false)
+    }
+  }
+
+  const authCta = currentUser ? (
+    <div className="flex items-center gap-3">
+      <Link
+        href="/presentation"
+        className="hidden md:inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition hover:scale-105 hover:bg-gray-50"
+      >
+        <UserCircle2 size={16} />
+        {currentUser.firstName}
+      </Link>
+      <button
+        type="button"
+        onClick={handleLogout}
+        disabled={isSigningOut}
+        className="hidden md:inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-60"
+      >
+        <LogOut size={16} />
+        {isSigningOut ? "Signing out" : "Logout"}
+      </button>
+    </div>
+  ) : (
+    <Link
+      href="/auth"
+      className="hidden md:inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition hover:scale-105 hover:bg-gray-50"
+    >
+      <LogIn size={16} />
+      Sign in
+    </Link>
+  )
 
   return (
     <>
@@ -156,15 +205,7 @@ export function GlassmorphismNav() {
               </div>
 
               {/* Desktop CTA Button */}
-              <div className="hidden md:block">
-                <button
-                  className="relative bg-white hover:bg-gray-50 text-black font-medium px-6 py-2 rounded-full flex items-center transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer group"
-                  onClick={() => scrollToSection("#contact")}
-                >
-                  <span className="mr-2">Get Started</span>
-                  <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
-                </button>
-              </div>
+              <div className="hidden md:block">{authCta}</div>
 
               {/* Mobile Menu Button */}
               <button
@@ -239,18 +280,51 @@ export function GlassmorphismNav() {
                   ),
                 )}
                 <div className="h-px bg-white/10 my-2" />
-                <button
-                  className={`relative bg-white hover:bg-gray-50 text-black font-medium px-6 py-3 rounded-full flex items-center transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer group transform ${
-                    isOpen ? "animate-mobile-menu-item" : ""
-                  }`}
-                  style={{
-                    animationDelay: isOpen ? `${navigation.length * 80 + 150}ms` : "0ms",
-                  }}
-                  onClick={() => scrollToSection("#contact")}
-                >
-                  <span className="mr-2">Get Started</span>
-                  <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
-                </button>
+                {currentUser ? (
+                  <>
+                    <Link
+                      href="/presentation"
+                      className={`bg-white hover:bg-gray-50 text-black font-medium px-6 py-3 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer group transform ${
+                        isOpen ? "animate-mobile-menu-item" : ""
+                      }`}
+                      style={{
+                        animationDelay: isOpen ? `${navigation.length * 80 + 150}ms` : "0ms",
+                      }}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <span className="mr-2">Open platform</span>
+                      <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      disabled={isSigningOut}
+                      className={`border border-white/15 bg-white/10 text-white font-medium px-6 py-3 rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/15 disabled:opacity-60 ${
+                        isOpen ? "animate-mobile-menu-item" : ""
+                      }`}
+                      style={{
+                        animationDelay: isOpen ? `${navigation.length * 80 + 220}ms` : "0ms",
+                      }}
+                    >
+                      <LogOut size={16} className="mr-2" />
+                      {isSigningOut ? "Signing out" : "Logout"}
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/auth"
+                    className={`bg-white hover:bg-gray-50 text-black font-medium px-6 py-3 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer group transform ${
+                      isOpen ? "animate-mobile-menu-item" : ""
+                    }`}
+                    style={{
+                      animationDelay: isOpen ? `${navigation.length * 80 + 150}ms` : "0ms",
+                    }}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <span className="mr-2">Sign in</span>
+                    <LogIn size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
+                )}
               </div>
             </div>
           </div>

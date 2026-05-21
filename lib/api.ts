@@ -47,6 +47,7 @@ export async function evaluateBMC(file: File): Promise<BMCEvaluationResult> {
 
   const res = await fetch(`${BACKEND_URL}/api/evaluate-bmc`, {
     method: 'POST',
+    credentials: 'include',
     body:   formData,
   })
 
@@ -60,7 +61,9 @@ export async function evaluateBMC(file: File): Promise<BMCEvaluationResult> {
 
 export async function checkBMCEvalHealth(): Promise<boolean> {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/bmc-eval-health`)
+    const res = await fetch(`${BACKEND_URL}/api/bmc-eval-health`, {
+      credentials: 'include',
+    })
     return res.ok
   } catch {
     return false

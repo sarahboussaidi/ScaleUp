@@ -43,6 +43,7 @@ export async function analyzeFrame(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ frame: frameBase64 }),
       signal: controller.signal,
     });
@@ -62,6 +63,7 @@ export async function checkBackendHealth(): Promise<boolean> {
   try {
     const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HEALTH}`, {
       method: "GET",
+      credentials: "include",
     });
     return response.ok;
   } catch {
@@ -83,6 +85,7 @@ export async function analyzeVoiceEmotion(
 
     const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ANALYZE_VOICE_EMOTION}`, {
       method: 'POST',
+      credentials: "include",
       body: formData,
       signal: controller.signal,
     })
@@ -114,6 +117,7 @@ export async function analyzeSpeechStrength(
 
     const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ANALYZE_SPEECH_STRENGTH}`, {
       method: 'POST',
+      credentials: "include",
       body: formData,
       signal: controller.signal,
     })

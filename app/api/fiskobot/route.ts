@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
+import { AUTH_COOKIE_NAME, readCookieValue, verifySessionToken } from "@/lib/session"
 
 export async function POST(req: NextRequest) {
   try {
+    const token = readCookieValue(req.headers.get("cookie"), AUTH_COOKIE_NAME)
+    const session = token ? await verifySessionToken(token) : null
+    if (!session) {
+      return NextResponse.json({ error: "Authentication required." }, { status: 401 })
+    }
+
     const { messages } = await req.json()
 
     const { Client } = await import("@gradio/client")

@@ -400,6 +400,7 @@ export default function BMCGenerationPage() {
 
       const classifyResponse = await fetch("http://localhost:5000/api/predict-document-type", {
         method: "POST",
+        credentials: "include",
         body: formData,
       })
 
@@ -436,6 +437,7 @@ export default function BMCGenerationPage() {
 
       const processResponse = await fetch("http://localhost:5000/api/process-bmc", {
         method: "POST",
+        credentials: "include",
         body: processFormData,
       })
 
@@ -544,6 +546,7 @@ export default function BMCGenerationPage() {
       const response = await fetch("http://localhost:5000/api/generate-sustainable-bmc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       })
 
