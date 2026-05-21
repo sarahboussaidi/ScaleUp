@@ -288,7 +288,7 @@ export function AITeamSection() {
                           </div>
                         </div>
 
-                        <div className="bg-slate-900 px-6 py-4 text-white">
+                        <div className="bg-slate-900 px-6 py-4 text-foreground">
                           <div className="flex items-center gap-3">
                             <img
                               src="/images/michael-ai-agent.jpg"
@@ -327,7 +327,7 @@ export function AITeamSection() {
                               <div
                                 className={`max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed ${
                                   message.sender === "customer"
-                                    ? "bg-slate-900 text-white rounded-br-md"
+                                    ? "bg-slate-900 text-foreground rounded-br-md"
                                     : "bg-white text-slate-800 shadow-sm border border-slate-200 rounded-bl-md"
                                 }`}
                               >
@@ -336,7 +336,7 @@ export function AITeamSection() {
                                 ))}
                               </div>
                               {message.sender === "customer" && (
-                                <div className="w-6 h-6 rounded-full bg-slate-400 ml-2 mt-1 flex-shrink-0 flex items-center justify-center text-xs text-white font-medium">
+                                <div className="w-6 h-6 rounded-full bg-slate-400 ml-2 mt-1 flex-shrink-0 flex items-center justify-center text-xs text-foreground font-medium">
                                   C
                                 </div>
                               )}
@@ -372,7 +372,7 @@ export function AITeamSection() {
                           <div className="flex items-center gap-3 bg-slate-100 rounded-full px-4 py-2">
                             <span className="text-slate-500 text-sm lg:text-base flex-1">Michael is responding...</span>
                             <div className="w-6 h-6 bg-slate-900 rounded-full flex items-center justify-center">
-                              <Zap className="w-3 h-3 text-white" />
+                              <Zap className="w-3 h-3 text-foreground" />
                             </div>
                           </div>
                         </div>

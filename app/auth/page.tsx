@@ -116,28 +116,28 @@ export default function AuthPage() {
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-10 md:px-8 lg:flex-row lg:items-center lg:gap-10 lg:py-16">
         <div className="max-w-2xl flex-1 space-y-8 pb-10 lg:pb-0">
-          <div className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/75 backdrop-blur-xl">
+          <div className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-foreground opacity-80 backdrop-blur-xl">
             Platform access
           </div>
           <div className="space-y-4">
             <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
               One account for the whole ScaleUp platform.
             </h1>
-            <p className="max-w-xl text-base leading-7 text-white/65 sm:text-lg">
+            <p className="max-w-xl text-base leading-7 text-foreground opacity-80 sm:text-lg">
               Create your account once, then use pitch evaluation, BMC, legal, SRS, marketing and FiskoBot tools without re-entering your details.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
-              <p className="text-sm text-white/45">Plan</p>
-              <p className="mt-2 text-xl font-medium">Free access</p>
-              <p className="mt-2 text-sm text-white/60">Signup defaults to a free plan with full platform access for now.</p>
+              <p className="text-sm text-foreground opacity-75">Plan</p>
+              <p className="mt-2 text-xl font-medium text-foreground">Free access</p>
+              <p className="mt-2 text-sm text-foreground opacity-70">Signup defaults to a free plan with full platform access for now.</p>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
-              <p className="text-sm text-white/45">Protected tools</p>
-              <p className="mt-2 text-xl font-medium">All business modules</p>
-              <p className="mt-2 text-sm text-white/60">The public landing page stays open, but the app tools require sign-in.</p>
+              <p className="text-sm text-foreground opacity-75">Protected tools</p>
+              <p className="mt-2 text-xl font-medium text-foreground">All business modules</p>
+              <p className="mt-2 text-sm text-foreground opacity-70">The public landing page stays open, but the app tools require sign-in.</p>
             </div>
           </div>
 

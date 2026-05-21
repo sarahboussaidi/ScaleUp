@@ -554,18 +554,14 @@ export default function PitchCoachPage() {
   const hasSlides = Object.keys(generatedSlides).length > 0
 
   return (
-    <div className="relative min-h-screen overflow-auto bg-[#0a0a14]">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1033] via-[#0f0a1f] to-[#0a0a14]" />
-        <div className="absolute top-0 left-1/4 h-[600px] w-[600px] rounded-full bg-purple-600/20 blur-[120px]" />
-        <div className="absolute right-1/4 top-1/4 h-[400px] w-[400px] rounded-full bg-violet-500/15 blur-[100px]" />
-        <div className="absolute bottom-1/3 left-1/3 h-[300px] w-[300px] rounded-full bg-fuchsia-600/10 blur-[80px]" />
-        <Aurora colorStops={["#12091f", "#27123d", "#0d0b18"]} amplitude={1.15} blend={0.58} speed={0.75} />
-      </div>
+    <div className="min-h-screen bg-background overflow-hidden">
+      <main className="min-h-screen relative overflow-hidden">
+        <div className="fixed inset-0 w-full h-full">
+          <Aurora colorStops={["#1e1b4b", "#4c1d95", "#312e81"]} amplitude={1.2} blend={0.6} speed={0.8} />
+        </div>
 
-      <GlassmorphismNav />
-
-      <main className="relative z-10">
+        <div className="relative z-10">
+          <GlassmorphismNav />
         <PitchHero />
 
         {/* View toggle */}
@@ -1063,6 +1059,7 @@ export default function PitchCoachPage() {
           </section>
         )}
 
+        </div>
       </main>
 
       <Footer />
