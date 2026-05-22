@@ -63,7 +63,7 @@ export function Footer() {
       <div className="grid w-full gap-8 xl:grid-cols-3 xl:gap-8">
         <AnimatedContainer className="space-y-4">
           <div className="flex items-center gap-3">
-            <Image src="/images/scaleup-logo.jpg" alt="ScaleUp Logo" width={48} height={48} className="size-12" />
+            <Image src="/images/logo.png" alt="ScaleUp Logo" width={48} height={48} className="size-12" />
             <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">ScaleUp</span>
           </div>
           <p className="text-white/60 text-sm max-w-xs">

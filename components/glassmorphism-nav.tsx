@@ -175,7 +175,7 @@ export function GlassmorphismNav() {
               >
                 <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
                   <Image
-                    src="/images/scaleup-logo.jpg"
+                    src="/images/logo.png"
                     alt="ScaleUp"
                     width={40}
                     height={40}
