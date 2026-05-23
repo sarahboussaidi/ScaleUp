@@ -136,8 +136,14 @@
 /* Adding slide-in animation utilities that were missing from tw-animate-css */
 @layer utilities {
   .bg-background {
-    /* nicer light-mode gradient while preserving dark-mode vars */
+    /* Light mode: subtle gradient. Dark mode gets a solid background to avoid white banding. */
     background: linear-gradient(180deg, var(--color-background) 0%, #f6f8fb 100%) !important;
+    background-attachment: fixed;
+  }
+
+  /* Ensure dark mode uses the dark CSS variable only (no light gradient bleed). */
+  .dark .bg-background {
+    background: var(--color-background) !important;
     background-attachment: fixed;
   }
 
